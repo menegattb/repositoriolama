@@ -1,47 +1,50 @@
-# Biblioteca Digital de Mídia
+# Biblioteca Digital de Mídia - CEBB YouTube
 
-Uma plataforma web moderna para hospedar, catalogar e reproduzir coleções de gravações de áudio e vídeo com metadados e transcrições pesquisáveis. Inspirada na "Chögyam Trungpa Digital Library at Naropa University".
+Uma plataforma web moderna para hospedar, catalogar e reproduzir coleções de gravações de áudio e vídeo com metadados e transcrições pesquisáveis. Inspirada na "Chögyam Trungpa Digital Library at Naropa University" e integrada com dados reais do YouTube do CEBB (Centro de Estudos Budistas Bodisatva).
 
-## 🚀 Funcionalidades
+## 🚀 Funcionalidades Implementadas
 
-### Estrutura Geral e Navegação
-- **Header Fixo**: Logo, navegação (Playlists, Recursos, Coleções, Sobre), botões de Doação e Login
-- **Design Responsivo**: Interface adaptável para desktop, tablet e mobile
+### ✅ Integração com YouTube
+- **Dados Reais**: Integração com playlists reais do YouTube do CEBB
+- **Player Integrado**: Reprodução de vídeos do YouTube diretamente na plataforma
+- **Links Externos**: Botões para abrir conteúdo diretamente no YouTube
+- **Thumbnails**: Imagens reais das playlists do YouTube
+- **Metadados**: Extração automática de informações dos títulos
+
+### ✅ Sistema de Filtros Avançados
+- **Filtro por Ano**: Explore conteúdo por período (2009-2025)
+- **Filtro por Localização**: Filtre por cidade/região (SP, Rio, BH, Curitiba, etc.)
+- **Filtro por Tipo**: Separe vídeos por formato
+- **Busca Textual**: Pesquise em títulos e descrições
+- **Estatísticas**: Contadores dinâmicos de playlists, anos e localizações
+
+### ✅ Interface Moderna
+- **Design Responsivo**: Adaptável para desktop, tablet e mobile
+- **Badges Visuais**: Indicadores para conteúdo do YouTube e destaques
+- **Skeleton Loading**: Carregamento suave com indicadores visuais
 - **Navegação Intuitiva**: Menu hambúrguer para dispositivos móveis
 
-### Página "Sobre" (Homepage)
-- Página estática com descrição do projeto
-- Links externos para organizações relacionadas
-- Seção de recursos e funcionalidades
-- Call-to-action para explorar playlists
+### ✅ Páginas Implementadas
+- **Homepage**: Página inicial com informações do projeto
+- **Playlists**: Grid de playlists com filtros e estatísticas
+- **Detalhes da Playlist**: Página completa com player e sidebar
+- **Sobre**: Informações sobre o projeto e links externos
+- **Recursos**: Descrição das funcionalidades da plataforma
+- **Coleções**: Organização temática do conteúdo
 
-### Página de "Playlists"
-- Grade de cartões de playlists com thumbnails
-- Efeito de skeleton loading durante carregamento
-- Sistema de busca e filtros
-- Metadados resumidos (número de talks, ano, local, formato)
-- Selos de "Destaque" para playlists especiais
+## 📊 Dados Reais Integrados
 
-### Página de Detalhes da Playlist / Player de Mídia
-- **Coluna Esquerda (Conteúdo Principal)**:
-  - Informações detalhadas da série
-  - Player de áudio/vídeo integrado com controles customizados
-  - Botão de compartilhamento
-- **Coluna Direita (Sidebar Interativa)**:
-  - Aba "Playlist": Lista completa de faixas com busca
-  - Aba "Ouvindo Agora": Informações detalhadas da faixa atual
-  - Sub-abas "Descrição" e "Transcrição"
-  - Sincronização de transcrição com a mídia
-  - Timestamps clicáveis para navegação
+### Playlists do YouTube (20+ playlists)
+- **Retiros**: Retiros de inverno, meditação, elementos
+- **Palestras**: Ensinamentos sobre meditação, sabedoria, relações
+- **Cursos**: Estudos de aprofundamento, sutras, práticas
+- **Eventos**: Mini-retiros, encontros, workshops
 
-### Funcionalidade de Pesquisa
-- Pesquisa na transcrição da faixa atual
-- Pesquisa/filtro na playlist
-- Busca global na biblioteca (estrutura preparada)
-
-### Autenticação e Usuários
-- Sistema de login básico (estrutura implementada)
-- Preparado para expansão futura com gerenciamento de playlists pessoais
+### Metadados Extraídos Automaticamente
+- **Temas**: Meditação, Retiro, Estudo, Palestra, Curso, Sutras
+- **Localizações**: SP, Rio, BH, Curitiba, Londrina, Paris, Lisboa
+- **Anos**: 2009-2025 (conteúdo histórico e atual)
+- **Tipos de Evento**: Retiro, Palestra, Curso, Estudo de Aprofundamento
 
 ## 🛠️ Stack Tecnológica
 
@@ -49,13 +52,13 @@ Uma plataforma web moderna para hospedar, catalogar e reproduzir coleções de g
 - **Next.js 15**: Framework React com App Router
 - **TypeScript**: Tipagem estática para JavaScript
 - **Tailwind CSS**: Framework CSS utilitário
-- **React Player**: Biblioteca para reprodução de mídia
+- **React Player**: Biblioteca para reprodução de mídia (YouTube)
 - **Lucide React**: Ícones modernos e consistentes
 
-### Estrutura de Dados
-- **TypeScript Interfaces**: Tipos bem definidos para MediaItem, Playlist, Transcript, User
-- **Dados Mock**: Estrutura de dados de exemplo para desenvolvimento
-- **Preparado para Backend**: Estrutura pronta para integração com API
+### Dados
+- **YouTube API**: Integração com playlists reais
+- **TypeScript Interfaces**: Tipos bem definidos
+- **Conversão Automática**: Transformação de dados do YouTube para formato da aplicação
 
 ## 📁 Estrutura do Projeto
 
@@ -65,21 +68,22 @@ src/
 │   ├── layout.tsx         # Layout principal com Header
 │   ├── page.tsx           # Página inicial (Sobre)
 │   ├── globals.css        # Estilos globais
-│   ├── playlists/         # Página de playlists
+│   ├── playlists/         # Página de playlists com filtros
 │   ├── playlist/[id]/     # Página de detalhes da playlist
 │   ├── sobre/             # Página sobre
-│   ├── recursos/           # Página de recursos
+│   ├── recursos/          # Página de recursos
 │   └── colecoes/          # Página de coleções
 ├── components/            # Componentes React
 │   ├── Header.tsx         # Cabeçalho da aplicação
-│   ├── PlaylistCard.tsx   # Cartão de playlist
+│   ├── PlaylistCard.tsx   # Cartão de playlist com dados do YouTube
 │   ├── SkeletonCard.tsx   # Loading skeleton
-│   ├── MediaPlayer.tsx    # Player de mídia
+│   ├── MediaPlayer.tsx    # Player de mídia (YouTube)
 │   └── Sidebar.tsx        # Sidebar da playlist
+├── data/                  # Dados e conversões
+│   ├── youtubeData.ts     # Dados reais do YouTube convertidos
+│   └── mockData.ts        # Dados de exemplo (transcrições)
 ├── types/                 # Definições TypeScript
 │   └── index.ts           # Interfaces e tipos
-├── data/                  # Dados mock
-│   └── mockData.ts        # Dados de exemplo
 └── lib/                   # Utilitários (preparado para futuras funcionalidades)
 ```
 
@@ -126,46 +130,40 @@ npm start
 npm run lint
 ```
 
-## 🎨 Design e UX
+## 🎨 Funcionalidades da Interface
 
-### Características do Design
-- **Design System Consistente**: Cores, tipografia e espaçamentos padronizados
-- **Interface Limpa**: Foco no conteúdo com navegação intuitiva
-- **Responsividade**: Adaptável a todos os tamanhos de tela
-- **Acessibilidade**: Contraste adequado e navegação por teclado
-- **Performance**: Carregamento rápido com skeleton loading
+### Página de Playlists
+- **Grid Responsivo**: Layout adaptável para diferentes telas
+- **Filtros Avançados**: Por ano, localização e tipo
+- **Estatísticas**: Contadores dinâmicos de conteúdo
+- **Busca**: Pesquisa em tempo real
+- **Badges**: Indicadores visuais para YouTube e destaques
 
-### Paleta de Cores
-- **Primária**: Azul (#3B82F6)
-- **Secundária**: Roxo (#8B5CF6)
-- **Sucesso**: Verde (#10B981)
-- **Aviso**: Amarelo (#F59E0B)
-- **Erro**: Vermelho (#EF4444)
-- **Neutros**: Escala de cinzas para textos e backgrounds
+### Página de Detalhes
+- **Player Integrado**: Reprodução de vídeos do YouTube
+- **Sidebar Interativa**: Abas para playlist e informações
+- **Metadados Completos**: Informações detalhadas de cada vídeo
+- **Links Externos**: Acesso direto ao YouTube
+- **Compartilhamento**: Funcionalidade de compartilhar playlists
 
-## 📱 Funcionalidades Implementadas
+### Design System
+- **Cores**: Paleta consistente com azul primário e vermelho do YouTube
+- **Tipografia**: Hierarquia clara de textos
+- **Espaçamentos**: Sistema de espaçamento consistente
+- **Componentes**: Componentes reutilizáveis e modulares
 
-### ✅ Completas
-- [x] Header responsivo com navegação
-- [x] Página inicial com informações do projeto
-- [x] Página de playlists com grid e busca
-- [x] Página de detalhes da playlist
-- [x] Player de mídia integrado
-- [x] Sidebar com abas Playlist e Ouvindo Agora
-- [x] Sistema de transcrições com timestamps
-- [x] Busca em playlists e transcrições
-- [x] Design responsivo
-- [x] Skeleton loading
-- [x] Páginas adicionais (Sobre, Recursos, Coleções)
+## 📱 Responsividade
 
-### 🔄 Em Desenvolvimento
-- [ ] Sistema de autenticação completo
-- [ ] Backend com API
-- [ ] Banco de dados
-- [ ] Upload de arquivos de mídia
-- [ ] Busca global avançada
-- [ ] Sistema de favoritos
-- [ ] Analytics e métricas
+### Breakpoints
+- **Mobile**: < 768px (menu hambúrguer, layout em coluna)
+- **Tablet**: 768px - 1024px (layout híbrido)
+- **Desktop**: > 1024px (layout completo com sidebar)
+
+### Adaptações
+- **Menu**: Hambúrguer em mobile, horizontal em desktop
+- **Grid**: 1 coluna em mobile, 2-3 colunas em desktop
+- **Player**: Altura adaptável conforme dispositivo
+- **Sidebar**: Colapso em mobile, fixa em desktop
 
 ## 🔧 Configuração para Produção
 
@@ -193,6 +191,20 @@ NEXTAUTH_URL=http://localhost:3000
 - **Railway**: Para aplicações full-stack
 - **Heroku**: Com configuração adicional
 
+## 📈 Estatísticas do Conteúdo
+
+### Playlists Disponíveis
+- **Total**: 20+ playlists ativas
+- **Período**: 2009-2025 (16 anos de conteúdo)
+- **Localizações**: 10+ cidades brasileiras e internacionais
+- **Temas**: 8+ categorias temáticas
+
+### Tipos de Conteúdo
+- **Retiros**: Meditação, elementos, práticas espirituais
+- **Palestras**: Ensinamentos públicos e abertos
+- **Cursos**: Estudos aprofundados e especializados
+- **Eventos**: Mini-retiros e workshops
+
 ## 🤝 Contribuição
 
 ### Fluxo de Trabalho Git
@@ -207,16 +219,13 @@ NEXTAUTH_URL=http://localhost:3000
 - **Prettier**: Formatação consistente
 - **Conventional Commits**: Padrão de mensagens de commit
 
-## 📄 Licença
-
-Este projeto é desenvolvido como uma réplica educacional da "Chögyam Trungpa Digital Library at Naropa University". 
-
 ## 🔗 Links Úteis
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [React Player](https://github.com/cookpete/react-player)
 - [Lucide Icons](https://lucide.dev/)
+- [CEBB - Centro de Estudos Budistas Bodisatva](https://cebb.org.br)
 
 ## 📞 Suporte
 
@@ -225,3 +234,5 @@ Para dúvidas ou sugestões sobre o projeto, abra uma issue no repositório GitH
 ---
 
 **Desenvolvido com ❤️ usando Next.js, TypeScript e Tailwind CSS**
+
+**Integrado com dados reais do YouTube do CEBB - Centro de Estudos Budistas Bodisatva**

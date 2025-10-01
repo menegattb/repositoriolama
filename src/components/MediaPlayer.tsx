@@ -17,7 +17,7 @@ export default function MediaPlayer({ mediaItem, onTimeUpdate }: MediaPlayerProp
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isYouTube, setIsYouTube] = useState(false);
-  const playerRef = useRef<ReactPlayer>(null);
+  const playerRef = useRef<ReactPlayer | null>(null);
 
   useEffect(() => {
     if (mediaItem) {
