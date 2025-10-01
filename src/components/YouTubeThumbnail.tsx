@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
+import { useYouTubeThumbnail } from '@/hooks/useYouTubeThumbnail';
 
 interface YouTubeThumbnailProps {
   playlistId: string;
@@ -16,19 +17,20 @@ export default function YouTubeThumbnail({ playlistId, title, theme = 'Ensinamen
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
 
+  const { videoData, loading, error } = useYouTubeThumbnail(playlistId);
+
   // Garantir que só execute no cliente
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   // Diferentes URLs de thumbnail do YouTube para tentar
-  const thumbnailUrls = [
-    `https://img.youtube.com/vi_webp/${playlistId.slice(-11)}/maxresdefault.webp`,
-    `https://img.youtube.com/vi/${playlistId.slice(-11)}/maxresdefault.jpg`,
-    `https://img.youtube.com/vi/${playlistId.slice(-11)}/hqdefault.jpg`,
-    `https://img.youtube.com/vi/${playlistId.slice(-11)}/mqdefault.jpg`,
-    `https://img.youtube.com/vi/${playlistId.slice(-11)}/default.jpg`,
-  ];
+  const thumbnailUrls = videoData ? [
+    videoData.thumbnail,
+    `https://img.youtube.com/vi/${videoData.videoId}/hqdefault.jpg`,
+    `https://img.youtube.com/vi/${videoData.videoId}/mqdefault.jpg`,
+    `https://img.youtube.com/vi/${videoData.videoId}/default.jpg`,
+  ] : [];
 
   const getFallbackThumbnail = (theme: string) => {
     const themeColors = {
@@ -58,8 +60,20 @@ export default function YouTubeThumbnail({ playlistId, title, theme = 'Ensinamen
     }
   };
 
+  // Mostrar loading durante busca dos dados
+  if (!isClient || loading) {
+    return (
+      <div className={`w-full h-full bg-gradient-to-br ${getFallbackThumbnail(theme)} flex items-center justify-center ${className}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 mx-auto mb-2"></div>
+          <p className="text-xs text-gray-600 font-medium">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Mostrar fallback durante SSR ou se não estiver no cliente
-  if (!isClient || imageError) {
+  if (error || imageError || !videoData || thumbnailUrls.length === 0) {
     return (
       <div className={`w-full h-full bg-gradient-to-br ${getFallbackThumbnail(theme)} flex items-center justify-center ${className}`}>
         <div className="text-center">
@@ -73,7 +87,7 @@ export default function YouTubeThumbnail({ playlistId, title, theme = 'Ensinamen
   return (
     <Image
       src={thumbnailUrls[currentUrlIndex]}
-      alt={title}
+      alt={videoData.title || title}
       fill
       className="object-cover"
       onError={handleImageError}
