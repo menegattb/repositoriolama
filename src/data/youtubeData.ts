@@ -160,6 +160,22 @@ function getYouTubeThumbnail(playlistId: string): string {
   return `https://img.youtube.com/vi_webp/${playlistId.slice(-11)}/maxresdefault.webp`;
 }
 
+// Função para gerar duração determinística baseada no ID
+function getDeterministicDuration(playlistId: string, itemCount: number): number {
+  // Usar hash simples do ID para gerar duração consistente
+  let hash = 0;
+  for (let i = 0; i < playlistId.length; i++) {
+    const char = playlistId.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  // Gerar duração entre 30min e 2h baseada no hash
+  const baseDuration = 1800; // 30min
+  const variation = Math.abs(hash) % 5400; // até 1h30min adicional
+  return baseDuration + variation;
+}
+
 // Função para converter dados do YouTube para o formato da aplicação
 export function convertYouTubeToPlaylist(youtubeData: YouTubePlaylist[]): Playlist[] {
   return youtubeData.map((item) => {
@@ -183,7 +199,7 @@ export function convertYouTubeToPlaylist(youtubeData: YouTubePlaylist[]): Playli
       location: location,
       format: 'video' as const,
       media_url: `https://www.youtube.com/playlist?list=${item.id}`,
-      duration: Math.floor(Math.random() * 3600) + 1800, // Entre 30min e 1h30min
+      duration: getDeterministicDuration(item.id, item.itemCount),
       theme: getThemeFromTitle(item.title),
       event_type: getEventTypeFromTitle(item.title),
       series_title: item.title,

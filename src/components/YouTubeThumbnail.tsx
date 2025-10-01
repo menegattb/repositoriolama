@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 
@@ -14,6 +14,12 @@ interface YouTubeThumbnailProps {
 export default function YouTubeThumbnail({ playlistId, title, theme = 'Ensinamentos Gerais', className = '' }: YouTubeThumbnailProps) {
   const [imageError, setImageError] = useState(false);
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
+  const [isClient, setIsClient] = useState(false);
+
+  // Garantir que só execute no cliente
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Diferentes URLs de thumbnail do YouTube para tentar
   const thumbnailUrls = [
@@ -52,7 +58,8 @@ export default function YouTubeThumbnail({ playlistId, title, theme = 'Ensinamen
     }
   };
 
-  if (imageError) {
+  // Mostrar fallback durante SSR ou se não estiver no cliente
+  if (!isClient || imageError) {
     return (
       <div className={`w-full h-full bg-gradient-to-br ${getFallbackThumbnail(theme)} flex items-center justify-center ${className}`}>
         <div className="text-center">
