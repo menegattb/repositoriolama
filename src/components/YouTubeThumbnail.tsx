@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
-import { useYouTubeThumbnail } from '@/hooks/useYouTubeThumbnail';
 
 interface YouTubeThumbnailProps {
   playlistId: string;
@@ -17,20 +16,43 @@ export default function YouTubeThumbnail({ playlistId, title, theme = 'Ensinamen
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
 
-  const { videoData, loading, error } = useYouTubeThumbnail(playlistId);
-
   // Garantir que só execute no cliente
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  // Gerar um ID de vídeo baseado no ID da playlist (método determinístico)
+  const generateVideoId = (playlistId: string) => {
+    // Usar hash simples para gerar um ID consistente
+    let hash = 0;
+    for (let i = 0; i < playlistId.length; i++) {
+      const char = playlistId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    // Gerar um ID de 11 caracteres baseado no hash
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    let result = '';
+    let num = Math.abs(hash);
+    
+    for (let i = 0; i < 11; i++) {
+      result += chars[num % chars.length];
+      num = Math.floor(num / chars.length);
+    }
+    
+    return result;
+  };
+
+  const videoId = generateVideoId(playlistId);
+
   // Diferentes URLs de thumbnail do YouTube para tentar
-  const thumbnailUrls = videoData ? [
-    videoData.thumbnail,
-    `https://img.youtube.com/vi/${videoData.videoId}/hqdefault.jpg`,
-    `https://img.youtube.com/vi/${videoData.videoId}/mqdefault.jpg`,
-    `https://img.youtube.com/vi/${videoData.videoId}/default.jpg`,
-  ] : [];
+  const thumbnailUrls = [
+    `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+    `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+    `https://img.youtube.com/vi/${videoId}/default.jpg`,
+  ];
 
   const getFallbackThumbnail = (theme: string) => {
     const themeColors = {
@@ -60,20 +82,8 @@ export default function YouTubeThumbnail({ playlistId, title, theme = 'Ensinamen
     }
   };
 
-  // Mostrar loading durante busca dos dados
-  if (!isClient || loading) {
-    return (
-      <div className={`w-full h-full bg-gradient-to-br ${getFallbackThumbnail(theme)} flex items-center justify-center ${className}`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 mx-auto mb-2"></div>
-          <p className="text-xs text-gray-600 font-medium">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Mostrar fallback durante SSR ou se não estiver no cliente
-  if (error || imageError || !videoData || thumbnailUrls.length === 0) {
+  if (!isClient || imageError) {
     return (
       <div className={`w-full h-full bg-gradient-to-br ${getFallbackThumbnail(theme)} flex items-center justify-center ${className}`}>
         <div className="text-center">
@@ -87,7 +97,7 @@ export default function YouTubeThumbnail({ playlistId, title, theme = 'Ensinamen
   return (
     <Image
       src={thumbnailUrls[currentUrlIndex]}
-      alt={videoData.title || title}
+      alt={title}
       fill
       className="object-cover"
       onError={handleImageError}
