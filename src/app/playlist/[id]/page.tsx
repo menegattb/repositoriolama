@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { mockPlaylists, mockTranscripts } from '@/data/mockData';
+import { youtubePlaylists } from '@/data/youtubeData';
+import { mockTranscripts } from '@/data/mockData';
 import { Playlist, MediaItem, Transcript } from '@/types';
 import MediaPlayer from '@/components/MediaPlayer';
 import Sidebar from '@/components/Sidebar';
-import { Share2, ArrowLeft } from 'lucide-react';
+import { Share2, ArrowLeft, ExternalLink, Calendar, MapPin, Headphones } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PlaylistDetailPage() {
@@ -21,7 +22,7 @@ export default function PlaylistDetailPage() {
   useEffect(() => {
     // Simular carregamento de dados
     const timer = setTimeout(() => {
-      const foundPlaylist = mockPlaylists.find(p => p.id === playlistId);
+      const foundPlaylist = youtubePlaylists.find(p => p.id === playlistId);
       if (foundPlaylist) {
         setPlaylist(foundPlaylist);
         // Selecionar o primeiro item por padrão
@@ -64,6 +65,12 @@ export default function PlaylistDetailPage() {
     }
   };
 
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -92,6 +99,8 @@ export default function PlaylistDetailPage() {
     );
   }
 
+  const totalDuration = playlist.items.reduce((acc, item) => acc + item.duration, 0);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -106,22 +115,59 @@ export default function PlaylistDetailPage() {
           </Link>
           
           <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                {playlist.title}
-              </h1>
-              <p className="text-lg text-gray-600 max-w-3xl">
-                {playlist.description}
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+                  {playlist.title}
+                </h1>
+                <div className="bg-red-600 text-white px-2 py-1 rounded text-sm font-medium">
+                  YouTube
+                </div>
+              </div>
+              
+              <p className="text-lg text-gray-600 max-w-3xl mb-4">
+                {playlist.description || `Série de ${playlist.metadata.total_talks} vídeos sobre ensinamentos budistas do CEBB.`}
               </p>
+
+              {/* Playlist Stats */}
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+                <div className="flex items-center space-x-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>{playlist.metadata.year}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{playlist.metadata.location}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Headphones className="w-4 h-4" />
+                  <span>{playlist.metadata.total_talks} vídeos</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span>Duração total: {formatDuration(totalDuration)}</span>
+                </div>
+              </div>
             </div>
             
-            <button
-              onClick={handleShare}
-              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>Compartilhar</span>
-            </button>
+            <div className="flex space-x-3">
+              <a
+                href={`https://www.youtube.com/playlist?list=${playlist.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Abrir no YouTube</span>
+              </a>
+              
+              <button
+                onClick={handleShare}
+                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Compartilhar</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -141,9 +187,17 @@ export default function PlaylistDetailPage() {
                 Informações da Série
               </h2>
               <div className="prose prose-gray max-w-none">
-                <p className="text-gray-700 leading-relaxed">
-                  {playlist.description}
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  {playlist.description || `Esta é uma série de ${playlist.metadata.total_talks} vídeos sobre ensinamentos budistas do CEBB (Centro de Estudos Budistas Bodisatva).`}
                 </p>
+                
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                  <h3 className="font-semibold text-blue-900 mb-2">Sobre o CEBB</h3>
+                  <p className="text-blue-800 text-sm">
+                    O Centro de Estudos Budistas Bodisatva (CEBB) é uma organização dedicada ao estudo e prática do budismo tibetano, 
+                    oferecendo ensinamentos, retiros e cursos para a comunidade brasileira.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

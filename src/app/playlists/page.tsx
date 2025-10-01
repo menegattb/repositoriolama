@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { mockPlaylists } from '@/data/mockData';
+import { youtubePlaylists } from '@/data/youtubeData';
 import PlaylistCard from '@/components/PlaylistCard';
 import SkeletonCard from '@/components/SkeletonCard';
-import { Search } from 'lucide-react';
+import { Search, Calendar, MapPin, Video } from 'lucide-react';
 
 export default function PlaylistsPage() {
-  const [playlists, setPlaylists] = useState(mockPlaylists);
+  const [playlists, setPlaylists] = useState(youtubePlaylists);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterYear, setFilterYear] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterType, setFilterType] = useState('');
 
   useEffect(() => {
     // Simular carregamento de dados
@@ -20,12 +23,30 @@ export default function PlaylistsPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const filteredPlaylists = playlists.filter(playlist =>
-    playlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    playlist.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    playlist.metadata.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    playlist.metadata.year.includes(searchTerm)
-  );
+  // Extrair anos únicos para o filtro
+  const availableYears = [...new Set(playlists.map(p => p.metadata.year))].sort((a, b) => b.localeCompare(a));
+  
+  // Extrair localizações únicas para o filtro
+  const availableLocations = [...new Set(playlists.map(p => p.metadata.location))].sort();
+
+  const filteredPlaylists = playlists.filter(playlist => {
+    const matchesSearch = playlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         playlist.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         playlist.metadata.location.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesYear = !filterYear || playlist.metadata.year === filterYear;
+    const matchesLocation = !filterLocation || playlist.metadata.location === filterLocation;
+    const matchesType = !filterType || playlist.metadata.format === filterType;
+
+    return matchesSearch && matchesYear && matchesLocation && matchesType;
+  });
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilterYear('');
+    setFilterLocation('');
+    setFilterType('');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -33,22 +54,120 @@ export default function PlaylistsPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Playlists
+            Playlists do YouTube
           </h1>
           <p className="text-lg text-gray-600 mb-6">
-            Explore nossa coleção de playlists organizadas por temas e séries
+            Explore nossa coleção de playlists do YouTube com ensinamentos budistas do CEBB
           </p>
 
-          {/* Search */}
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Pesquisar playlists..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+          {/* Search and Filters */}
+          <div className="space-y-4">
+            {/* Search */}
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Pesquisar playlists..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-4">
+              <select
+                value={filterYear}
+                onChange={(e) => setFilterYear(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Todos os anos</option>
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+
+              <select
+                value={filterLocation}
+                onChange={(e) => setFilterLocation(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Todas as localizações</option>
+                {availableLocations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
+              </select>
+
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Todos os formatos</option>
+                <option value="Video">Vídeo</option>
+                <option value="Audio">Áudio</option>
+              </select>
+
+              {(searchTerm || filterYear || filterLocation || filterType) && (
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Limpar filtros
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center">
+              <Video className="w-8 h-8 text-blue-600 mr-3" />
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {loading ? '...' : playlists.length}
+                </div>
+                <div className="text-sm text-gray-600">Total de Playlists</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center">
+              <Calendar className="w-8 h-8 text-green-600 mr-3" />
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {loading ? '...' : availableYears.length}
+                </div>
+                <div className="text-sm text-gray-600">Anos Diferentes</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center">
+              <MapPin className="w-8 h-8 text-purple-600 mr-3" />
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {loading ? '...' : availableLocations.length}
+                </div>
+                <div className="text-sm text-gray-600">Localizações</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center">
+              <Search className="w-8 h-8 text-orange-600 mr-3" />
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {loading ? '...' : playlists.reduce((acc, p) => acc + p.metadata.total_talks, 0)}
+                </div>
+                <div className="text-sm text-gray-600">Total de Vídeos</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -81,13 +200,13 @@ export default function PlaylistsPage() {
               Nenhuma playlist encontrada
             </h3>
             <p className="text-gray-600 mb-4">
-              Tente ajustar seus termos de pesquisa
+              Tente ajustar seus termos de pesquisa ou filtros
             </p>
             <button
-              onClick={() => setSearchTerm('')}
+              onClick={clearFilters}
               className="text-blue-600 hover:text-blue-800 font-medium"
             >
-              Limpar pesquisa
+              Limpar filtros
             </button>
           </div>
         )}

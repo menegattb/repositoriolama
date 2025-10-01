@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import ReactPlayer from 'react-player';
-import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, ExternalLink } from 'lucide-react';
 import { MediaItem } from '@/types';
 
 interface MediaPlayerProps {
@@ -16,7 +16,14 @@ export default function MediaPlayer({ mediaItem, onTimeUpdate }: MediaPlayerProp
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isYouTube, setIsYouTube] = useState(false);
   const playerRef = useRef<ReactPlayer>(null);
+
+  useEffect(() => {
+    if (mediaItem) {
+      setIsYouTube(mediaItem.media_url.includes('youtube.com') || mediaItem.media_url.includes('youtu.be'));
+    }
+  }, [mediaItem]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -60,6 +67,9 @@ export default function MediaPlayer({ mediaItem, onTimeUpdate }: MediaPlayerProp
   if (!mediaItem) {
     return (
       <div className="bg-gray-100 rounded-lg p-8 text-center">
+        <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Play className="w-8 h-8 text-gray-500" />
+        </div>
         <p className="text-gray-500">Selecione uma faixa para reproduzir</p>
       </div>
     );
@@ -77,8 +87,15 @@ export default function MediaPlayer({ mediaItem, onTimeUpdate }: MediaPlayerProp
           onProgress={handleProgress}
           onDuration={handleDuration}
           width="100%"
-          height="200px"
+          height="300px"
           config={{
+            youtube: {
+              playerVars: {
+                showinfo: 0,
+                rel: 0,
+                modestbranding: 1,
+              },
+            },
             file: {
               attributes: {
                 controls: false,
@@ -151,16 +168,48 @@ export default function MediaPlayer({ mediaItem, onTimeUpdate }: MediaPlayerProp
             </button>
           </div>
         </div>
+
+        {/* YouTube Badge */}
+        {isYouTube && (
+          <div className="absolute top-3 right-3">
+            <div className="bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">
+              YouTube
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Media Info */}
       <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">
-          {mediaItem.track_title}
-        </h3>
+        <div className="flex items-start justify-between mb-2">
+          <h3 className="text-xl font-bold text-gray-900">
+            {mediaItem.track_title}
+          </h3>
+          {isYouTube && (
+            <a
+              href={mediaItem.media_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1 text-red-600 hover:text-red-800 text-sm"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Abrir no YouTube</span>
+            </a>
+          )}
+        </div>
+        
         <p className="text-gray-600 text-sm mb-2">
           {mediaItem.series_title}
         </p>
+        
+        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+          <span>{mediaItem.event_type}</span>
+          <span>•</span>
+          <span>{mediaItem.location}</span>
+          <span>•</span>
+          <span>{new Date(mediaItem.date).toLocaleDateString('pt-BR')}</span>
+        </div>
+        
         <p className="text-gray-700 text-sm">
           {mediaItem.description}
         </p>
