@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { Playlist } from '@/types';
 import { Star, Clock, MapPin, Headphones, ExternalLink, Calendar } from 'lucide-react';
-import YouTubeThumbnail from './YouTubeThumbnail';
-import NoSSR from './NoSSR';
+import LazyYouTubeThumbnail from './LazyYouTubeThumbnail';
 
 interface PlaylistCardProps {
   playlist: Playlist;
@@ -22,23 +21,12 @@ export default function PlaylistCard({ playlist }: PlaylistCardProps) {
       {/* Thumbnail */}
       <div className="relative">
         <div className="w-full h-48 relative">
-          <NoSSR fallback={
-            <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Calendar className="w-8 h-8 text-gray-500" />
-                </div>
-                <p className="text-xs text-gray-600 font-medium">Carregando...</p>
-              </div>
-            </div>
-          }>
-            <YouTubeThumbnail
-              playlistId={playlist.id}
-              title={playlist.title}
-              theme={playlist.items[0]?.theme || 'Ensinamentos Gerais'}
-              className="w-full h-full"
-            />
-          </NoSSR>
+          <LazyYouTubeThumbnail
+            playlistId={playlist.id}
+            title={playlist.title}
+            theme={playlist.items[0]?.theme || 'Ensinamentos Gerais'}
+            className="w-full h-full"
+          />
         </div>
         
         {playlist.featured && (
