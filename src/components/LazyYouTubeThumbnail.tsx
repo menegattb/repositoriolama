@@ -15,7 +15,6 @@ export default function LazyYouTubeThumbnail({ playlistId, title, theme = 'Ensin
   const [imageError, setImageError] = useState(false);
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
@@ -28,11 +27,11 @@ export default function LazyYouTubeThumbnail({ playlistId, title, theme = 'Ensin
   useEffect(() => {
     if (!isClient || !imgRef.current) return;
 
+    const currentRef = imgRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setIsVisible(true);
             // Delay pequeno para evitar carregar muitas imagens de uma vez
             setTimeout(() => setShouldLoad(true), 100);
             observer.unobserve(entry.target);
@@ -45,12 +44,10 @@ export default function LazyYouTubeThumbnail({ playlistId, title, theme = 'Ensin
       }
     );
 
-    observer.observe(imgRef.current);
+    observer.observe(currentRef);
 
     return () => {
-      if (imgRef.current) {
-        observer.unobserve(imgRef.current);
-      }
+      observer.unobserve(currentRef);
     };
   }, [isClient]);
 

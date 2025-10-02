@@ -2161,7 +2161,7 @@ function getYouTubeThumbnail(playlistId: string): string {
 }
 
 // Função para gerar duração determinística baseada no ID
-function getDeterministicDuration(playlistId: string, itemCount: number): number {
+function getDeterministicDuration(playlistId: string): number {
   let hash = 0;
   for (let i = 0; i < playlistId.length; i++) {
     const char = playlistId.charCodeAt(i);
@@ -2197,7 +2197,7 @@ export function convertYouTubeToPlaylist(youtubeData: YouTubePlaylist[]): Playli
       location: location,
       format: 'video' as const,
       media_url: `https://www.youtube.com/playlist?list=${item.id}`,
-      duration: getDeterministicDuration(item.id, item.itemCount),
+      duration: getDeterministicDuration(item.id),
       theme: getThemeFromTitle(item.title),
       event_type: getEventTypeFromTitle(item.title),
       series_title: item.title,

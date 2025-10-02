@@ -7,7 +7,7 @@ import SkeletonCard from '@/components/SkeletonCard';
 import { Search, Calendar, MapPin, Video } from 'lucide-react';
 
 export default function PlaylistsPage() {
-  const [playlists, setPlaylists] = useState(youtubePlaylists);
+  const [playlists] = useState(youtubePlaylists);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterYear, setFilterYear] = useState('');

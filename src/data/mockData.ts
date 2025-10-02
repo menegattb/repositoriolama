@@ -1,4 +1,4 @@
-import { Playlist, MediaItem, Transcript } from '@/types';
+import { Playlist, Transcript } from '@/types';
 
 export const mockPlaylists: Playlist[] = [
   {
