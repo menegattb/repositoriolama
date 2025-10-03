@@ -14,13 +14,13 @@ export async function generateStaticParams() {
 }
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function PlaylistDetailPage({ params }: PageProps) {
-  const playlistId = params.id;
+export default async function PlaylistDetailPage({ params }: PageProps) {
+  const { id: playlistId } = await params;
   
   const playlist = youtubePlaylists.find(p => p.id === playlistId);
   
@@ -37,24 +37,30 @@ export default function PlaylistDetailPage({ params }: PageProps) {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-4">
               <Link 
                 href="/playlists" 
-                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
               >
-                <ArrowLeft size={20} />
-                Voltar
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                Voltar às Playlists
               </Link>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <h1 className="text-lg font-semibold text-gray-900 truncate">
-                {playlist.title}
-              </h1>
             </div>
-            
-            <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <Share2 size={16} />
-              Compartilhar
-            </button>
+            <div className="flex items-center space-x-4">
+              <button className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+                <Share2 className="w-5 h-5 mr-2" />
+                Compartilhar
+              </button>
+              <a 
+                href={`https://www.youtube.com/playlist?list=${playlist.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ExternalLink className="w-5 h-5 mr-2" />
+                Ver no YouTube
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -62,59 +68,45 @@ export default function PlaylistDetailPage({ params }: PageProps) {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Media Player */}
-            <MediaPlayer 
-              mediaItem={currentMediaItem} 
-            />
-
-            {/* Series Information */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Sobre esta playlist</h2>
-              <p className="text-gray-600 mb-4">{playlist.description}</p>
+          {/* Video Player - 2/3 width */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <MediaPlayer mediaItem={currentMediaItem} />
               
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Calendar size={16} className="text-gray-400" />
-                  <span className="text-gray-600">
-                    {playlist.metadata.year || 'N/A'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin size={16} className="text-gray-400" />
-                  <span className="text-gray-600">
-                    {playlist.metadata.location || 'N/A'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Headphones size={16} className="text-gray-400" />
-                  <span className="text-gray-600">
-                    {playlist.items?.length || 0} itens
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ExternalLink size={16} className="text-gray-400" />
-                  <a 
-                    href={playlist.items?.[0]?.media_url || '#'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    Ver no YouTube
-                  </a>
+              {/* Video Info */}
+              <div className="p-6">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  {playlist.title}
+                </h1>
+                <p className="text-gray-600 mb-4">
+                  {playlist.description}
+                </p>
+                
+                {/* Metadata */}
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    {new Date(playlist.metadata.year).getFullYear()}
+                  </div>
+                  <div className="flex items-center">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    {playlist.metadata.location}
+                  </div>
+                  <div className="flex items-center">
+                    <Headphones className="w-4 h-4 mr-1" />
+                    {playlist.metadata.total_talks} vídeos
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column - Sidebar */}
+          {/* Sidebar - 1/3 width */}
           <div className="lg:col-span-1">
             <Sidebar 
-              playlist={playlist}
-              currentMediaItem={currentMediaItem}
-              
-              transcript={transcript}
+              playlist={playlist} 
+              currentMediaItem={currentMediaItem} 
+              transcript={transcript} 
             />
           </div>
         </div>

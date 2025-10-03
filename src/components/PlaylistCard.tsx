@@ -5,9 +5,10 @@ import LazyYouTubeThumbnail from './LazyYouTubeThumbnail';
 
 interface PlaylistCardProps {
   playlist: Playlist;
+  index?: number; // Índice do item na lista
 }
 
-export default function PlaylistCard({ playlist }: PlaylistCardProps) {
+export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps) {
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -15,6 +16,40 @@ export default function PlaylistCard({ playlist }: PlaylistCardProps) {
   };
 
   const totalDuration = playlist.items.reduce((acc, item) => acc + item.duration, 0);
+  
+  // Extrair o ID do vídeo da URL do primeiro item
+  const getFirstVideoId = (playlist: Playlist) => {
+    const firstItem = playlist.items[0];
+    if (!firstItem) return null;
+    
+    // Se a URL é uma playlist, vamos gerar um ID determinístico baseado no ID da playlist
+    if (firstItem.media_url.includes('playlist?list=')) {
+      const playlistId = playlist.id;
+      let hash = 0;
+      for (let i = 0; i < playlistId.length; i++) {
+        const char = playlistId.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+      let result = '';
+      let num = Math.abs(hash);
+      
+      for (let i = 0; i < 11; i++) {
+        result += chars[num % chars.length];
+        num = Math.floor(num / chars.length);
+      }
+      
+      return result;
+    }
+    
+    // Se é uma URL de vídeo, extrair o ID
+    const videoIdMatch = firstItem.media_url.match(/[?&]v=([^&]+)/);
+    return videoIdMatch ? videoIdMatch[1] : null;
+  };
+
+  const firstVideoId = getFirstVideoId(playlist);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -23,9 +58,11 @@ export default function PlaylistCard({ playlist }: PlaylistCardProps) {
         <div className="w-full h-48 relative">
           <LazyYouTubeThumbnail
             playlistId={playlist.id}
+            videoId={firstVideoId}
             title={playlist.title}
             theme={playlist.items[0]?.theme || 'Ensinamentos Gerais'}
             className="w-full h-full"
+            index={index}
           />
         </div>
         
@@ -46,59 +83,52 @@ export default function PlaylistCard({ playlist }: PlaylistCardProps) {
         </div>
       </div>
 
-      <div className="p-6">
-        {/* Title */}
-        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
           {playlist.title}
         </h3>
-
+        
         {/* Metadata */}
-        <div className="space-y-2 mb-3">
-          <div className="flex items-center space-x-4 text-sm text-gray-600">
-            <div className="flex items-center space-x-1">
-              <Calendar className="w-4 h-4" />
-              <span>{playlist.metadata.year}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <MapPin className="w-4 h-4" />
-              <span>{playlist.metadata.location}</span>
-            </div>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-3">
+          <div className="flex items-center">
+            <Calendar className="w-4 h-4 mr-1" />
+            {playlist.metadata.year}
           </div>
-          
-          <div className="flex items-center space-x-4 text-sm text-gray-600">
-            <div className="flex items-center space-x-1">
-              <Clock className="w-4 h-4" />
-              <span>{formatDuration(totalDuration)}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Headphones className="w-4 h-4" />
-              <span>{playlist.metadata.total_talks} vídeos</span>
-            </div>
+          <div className="flex items-center">
+            <MapPin className="w-4 h-4 mr-1" />
+            {playlist.metadata.location}
+          </div>
+          <div className="flex items-center">
+            <Clock className="w-4 h-4 mr-1" />
+            {formatDuration(totalDuration)}
+          </div>
+          <div className="flex items-center">
+            <Headphones className="w-4 h-4 mr-1" />
+            {playlist.metadata.total_talks} vídeos
           </div>
         </div>
 
         {/* Description */}
-        <p className="text-gray-700 text-sm mb-4 line-clamp-3">
-          {playlist.description || `Série de ${playlist.metadata.total_talks} vídeos sobre ensinamentos budistas do CEBB.`}
+        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+          {playlist.description}
         </p>
 
-        {/* Action buttons */}
-        <div className="space-y-2">
+        {/* Actions */}
+        <div className="flex gap-2">
           <Link 
             href={`/playlist/${playlist.id}`}
-            className="inline-flex items-center justify-center w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-center text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             Ver Playlist
           </Link>
-          
           <a
             href={`https://www.youtube.com/playlist?list=${playlist.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+            className="flex items-center justify-center px-3 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 transition-colors"
           >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Abrir no YouTube
+            <ExternalLink className="w-4 h-4" />
           </a>
         </div>
       </div>

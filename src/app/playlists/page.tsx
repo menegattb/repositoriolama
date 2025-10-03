@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { youtubePlaylists } from '@/data/youtubeData';
 import PlaylistCard from '@/components/PlaylistCard';
 import SkeletonCard from '@/components/SkeletonCard';
-import { Search, Calendar, MapPin, Video } from 'lucide-react';
+import { Search, Calendar, MapPin, Video, ChevronDown } from 'lucide-react';
 
 export default function PlaylistsPage() {
   const [playlists] = useState(youtubePlaylists);
@@ -13,15 +13,20 @@ export default function PlaylistsPage() {
   const [filterYear, setFilterYear] = useState('');
   const [filterLocation, setFilterLocation] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [visibleCount, setVisibleCount] = useState(9);
 
   useEffect(() => {
-    // Simular carregamento de dados
+    // Debug: verificar se os dados estão carregando
+    console.log('Playlists carregadas:', playlists.length);
+    
+    // Timer mais curto para debug
     const timer = setTimeout(() => {
+      console.log('Timer executado, setLoading(false)');
       setLoading(false);
-    }, 1500);
+    }, 500); // Reduzido para 500ms
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [playlists.length]);
 
   // Extrair anos únicos para o filtro
   const availableYears = [...new Set(playlists.map(p => p.metadata.year))].sort((a, b) => b.localeCompare(a));
@@ -41,12 +46,27 @@ export default function PlaylistsPage() {
     return matchesSearch && matchesYear && matchesLocation && matchesType;
   });
 
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(9);
+  }, [searchTerm, filterYear, filterLocation, filterType]);
+
   const clearFilters = () => {
     setSearchTerm('');
     setFilterYear('');
     setFilterLocation('');
     setFilterType('');
+    setVisibleCount(9);
   };
+
+  const loadMore = () => {
+    setVisibleCount(prev => Math.min(prev + 9, filteredPlaylists.length));
+  };
+
+  const visiblePlaylists = filteredPlaylists.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredPlaylists.length;
+
+  console.log('Renderizando - loading:', loading, 'playlists:', playlists.length, 'filtered:', filteredPlaylists.length);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -175,22 +195,49 @@ export default function PlaylistsPage() {
         <div className="mb-6">
           <p className="text-sm text-gray-600">
             {loading ? 'Carregando...' : `${filteredPlaylists.length} playlist${filteredPlaylists.length !== 1 ? 's' : ''} encontrada${filteredPlaylists.length !== 1 ? 's' : ''}`}
+            {!loading && visibleCount < filteredPlaylists.length && (
+              <span className="ml-2 text-blue-600">
+                (mostrando {visibleCount} de {filteredPlaylists.length})
+              </span>
+            )}
           </p>
         </div>
 
         {/* Playlists Grid */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, index) => (
+            {[...Array(9)].map((_, index) => (
               <SkeletonCard key={index} />
             ))}
           </div>
         ) : filteredPlaylists.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPlaylists.map((playlist) => (
-              <PlaylistCard key={playlist.id} playlist={playlist} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {visiblePlaylists.map((playlist, index) => (
+                <PlaylistCard 
+                  key={playlist.id} 
+                  playlist={playlist} 
+                  index={index} // Passar o índice para controle de carregamento
+                />
+              ))}
+            </div>
+
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="flex justify-center mt-12">
+                <button
+                  onClick={loadMore}
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                  Ver mais playlists
+                  <span className="text-blue-200">
+                    ({filteredPlaylists.length - visibleCount} restantes)
+                  </span>
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-12">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">

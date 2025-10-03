@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { Play } from 'lucide-react';
 
 interface LazyYouTubeThumbnailProps {
@@ -9,37 +8,35 @@ interface LazyYouTubeThumbnailProps {
   title: string;
   theme?: string;
   className?: string;
+  index?: number;
 }
 
-export default function LazyYouTubeThumbnail({ playlistId, title, theme = 'Ensinamentos Gerais', className = '' }: LazyYouTubeThumbnailProps) {
+export default function LazyYouTubeThumbnail({ 
+  playlistId, 
+  title, 
+  theme = 'Ensinamentos Gerais', 
+  className = '',
+  index = 0
+}: LazyYouTubeThumbnailProps) {
+  const [isVisible, setIsVisible] = useState(index < 9);
   const [imageError, setImageError] = useState(false);
-  const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
-  const [isClient, setIsClient] = useState(false);
-  const [shouldLoad, setShouldLoad] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
-  // Garantir que só execute no cliente
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Intersection Observer para detectar quando a imagem está visível
-  useEffect(() => {
-    if (!isClient || !imgRef.current) return;
+    if (index < 9 || !imgRef.current) return;
 
     const currentRef = imgRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Delay pequeno para evitar carregar muitas imagens de uma vez
-            setTimeout(() => setShouldLoad(true), 100);
+            setTimeout(() => setIsVisible(true), 100);
             observer.unobserve(entry.target);
           }
         });
       },
       {
-        rootMargin: '50px', // Começar a carregar 50px antes de ficar visível
+        rootMargin: '50px',
         threshold: 0.1
       }
     );
@@ -47,40 +44,9 @@ export default function LazyYouTubeThumbnail({ playlistId, title, theme = 'Ensin
     observer.observe(currentRef);
 
     return () => {
-      observer.unobserve(currentRef);
+      if (currentRef) observer.unobserve(currentRef);
     };
-  }, [isClient]);
-
-  // Gerar um ID de vídeo baseado no ID da playlist (método determinístico)
-  const generateVideoId = (playlistId: string) => {
-    let hash = 0;
-    for (let i = 0; i < playlistId.length; i++) {
-      const char = playlistId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
-    let result = '';
-    let num = Math.abs(hash);
-    
-    for (let i = 0; i < 11; i++) {
-      result += chars[num % chars.length];
-      num = Math.floor(num / chars.length);
-    }
-    
-    return result;
-  };
-
-  const videoId = generateVideoId(playlistId);
-
-  // Diferentes URLs de thumbnail do YouTube para tentar
-  const thumbnailUrls = [
-    `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-    `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-    `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
-    `https://img.youtube.com/vi/${videoId}/default.jpg`,
-  ];
+  }, [index]);
 
   const getFallbackThumbnail = (theme: string) => {
     const themeColors = {
@@ -100,53 +66,35 @@ export default function LazyYouTubeThumbnail({ playlistId, title, theme = 'Ensin
     return themeColors[theme as keyof typeof themeColors] || 'from-blue-100 to-purple-100';
   };
 
-  const handleImageError = () => {
-    if (currentUrlIndex < thumbnailUrls.length - 1) {
-      setCurrentUrlIndex(currentUrlIndex + 1);
-    } else {
-      setImageError(true);
-    }
-  };
-
-  // Mostrar placeholder durante SSR ou se não estiver visível
-  if (!isClient || !shouldLoad) {
+  // Mostrar fallback se não está visível ou houve erro
+  if (!isVisible || imageError) {
     return (
       <div 
         ref={imgRef}
         className={`w-full h-full bg-gradient-to-br ${getFallbackThumbnail(theme)} flex items-center justify-center ${className}`}
       >
         <div className="text-center">
-          <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-            <Play className="w-8 h-8 text-gray-500" />
+          <div className="w-16 h-16 bg-white/30 rounded-full flex items-center justify-center mx-auto mb-2">
+            <Play className="w-8 h-8 text-gray-700" />
           </div>
-          <p className="text-xs text-gray-600 font-medium">YouTube</p>
+          <p className="text-xs text-gray-700 font-medium">YouTube</p>
         </div>
       </div>
     );
   }
 
-  // Mostrar fallback se todas as URLs falharam
-  if (imageError) {
-    return (
-      <div className={`w-full h-full bg-gradient-to-br ${getFallbackThumbnail(theme)} flex items-center justify-center ${className}`}>
-        <div className="text-center">
-          <Play className="w-16 h-16 text-gray-600 mx-auto mb-2" />
-          <p className="text-xs text-gray-600 font-medium">YouTube</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Carregar imagem real
+  // Usar iframe do YouTube para mostrar thumbnail (mesmo método do ReactPlayer)
   return (
-    <Image
-      src={thumbnailUrls[currentUrlIndex]}
-      alt={title}
-      fill
-      className="object-cover"
-      onError={handleImageError}
-      loading="lazy"
-      priority={false}
-    />
+    <div className={`w-full h-full ${className}`}>
+      <iframe
+        src={`https://www.youtube.com/embed/videoseries?list=${playlistId}&autoplay=0&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1`}
+        className="w-full h-full"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        title={title}
+        onError={() => setImageError(true)}
+      />
+    </div>
   );
 }
