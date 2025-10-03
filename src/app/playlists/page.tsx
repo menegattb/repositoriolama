@@ -69,16 +69,16 @@ export default function PlaylistsPage() {
   console.log('Renderizando - loading:', loading, 'playlists:', playlists.length, 'filtered:', filteredPlaylists.length);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-primary-lightGray py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Playlists do YouTube
-          </h1>
-          <p className="text-lg text-gray-600 mb-6">
-            Explore nossa coleção de playlists do YouTube com ensinamentos budistas do CEBB
-          </p>
+               <h1 className="text-4xl md:text-5xl font-bold text-primary-charcoal mb-4">
+                 Ensinamentos do CEBB
+               </h1>
+               <p className="text-lg text-gray-600 mb-6 font-normal">
+                 Explore nossa coleção de ensinamentos budistas do Centro de Estudos Budistas Bodisatva
+               </p>
 
           {/* Search and Filters */}
           <div className="space-y-4">
@@ -87,7 +87,7 @@ export default function PlaylistsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Pesquisar playlists..."
+                placeholder="Pesquisar ensinamentos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -142,14 +142,14 @@ export default function PlaylistsPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-4">
+          <div className="bg-primary-white rounded-lg shadow-base p-4">
             <div className="flex items-center">
-              <Video className="w-8 h-8 text-blue-600 mr-3" />
+              <Video className="w-8 h-8 text-primary-blue mr-3" />
               <div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-primary-charcoal">
                   {loading ? '...' : playlists.length}
                 </div>
-                <div className="text-sm text-gray-600">Total de Playlists</div>
+                <div className="text-sm text-gray-600 font-normal">Total de Ensinamentos</div>
               </div>
             </div>
           </div>
@@ -230,7 +230,7 @@ export default function PlaylistsPage() {
                   className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
                 >
                   <ChevronDown className="w-5 h-5" />
-                  Ver mais playlists
+                  Ver mais ensinamentos
                   <span className="text-blue-200">
                     ({filteredPlaylists.length - visibleCount} restantes)
                   </span>
@@ -244,7 +244,7 @@ export default function PlaylistsPage() {
               <Search className="w-12 h-12 text-gray-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Nenhuma playlist encontrada
+              Nenhum ensinamento encontrado
             </h3>
             <p className="text-gray-600 mb-4">
               Tente ajustar seus termos de pesquisa ou filtros

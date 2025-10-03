@@ -8,12 +8,14 @@ interface SidebarProps {
   playlist: Playlist;
   currentMediaItem: MediaItem | null;
   transcript: Transcript | null;
+  onMediaItemSelect?: (item: MediaItem) => void;
 }
 
 export default function Sidebar({ 
   playlist, 
   currentMediaItem, 
-  transcript
+  transcript,
+  onMediaItemSelect
 }: SidebarProps) {
   const [activeTab, setActiveTab] = useState<'playlist' | 'transcript'>('playlist');
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,6 +83,7 @@ export default function Sidebar({
               {filteredItems.map((item, index) => (
                 <div
                   key={item.id}
+                  onClick={() => onMediaItemSelect?.(item)}
                   className={`p-3 rounded-lg border cursor-pointer transition-colors ${
                     currentMediaItem?.id === item.id
                       ? 'border-blue-500 bg-blue-50'
@@ -88,11 +91,20 @@ export default function Sidebar({
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
-                      {index + 1}
+                    {/* Thumbnail */}
+                    <div className="flex-shrink-0 w-16 h-12 bg-gray-200 rounded-md overflow-hidden">
+                      <iframe
+                        src={`https://www.youtube.com/embed/videoseries?list=${playlist.id}&autoplay=0&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&start=${index}`}
+                        className="w-full h-full pointer-events-none"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={item.title}
+                      />
                     </div>
+                    
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-gray-900 truncate">
+                      <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
                         {item.title}
                       </h4>
                       <p className="text-xs text-gray-500 mt-1 line-clamp-2">

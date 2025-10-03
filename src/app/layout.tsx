@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Digital Library - Biblioteca Digital de Mídia",
-  description: "Plataforma de biblioteca digital para hospedar, catalogar e reproduzir coleções de gravações de áudio e vídeo com metadados e transcrições pesquisáveis.",
+  title: "Repositório Ação Paramita",
+  description: "Repositório digital de ensinamentos budistas do CEBB - Centro de Estudos Budistas Bodisatva.",
 };
 
 export default function RootLayout({
@@ -30,7 +30,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Header />
-        <main className="pt-16">
+        <main>
           {children}
         </main>
       </body>

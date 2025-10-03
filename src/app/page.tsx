@@ -11,11 +11,11 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 mb-6 leading-tight">
-              Biblioteca Digital de Mídia
+              Repositório Ação Paramita
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
-              Uma plataforma moderna para preservar, catalogar e compartilhar coleções de áudio e vídeo
+              Ensinamentos budistas do CEBB - Centro de Estudos Budistas Bodisatva
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -44,8 +44,8 @@ export default function Home() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Recursos da Plataforma</h2>
-            <p className="text-xl text-gray-600">Tecnologia moderna para preservação digital</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Recursos do Repositório</h2>
+            <p className="text-xl text-gray-600">Acesso aos ensinamentos budistas do CEBB</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -56,9 +56,9 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Busca Avançada</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Busca nos Ensinamentos</h3>
               <p className="text-gray-700 leading-relaxed">
-                Pesquise em metadados completos e transcrições para encontrar exatamente o que você precisa.
+                Pesquise nos ensinamentos budistas do CEBB para encontrar exatamente o que você procura.
               </p>
             </div>
 
@@ -70,9 +70,9 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Player Integrado</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Reprodução de Vídeos</h3>
               <p className="text-gray-700 leading-relaxed">
-                Reproduza áudio e vídeo diretamente no navegador com controles intuitivos e responsivos.
+                Assista aos ensinamentos budistas diretamente no navegador com controles intuitivos.
               </p>
             </div>
 
@@ -83,9 +83,9 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Transcrições</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Transcrições dos Ensinamentos</h3>
               <p className="text-gray-700 leading-relaxed">
-                Acesse transcrições completas com marcações de tempo sincronizadas com a mídia.
+                Acesse transcrições completas dos ensinamentos com marcações de tempo sincronizadas.
               </p>
             </div>
           </div>
@@ -97,19 +97,19 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Sobre o Projeto
+              Sobre o Repositório
             </h2>
           </div>
 
           <div className="prose prose-lg mx-auto text-gray-700">
             <p className="text-lg leading-relaxed mb-6">
-              Esta plataforma foi desenvolvida como uma réplica da &ldquo;Chögyam Trungpa Digital Library at Naropa University&rdquo;, 
-              com o objetivo de criar uma biblioteca digital moderna e acessível para hospedar coleções de gravações de áudio e vídeo.
+              O Repositório Ação Paramita é uma plataforma digital dedicada aos ensinamentos budistas do CEBB - Centro de Estudos Budistas Bodisatva. 
+              Aqui você encontra uma coleção organizada de palestras, retiros e ensinamentos sobre o budismo.
             </p>
             
             <p className="text-lg leading-relaxed mb-6">
-              Nossa missão é preservar e tornar acessível conteúdo educacional e cultural valioso, 
-              oferecendo uma experiência de usuário intuitiva com recursos avançados de busca e reprodução de mídia.
+              Nossa missão é preservar e tornar acessível o conhecimento budista, 
+              oferecendo uma experiência intuitiva para estudar e praticar os ensinamentos do Dharma.
             </p>
 
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-r-lg my-8">
@@ -123,8 +123,8 @@ export default function Home() {
             </div>
 
             <p className="text-lg leading-relaxed mb-6">
-              O projeto está em constante evolução, com novos recursos sendo adicionados regularmente 
-              para melhorar a experiência do usuário e expandir as capacidades da plataforma.
+              O repositório está em constante evolução, com novos ensinamentos sendo adicionados regularmente 
+              para enriquecer o conhecimento budista disponível aos praticantes.
             </p>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function Home() {
             Comece a Explorar Agora
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Descubra nossa coleção completa de gravações de áudio e vídeo
+            Explore nossa coleção completa de ensinamentos budistas do CEBB
           </p>
           <a 
             href="/playlists" 

@@ -1,0 +1,180 @@
+// import secret from '../../secret.json';
+import { MediaItem } from '@/types';
+
+// Fallback para quando não há secret.json
+const getApiKey = (): string => {
+  try {
+    // Tentar importar o secret.json dinamicamente
+    const secret = require('../../secret.json');
+    return secret.web?.api_key || secret.api_key || '';
+  } catch (error) {
+    console.warn('secret.json not found, using mock data');
+    return '';
+  }
+};
+
+interface YouTubeVideoItem {
+  id: string;
+  snippet: {
+    publishedAt: string;
+    channelId: string;
+    title: string;
+    description: string;
+    thumbnails: {
+      default: { url: string; width: number; height: number; };
+      medium: { url: string; width: number; height: number; };
+      high: { url: string; width: number; height: number; };
+      standard: { url: string; width: number; height: number; };
+      maxres: { url: string; width: number; height: number; };
+    };
+    resourceId: {
+      kind: string;
+      videoId: string;
+    };
+  };
+}
+
+interface YouTubePlaylistResponse {
+  items: YouTubeVideoItem[];
+  nextPageToken?: string;
+}
+
+interface VideoDetails {
+  id: string;
+  contentDetails: {
+    duration: string;
+  };
+}
+
+interface VideoDetailsResponse {
+  items: VideoDetails[];
+}
+
+class YouTubePlaylistService {
+  private apiKey: string;
+
+  constructor() {
+    this.apiKey = getApiKey();
+  }
+
+  // Converter duração ISO 8601 para segundos
+  private parseDuration(duration: string): number {
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    
+    const hours = parseInt(match[1] || '0', 10);
+    const minutes = parseInt(match[2] || '0', 10);
+    const seconds = parseInt(match[3] || '0', 10);
+    
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  // Buscar todos os vídeos de uma playlist
+  async getPlaylistVideos(playlistId: string): Promise<MediaItem[]> {
+    if (!this.apiKey) {
+      console.warn('YouTube API key not found, using mock data');
+      return this.getMockVideos(playlistId);
+    }
+
+    try {
+      const videos = [];
+      let nextPageToken = '';
+
+      do {
+        const response = await fetch(
+          `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${this.apiKey}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`
+        );
+
+        if (!response.ok) {
+          console.error(`YouTube API error: ${response.status}`);
+          return this.getMockVideos(playlistId);
+        }
+
+        const data: YouTubePlaylistResponse = await response.json();
+        
+        for (const item of data.items) {
+          videos.push({
+            id: item.snippet.resourceId.videoId,
+            title: item.snippet.title,
+            description: item.snippet.description,
+            date: item.snippet.publishedAt.split('T')[0],
+            thumbnail_url: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+            media_url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
+            duration: 0, // Será preenchido abaixo
+            theme: 'Ensinamentos Gerais'
+          });
+        }
+
+        nextPageToken = data.nextPageToken || '';
+      } while (nextPageToken);
+
+      // Buscar durações dos vídeos
+      await this.fillVideoDurations(videos);
+
+      return videos;
+    } catch (error) {
+      console.error('Error fetching playlist videos:', error);
+      return this.getMockVideos(playlistId);
+    }
+  }
+
+  // Preencher durações dos vídeos
+  private async fillVideoDurations(videos: MediaItem[]): Promise<void> {
+    if (!this.apiKey) return;
+
+    try {
+      // Processar em lotes de 50 (limite da API)
+      for (let i = 0; i < videos.length; i += 50) {
+        const batch = videos.slice(i, i + 50);
+        const videoIds = batch.map(v => v.id).join(',');
+        
+        const response = await fetch(
+          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${this.apiKey}`
+        );
+
+        if (!response.ok) continue;
+
+        const data: VideoDetailsResponse = await response.json();
+        
+        for (const videoDetail of data.items) {
+          const video = videos.find(v => v.id === videoDetail.id);
+          if (video) {
+            video.duration = this.parseDuration(videoDetail.contentDetails.duration);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching video durations:', error);
+    }
+  }
+
+  // Dados mockados como fallback
+  private getMockVideos(playlistId: string): MediaItem[] {
+    const mockVideos = [
+      {
+        id: `${playlistId}_1`,
+        title: 'Vídeo 1 da Playlist',
+        description: 'Descrição do primeiro vídeo',
+        date: '2025-01-01',
+        thumbnail_url: `https://img.youtube.com/vi/${playlistId.slice(-11)}/maxresdefault.jpg`,
+        media_url: `https://www.youtube.com/watch?v=${playlistId.slice(-11)}`,
+        duration: 3600, // 1 hora
+        theme: 'Ensinamentos Gerais'
+      },
+      {
+        id: `${playlistId}_2`,
+        title: 'Vídeo 2 da Playlist',
+        description: 'Descrição do segundo vídeo',
+        date: '2025-01-02',
+        thumbnail_url: `https://img.youtube.com/vi/${playlistId.slice(-11)}/maxresdefault.jpg`,
+        media_url: `https://www.youtube.com/watch?v=${playlistId.slice(-11)}`,
+        duration: 2700, // 45 minutos
+        theme: 'Ensinamentos Gerais'
+      }
+    ];
+
+    return mockVideos;
+  }
+}
+
+export const youtubePlaylistService = new YouTubePlaylistService();

@@ -17,48 +17,15 @@ export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps)
 
   const totalDuration = playlist.items.reduce((acc, item) => acc + item.duration, 0);
   
-  // Extrair o ID do vídeo da URL do primeiro item
-  const getFirstVideoId = (playlist: Playlist) => {
-    const firstItem = playlist.items[0];
-    if (!firstItem) return null;
-    
-    // Se a URL é uma playlist, vamos gerar um ID determinístico baseado no ID da playlist
-    if (firstItem.media_url.includes('playlist?list=')) {
-      const playlistId = playlist.id;
-      let hash = 0;
-      for (let i = 0; i < playlistId.length; i++) {
-        const char = playlistId.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-      }
-      
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
-      let result = '';
-      let num = Math.abs(hash);
-      
-      for (let i = 0; i < 11; i++) {
-        result += chars[num % chars.length];
-        num = Math.floor(num / chars.length);
-      }
-      
-      return result;
-    }
-    
-    // Se é uma URL de vídeo, extrair o ID
-    const videoIdMatch = firstItem.media_url.match(/[?&]v=([^&]+)/);
-    return videoIdMatch ? videoIdMatch[1] : null;
-  };
-
-  const firstVideoId = getFirstVideoId(playlist);
+  // Função removida - não é mais necessária
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-primary-white rounded-lg shadow-base overflow-hidden hover:shadow-lg transition-shadow duration-300">
       {/* Thumbnail */}
       <div className="relative">
         <div className="w-full h-48 relative">
           <LazyYouTubeThumbnail
             playlistId={playlist.id}
-            videoId={firstVideoId}
             title={playlist.title}
             theme={playlist.items[0]?.theme || 'Ensinamentos Gerais'}
             className="w-full h-full"
@@ -66,21 +33,21 @@ export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps)
           />
         </div>
         
-        {playlist.featured && (
-          <div className="absolute top-3 left-3">
-            <div className="flex items-center space-x-1 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-              <Star className="w-3 h-3" />
-              <span>Destaque</span>
-            </div>
-          </div>
-        )}
+              {playlist.featured && (
+                <div className="absolute top-3 left-3">
+                  <div className="flex items-center space-x-1 bg-accent-gold text-white px-2 py-1 rounded-full text-xs font-medium">
+                    <Star className="w-3 h-3" />
+                    <span>Destaque</span>
+                  </div>
+                </div>
+              )}
 
-        {/* YouTube Badge */}
-        <div className="absolute top-3 right-3">
-          <div className="bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">
-            YouTube
-          </div>
-        </div>
+              {/* YouTube Badge */}
+              <div className="absolute top-3 right-3">
+                <div className="bg-accent-red text-white px-2 py-1 rounded text-xs font-medium">
+                  YouTube
+                </div>
+              </div>
       </div>
 
       {/* Content */}
