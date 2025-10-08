@@ -48,7 +48,8 @@ class YouTubeService {
   // Buscar primeiro vídeo de uma playlist - usar API key
   async getFirstVideoFromPlaylist(playlistId: string): Promise<string | null> {
     try {
-      const apiKey = secret.web?.api_key || secret.api_key;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiKey = (secret as any).web?.api_key || (secret as any).api_key;
       
       if (!apiKey) {
         console.log('API key not found');

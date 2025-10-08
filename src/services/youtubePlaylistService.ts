@@ -5,9 +5,10 @@ import { MediaItem } from '@/types';
 const getApiKey = (): string => {
   try {
     // Tentar importar o secret.json dinamicamente
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const secret = require('../../secret.json');
     return secret.web?.api_key || secret.api_key || '';
-  } catch (error) {
+  } catch {
     console.warn('secret.json not found, using mock data');
     return '';
   }
@@ -97,11 +98,16 @@ class YouTubePlaylistService {
             id: item.snippet.resourceId.videoId,
             title: item.snippet.title,
             description: item.snippet.description,
+            summary: item.snippet.description.substring(0, 200) + '...',
             date: item.snippet.publishedAt.split('T')[0],
-            thumbnail_url: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+            location: 'CEBB',
+            format: 'video' as const,
             media_url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
             duration: 0, // Será preenchido abaixo
-            theme: 'Ensinamentos Gerais'
+            theme: 'Ensinamentos Gerais',
+            event_type: 'Palestra',
+            series_title: 'Ensinamentos do CEBB',
+            track_title: item.snippet.title
           });
         }
 
@@ -155,21 +161,31 @@ class YouTubePlaylistService {
         id: `${playlistId}_1`,
         title: 'Vídeo 1 da Playlist',
         description: 'Descrição do primeiro vídeo',
+        summary: 'Descrição resumida do primeiro vídeo...',
         date: '2025-01-01',
-        thumbnail_url: `https://img.youtube.com/vi/${playlistId.slice(-11)}/maxresdefault.jpg`,
+        location: 'CEBB',
+        format: 'video' as const,
         media_url: `https://www.youtube.com/watch?v=${playlistId.slice(-11)}`,
         duration: 3600, // 1 hora
-        theme: 'Ensinamentos Gerais'
+        theme: 'Ensinamentos Gerais',
+        event_type: 'Palestra',
+        series_title: 'Ensinamentos do CEBB',
+        track_title: 'Vídeo 1 da Playlist'
       },
       {
         id: `${playlistId}_2`,
         title: 'Vídeo 2 da Playlist',
         description: 'Descrição do segundo vídeo',
+        summary: 'Descrição resumida do segundo vídeo...',
         date: '2025-01-02',
-        thumbnail_url: `https://img.youtube.com/vi/${playlistId.slice(-11)}/maxresdefault.jpg`,
+        location: 'CEBB',
+        format: 'video' as const,
         media_url: `https://www.youtube.com/watch?v=${playlistId.slice(-11)}`,
         duration: 2700, // 45 minutos
-        theme: 'Ensinamentos Gerais'
+        theme: 'Ensinamentos Gerais',
+        event_type: 'Palestra',
+        series_title: 'Ensinamentos do CEBB',
+        track_title: 'Vídeo 2 da Playlist'
       }
     ];
 
