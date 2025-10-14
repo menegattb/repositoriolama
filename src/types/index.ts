@@ -26,6 +26,8 @@ export interface Playlist {
     year: string;
     location: string;
     format: string;
+    hasTranscription?: boolean;
+    hasAudio?: boolean;
   };
 }
 

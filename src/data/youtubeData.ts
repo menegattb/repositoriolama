@@ -2214,7 +2214,9 @@ export function convertYouTubeToPlaylist(youtubeData: YouTubePlaylist[]): Playli
         total_talks: item.itemCount,
         year: year,
         location: location,
-        format: 'Video'
+        format: 'Video',
+        hasTranscription: false,
+        hasAudio: mediaItems.some(mediaItem => mediaItem.format === 'audio')
       },
       items: mediaItems
     };

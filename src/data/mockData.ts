@@ -11,7 +11,8 @@ export const mockPlaylists: Playlist[] = [
       total_talks: 8,
       year: '1971',
       location: 'Boston',
-      format: 'Audio'
+      format: 'Audio',
+      hasAudio: true
     },
     items: [
       {
@@ -56,7 +57,8 @@ export const mockPlaylists: Playlist[] = [
       total_talks: 6,
       year: '1972',
       location: 'Nova York',
-      format: 'Audio'
+      format: 'Audio',
+      hasAudio: true
     },
     items: [
       {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { youtubePlaylists } from '@/data/youtubeData';
 import PlaylistCard from '@/components/PlaylistCard';
 import SkeletonCard from '@/components/SkeletonCard';
-import { Search, Calendar, MapPin, Video, ChevronDown } from 'lucide-react';
+import { Search, Calendar, MapPin, Video } from 'lucide-react';
 
 export default function PlaylistsPage() {
   const [playlists] = useState(youtubePlaylists);
@@ -12,7 +12,7 @@ export default function PlaylistsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterYear, setFilterYear] = useState('');
   const [filterLocation, setFilterLocation] = useState('');
-  const [filterType, setFilterType] = useState('');
+  const [contentFilter, setContentFilter] = useState<'audio' | 'transcript' | ''>('');
   const [visibleCount, setVisibleCount] = useState(9);
 
   useEffect(() => {
@@ -41,21 +41,27 @@ export default function PlaylistsPage() {
     
     const matchesYear = !filterYear || playlist.metadata.year === filterYear;
     const matchesLocation = !filterLocation || playlist.metadata.location === filterLocation;
-    const matchesType = !filterType || playlist.metadata.format === filterType;
+    const hasAudioContent =
+      playlist.metadata.hasAudio === true ||
+      playlist.items?.some(item => item.format === 'audio');
+    const hasTranscriptContent = playlist.metadata.hasTranscription === true;
+    const matchesContent =
+      contentFilter === '' ||
+      (contentFilter === 'audio' ? hasAudioContent : hasTranscriptContent);
 
-    return matchesSearch && matchesYear && matchesLocation && matchesType;
+    return matchesSearch && matchesYear && matchesLocation && matchesContent;
   });
 
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(9);
-  }, [searchTerm, filterYear, filterLocation, filterType]);
+  }, [searchTerm, filterYear, filterLocation, contentFilter]);
 
   const clearFilters = () => {
     setSearchTerm('');
     setFilterYear('');
     setFilterLocation('');
-    setFilterType('');
+    setContentFilter('');
     setVisibleCount(9);
   };
 
@@ -118,17 +124,32 @@ export default function PlaylistsPage() {
                 ))}
               </select>
 
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Todos os formatos</option>
-                <option value="Video">Vídeo</option>
-                <option value="Audio">Áudio</option>
-              </select>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setContentFilter(prev => (prev === 'audio' ? '' : 'audio'))}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    contentFilter === 'audio'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Áudios
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setContentFilter(prev => (prev === 'transcript' ? '' : 'transcript'))}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    contentFilter === 'transcript'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Transcrições
+                </button>
+              </div>
 
-              {(searchTerm || filterYear || filterLocation || filterType) && (
+              {(searchTerm || filterYear || filterLocation || contentFilter) && (
                 <button
                   onClick={clearFilters}
                   className="px-4 py-2 text-blue-600 hover:text-blue-800 font-medium"
