@@ -1,39 +1,6 @@
 // Serviço para buscar dados do YouTube usando OAuth
 import secret from '../../secret.json';
 
-interface YouTubeVideo {
-  id: string;
-  title: string;
-  thumbnail: {
-    url: string;
-    width: number;
-    height: number;
-  };
-}
-
-interface YouTubePlaylistItem {
-  id: string;
-  snippet: {
-    title: string;
-    description: string;
-    thumbnails: {
-      default: { url: string; width: number; height: number; };
-      medium: { url: string; width: number; height: number; };
-      high: { url: string; width: number; height: number; };
-      standard: { url: string; width: number; height: number; };
-      maxres: { url: string; width: number; height: number; };
-    };
-    resourceId: {
-      videoId: string;
-    };
-  };
-}
-
-interface YouTubePlaylistResponse {
-  items: YouTubePlaylistItem[];
-  nextPageToken?: string;
-}
-
 class YouTubeService {
   private accessToken: string | null = null;
   private readonly clientId = secret.web.client_id;
@@ -91,7 +58,7 @@ class YouTubeService {
       if (response.ok) {
         return youtubeUrl;
       }
-    } catch (error) {
+    } catch {
       // URL não existe, usar fallback
     }
     
@@ -101,4 +68,3 @@ class YouTubeService {
 
 }
 export const youtubeService = new YouTubeService();
-

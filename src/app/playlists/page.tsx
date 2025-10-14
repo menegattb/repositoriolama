@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { youtubePlaylists } from '@/data/youtubeData';
 import PlaylistCard from '@/components/PlaylistCard';
 import SkeletonCard from '@/components/SkeletonCard';
-import { Search, Calendar, MapPin, Video } from 'lucide-react';
+import { Search, Calendar, MapPin, Video, ChevronDown } from 'lucide-react';
 
 export default function PlaylistsPage() {
   const [playlists] = useState(youtubePlaylists);

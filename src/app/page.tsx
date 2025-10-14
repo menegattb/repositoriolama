@@ -264,7 +264,7 @@ export default function Home() {
           </form>
           <p className="mt-6 text-xs uppercase tracking-wider text-white/60">
             Integração futura:{' '}
-            <code className="rounded bg-white/10 px-2 py-1">[fluentform id="3"]</code>
+            <code className="rounded bg-white/10 px-2 py-1">[fluentform id=&quot;3&quot;]</code>
           </p>
         </div>
       </section>

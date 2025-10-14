@@ -1,26 +1,3 @@
-// Serviço para buscar dados da API do YouTube
-interface YouTubePlaylistItem {
-  id: string;
-  snippet: {
-    title: string;
-    description: string;
-    thumbnails: {
-      default: { url: string };
-      medium: { url: string };
-      high: { url: string };
-      maxres?: { url: string };
-    };
-    resourceId: {
-      videoId: string;
-    };
-  };
-}
-
-interface YouTubePlaylistResponse {
-  items: YouTubePlaylistItem[];
-  nextPageToken?: string;
-}
-
 // Função para buscar o primeiro vídeo de uma playlist
 export async function getFirstVideoFromPlaylist(playlistId: string): Promise<string | null> {
   try {
