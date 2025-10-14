@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Playlist, MediaItem, Transcript } from '@/types';
 import { Search, Clock } from 'lucide-react';
 
@@ -17,13 +17,26 @@ export default function Sidebar({
   transcript,
   onMediaItemSelect
 }: SidebarProps) {
-  const [activeTab, setActiveTab] = useState<'playlist' | 'transcript'>('playlist');
+  const [activeTab, setActiveTab] = useState<'playlist' | 'transcript' | 'audio'>('playlist');
   const [searchTerm, setSearchTerm] = useState('');
+  const [playlistUrl, setPlaylistUrl] = useState('');
 
-  const filteredItems = playlist.items?.filter(item =>
+  useEffect(() => {
+    setPlaylistUrl(window.location.href);
+  }, []);
+
+  const matchesSearch = (item: MediaItem) =>
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+    item.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const filteredItems = playlist.items?.filter(matchesSearch) || [];
+  const audioItems = playlist.items?.filter(item => item.format === 'audio') || [];
+  const filteredAudioItems = audioItems.filter(matchesSearch);
+  const whatsappNumber = '5548991486176';
+  const whatsappMessage = encodeURIComponent(
+    `Olá Bruno! Gostaria de solicitar a transcrição da playlist "${playlist.title}". Link: ${playlistUrl}`
+  );
+  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -60,11 +73,21 @@ export default function Sidebar({
         >
           Transcrição
         </button>
+        <button
+          onClick={() => setActiveTab('audio')}
+          className={`flex-1 px-4 py-3 text-sm font-medium ${
+            activeTab === 'audio'
+              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Áudio
+        </button>
       </div>
 
       {/* Content */}
       <div className="p-4">
-        {activeTab === 'playlist' ? (
+        {activeTab === 'playlist' && (
           <div className="space-y-4">
             {/* Search */}
             <div className="relative">
@@ -126,8 +149,83 @@ export default function Sidebar({
               ))}
             </div>
           </div>
-        ) : (
+        )}
+
+        {activeTab === 'audio' && (
           <div className="space-y-4">
+            {/* Search */}
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar nos áudios..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Audio Items */}
+            {filteredAudioItems.length > 0 ? (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {filteredAudioItems.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => onMediaItemSelect?.(item)}
+                    className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                      currentMediaItem?.id === item.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
+                          {item.title}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                          {item.description}
+                        </p>
+                      </div>
+                      <audio controls className="w-full">
+                        <source src={item.media_url} />
+                        Seu navegador não suporta reprodução de áudio.
+                      </audio>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Clock size={12} className="text-gray-400" />
+                        <span>{formatDuration(item.duration)}</span>
+                        <span>•</span>
+                        <span>{item.date}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">
+                  Nenhum áudio disponível para esta playlist.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'transcript' && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-gray-700">
+                Para solicitar a transcrição desta playlist, mande uma mensagem para o Bruno.
+              </p>
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors"
+              >
+                Solicitar via WhatsApp
+              </a>
+            </div>
             {transcript ? (
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-gray-900">
