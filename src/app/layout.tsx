@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Repositório Ação Paramita",
   description: "Repositório digital de ensinamentos budistas do CEBB - Centro de Estudos Budistas Bodisatva.",
+  icons: {
+    icon: "/icone-ap.webp",
+  },
 };
 
 export default function RootLayout({

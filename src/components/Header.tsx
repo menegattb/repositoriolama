@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { User, Heart } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,11 +13,17 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary-blue rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">AP</span>
-            </div>
-            <span className="font-bold text-xl text-primary-charcoal">Repositório Ação Paramita</span>
+          <Link href="/" className="flex items-center space-x-3">
+            <Image
+              src="/ap-logo.webp"
+              alt="Ação Paramita"
+              width={140}
+              height={55}
+              priority
+            />
+            <span className="font-bold text-xl text-primary-charcoal">
+              Repositório Ação Paramita
+            </span>
           </Link>
 
           {/* Navigation */}
