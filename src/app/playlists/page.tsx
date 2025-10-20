@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react';
 import { youtubePlaylists } from '@/data/youtubeData';
 import PlaylistCard from '@/components/PlaylistCard';
 import SkeletonCard from '@/components/SkeletonCard';
-import { Search, Calendar, MapPin, Video, ChevronDown } from 'lucide-react';
+import { Search, Calendar, Video, ChevronDown } from 'lucide-react';
 
 export default function PlaylistsPage() {
   const [playlists] = useState(youtubePlaylists);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterYear, setFilterYear] = useState('');
-  const [filterLocation, setFilterLocation] = useState('');
   const [contentFilter, setContentFilter] = useState<'audio' | 'transcript' | ''>('');
   const [visibleCount, setVisibleCount] = useState(9);
 
@@ -31,8 +30,6 @@ export default function PlaylistsPage() {
   // Extrair anos únicos para o filtro
   const availableYears = [...new Set(playlists.map(p => p.metadata.year))].sort((a, b) => b.localeCompare(a));
   
-  // Extrair localizações únicas para o filtro
-  const availableLocations = [...new Set(playlists.map(p => p.metadata.location))].sort();
 
   const filteredPlaylists = playlists.filter(playlist => {
     const matchesSearch = playlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -40,7 +37,6 @@ export default function PlaylistsPage() {
                          playlist.metadata.location.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesYear = !filterYear || playlist.metadata.year === filterYear;
-    const matchesLocation = !filterLocation || playlist.metadata.location === filterLocation;
     const hasAudioContent =
       playlist.metadata.hasAudio === true ||
       playlist.items?.some(item => item.format === 'audio');
@@ -49,18 +45,17 @@ export default function PlaylistsPage() {
       contentFilter === '' ||
       (contentFilter === 'audio' ? hasAudioContent : hasTranscriptContent);
 
-    return matchesSearch && matchesYear && matchesLocation && matchesContent;
+    return matchesSearch && matchesYear && matchesContent;
   });
 
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(9);
-  }, [searchTerm, filterYear, filterLocation, contentFilter]);
+  }, [searchTerm, filterYear, contentFilter]);
 
   const clearFilters = () => {
     setSearchTerm('');
     setFilterYear('');
-    setFilterLocation('');
     setContentFilter('');
     setVisibleCount(9);
   };
@@ -80,10 +75,10 @@ export default function PlaylistsPage() {
         {/* Header */}
         <div className="mb-8">
                <h1 className="text-4xl md:text-5xl font-bold text-primary-charcoal mb-4">
-                 Ensinamentos do CEBB
+                 Ensinamentos do Lama Padma Samten
                </h1>
                <p className="text-lg text-gray-600 mb-6 font-normal">
-                 Explore nossa coleção de ensinamentos budistas do Centro de Estudos Budistas Bodisatva
+                 Explore a coleção de ensinamentos!
                </p>
 
           {/* Search and Filters */}
@@ -113,16 +108,6 @@ export default function PlaylistsPage() {
                 ))}
               </select>
 
-              <select
-                value={filterLocation}
-                onChange={(e) => setFilterLocation(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Todas as localizações</option>
-                {availableLocations.map(location => (
-                  <option key={location} value={location}>{location}</option>
-                ))}
-              </select>
 
               <div className="flex items-center gap-2">
                 <button
@@ -149,7 +134,7 @@ export default function PlaylistsPage() {
                 </button>
               </div>
 
-              {(searchTerm || filterYear || filterLocation || contentFilter) && (
+              {(searchTerm || filterYear || contentFilter) && (
                 <button
                   onClick={clearFilters}
                   className="px-4 py-2 text-blue-600 hover:text-blue-800 font-medium"
@@ -162,15 +147,15 @@ export default function PlaylistsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-primary-white rounded-lg shadow-base p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white rounded-lg shadow-md p-4">
             <div className="flex items-center">
-              <Video className="w-8 h-8 text-primary-blue mr-3" />
+              <Video className="w-8 h-8 text-blue-600 mr-3" />
               <div>
-                <div className="text-2xl font-bold text-primary-charcoal">
+                <div className="text-2xl font-bold text-gray-900">
                   {loading ? '...' : playlists.length}
                 </div>
-                <div className="text-sm text-gray-600 font-normal">Total de Ensinamentos</div>
+                <div className="text-sm text-gray-600">Total de Ensinamentos</div>
               </div>
             </div>
           </div>
@@ -187,17 +172,6 @@ export default function PlaylistsPage() {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center">
-              <MapPin className="w-8 h-8 text-purple-600 mr-3" />
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {loading ? '...' : availableLocations.length}
-                </div>
-                <div className="text-sm text-gray-600">Localizações</div>
-              </div>
-            </div>
-          </div>
           
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="flex items-center">

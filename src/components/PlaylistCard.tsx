@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Playlist } from '@/types';
-import { Star, Clock, MapPin, Headphones, ExternalLink, Calendar } from 'lucide-react';
+import { Star, MapPin, Headphones, ExternalLink, Calendar } from 'lucide-react';
 import LazyYouTubeThumbnail from './LazyYouTubeThumbnail';
 
 interface PlaylistCardProps {
@@ -9,15 +9,6 @@ interface PlaylistCardProps {
 }
 
 export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps) {
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-  };
-
-  const totalDuration = playlist.items.reduce((acc, item) => acc + item.duration, 0);
-  
-  // Função removida - não é mais necessária
 
   return (
     <div className="bg-primary-white rounded-lg shadow-base overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -65,10 +56,6 @@ export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps)
           <div className="flex items-center">
             <MapPin className="w-4 h-4 mr-1" />
             {playlist.metadata.location}
-          </div>
-          <div className="flex items-center">
-            <Clock className="w-4 h-4 mr-1" />
-            {formatDuration(totalDuration)}
           </div>
           <div className="flex items-center">
             <Headphones className="w-4 h-4 mr-1" />
