@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ArrowRight,
   Flower2 as LotusIcon,
@@ -6,6 +8,7 @@ import {
   PlayCircle,
   Search,
   Sparkles,
+  ChevronUp,
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -50,16 +53,16 @@ export default function Home() {
         <div className="relative mx-auto flex max-w-7xl flex-col items-center px-4 py-16 sm:px-6 lg:px-8 lg:flex-row lg:py-20">
           {/* Conteúdo de texto - Esquerda */}
           <div className="w-full max-w-2xl text-center lg:text-left">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-sky-700 shadow-sm ring-1 ring-sky-100 backdrop-blur">
-              <Sparkles className="h-4 w-4" aria-hidden />
-              Um cuidado da rede CEBB
-            </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-sky-700 shadow-sm ring-1 ring-sky-100 backdrop-blur">
+                <Sparkles className="h-4 w-4" aria-hidden />
+                Um cuidado CEBB
+              </span>
             <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
               Repositório Lama Padma Samten
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-gray-700 sm:text-xl">
-              Ensinamentos, palestras e retiros oferecidos pelo Lama Padma Samten  —
-              agora reunidos em um só lugar.
+              Ensinamentos, palestras e retiros oferecidos pelo Lama Padma Samten,
+              agora reunidos em um só lugar!
             </p>
             <p className="mt-4 text-base leading-relaxed text-gray-600 sm:text-lg">
               Este repositório é uma extensão viva da Ação Paramita, uma plataforma para o estudo,
@@ -75,13 +78,13 @@ export default function Home() {
                 <LotusIcon className="h-5 w-5" aria-hidden />
                 🕊️ Explorar Ensinamentos
               </a>
-              <a
-                href="#acao-paramita"
-                className="inline-flex items-center justify-center gap-3 rounded-full border border-slate-200 bg-white px-8 py-4 text-base font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600"
-              >
-                <ArrowRight className="h-5 w-5" aria-hidden />
-                📚 Saiba Mais sobre a Ação Paramita
-              </a>
+                <a
+                  href="#acao-paramita"
+                  className="inline-flex items-center justify-center gap-3 rounded-full border border-slate-200 bg-white px-8 py-4 text-base font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600"
+                >
+                  <ArrowRight className="h-5 w-5" aria-hidden />
+                  📚 Saiba mais sobre a Ação Paramita
+                </a>
             </div>
           </div>
 
@@ -108,12 +111,12 @@ export default function Home() {
           <h2 className="mt-6 text-3xl font-bold text-slate-900 sm:text-4xl">
             Um espaço para o estudo e<br />contemplação do Darma
           </h2>
-          <p className="mt-6 text-lg leading-relaxed text-slate-700">
-            O Repositório do Lama Padma Samten reúne ensinamentos oferecidos ao longo de décadas em
-            retiros, palestras e transmissões do CEBB – Centro de Estudos Budistas Bodisatva.
-            Organizados em playlists temáticas, os conteúdos permitem acompanhar o percurso dos
-            ensinamentos e navegar por temas como meditação, compaixão, sabedoria e ação no mundo.
-          </p>
+            <p className="mt-6 text-lg leading-relaxed text-slate-700">
+              O Repositório reúne ensinamentos oferecidos por Lama Padma Samten ao longo de décadas em
+              retiros, palestras e transmissões do CEBB – Centro de Estudos Budistas Bodisatva.
+              Organizados em playlists temáticas, os conteúdos permitem acompanhar o percurso dos
+              ensinamentos e navegar por temas como meditação, compaixão, sabedoria e ação no mundo.
+            </p>
           <p className="mt-4 text-base leading-relaxed text-slate-600">
             👉 Explore os conteúdos disponíveis e aprofunde-se nos ensinamentos do Buda no mundo
             contemporâneo.
@@ -160,13 +163,13 @@ export default function Home() {
                   Sobre Lama Padma Samten
                 </span>
                 <h2 className="mt-6 text-2xl sm:text-3xl font-bold text-slate-900 lg:text-4xl">
-                  Mestre budista e fundador do CEBB
+                  Mestre budista, <br />fundador do CEBB e da Ação Paramita
                 </h2>
                 <p className="mt-6 text-base sm:text-lg leading-relaxed text-slate-700">
-                  Lama Padma Samten é mestre budista e fundador do CEBB. Físico pela UFRGS, encontrou
+                  Lama Padma Samten é mestre budista e fundador do CEBB. Tendo feito sua graduação em física pela UFRGS, encontrou
                   na física quântica pontes para dialogar com a visão budista e, desde então, dedica-se
                   ao ensinamento do Darma como um caminho de lucidez, equilíbrio e compaixão. Por meio de
-                  suas palestras e livros, inspira pessoas a transformarem suas vidas e redes de
+                  suas palestras, livros e ação no mundo, inspira pessoas a transformarem suas vidas e redes de
                   convivência.
                 </p>
                 <a
@@ -197,6 +200,14 @@ export default function Home() {
 
           {/* Seção da rede Ação Paramita - Maior */}
           <div className="mt-12 sm:mt-16 rounded-3xl border border-slate-200 p-8 sm:p-12 shadow-sm">
+            <div className="flex justify-start mb-6">
+              <Image
+                src="/ap-logo.webp"
+                alt="Ação Paramita"
+                width={200}
+                height={80}
+              />
+            </div>
             <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 lg:text-4xl text-center lg:text-left">Parte da rede Ação Paramita</h3>
             <p className="mt-6 text-base sm:text-lg leading-relaxed text-slate-600">
               A Ação Paramita é uma plataforma de educação e ação em rede, inspirada pelo Lama Padma
@@ -207,20 +218,13 @@ export default function Home() {
               O Repositório faz parte dessa grande teia de iniciativas dedicadas ao florescimento do
               Darma no mundo.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <Image
-                src="/ap-logo.webp"
-                alt="Ação Paramita"
-                width={160}
-                height={64}
-                className="mx-auto sm:mx-0"
-              />
+            <div className="mt-8 flex justify-start">
               <a
                 id="acao-paramita"
                 href="https://acaoparamita.com.br"
                 target="_blank"
                 rel="noreferrer"
-                className="bg-blue-400 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors w-full sm:w-auto text-center"
+                className="bg-blue-400 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
               >
                 Acessar Ação Paramita
               </a>
@@ -235,7 +239,7 @@ export default function Home() {
             Receba as novidades do Repositório <br />e da Ação Paramita
           </h2>
           <p className="mt-4 text-base text-white/80">
-            Inscreva-se para receber atualizações sobre novos ensinamentos, transcrições e retiros com
+            Inscreva-se para receber atualizações sobre novos ensinamentos, transcrições<br />e retiros com
             o Lama Padma Samten.
           </p>
           <a
@@ -251,6 +255,19 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* Botão de voltar ao topo */}
+      <button
+        onClick={() => {
+          if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }}
+        className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50"
+        aria-label="Voltar ao topo"
+      >
+        <ChevronUp className="w-6 h-6" />
+      </button>
     </main>
   );
 }
