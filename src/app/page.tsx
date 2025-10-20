@@ -3,11 +3,11 @@ import {
   Flower2 as LotusIcon,
   Globe2,
   Headphones,
-  Infinity as InfinityIcon,
   PlayCircle,
   Search,
   Sparkles,
 } from 'lucide-react';
+import Image from 'next/image';
 
 const features = [
   {
@@ -36,12 +36,6 @@ const features = [
   },
 ];
 
-const stats = [
-  { label: 'playlists de ensinamentos', value: '300+' },
-  { label: 'horas de conteúdo disponível', value: '1000+' },
-  { label: 'conteúdo pesquisável', value: '100%' },
-  { label: 'possibilidades de prática e contemplação', value: '∞' },
-];
 
 export default function Home() {
   return (
@@ -53,7 +47,8 @@ export default function Home() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_55%)]"></div>
         </div>
 
-        <div className="relative mx-auto flex max-w-7xl flex-col items-center px-4 py-24 sm:px-6 lg:px-8 lg:flex-row lg:py-32">
+        <div className="relative mx-auto flex max-w-7xl flex-col items-center px-4 py-16 sm:px-6 lg:px-8 lg:flex-row lg:py-20">
+          {/* Conteúdo de texto - Esquerda */}
           <div className="w-full max-w-2xl text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-sky-700 shadow-sm ring-1 ring-sky-100 backdrop-blur">
               <Sparkles className="h-4 w-4" aria-hidden />
@@ -63,7 +58,7 @@ export default function Home() {
               Repositório Lama Padma Samten
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-gray-700 sm:text-xl">
-              Ensinamentos, palestras e retiros oferecidos pelo Lama Padma Samten e pela rede CEBB —
+              Ensinamentos, palestras e retiros oferecidos pelo Lama Padma Samten  —
               agora reunidos em um só lugar.
             </p>
             <p className="mt-4 text-base leading-relaxed text-gray-600 sm:text-lg">
@@ -89,6 +84,19 @@ export default function Home() {
               </a>
             </div>
           </div>
+
+          {/* Foto do Lama Padma Samten - Direita */}
+          <div className="mt-8 lg:mt-0 lg:ml-16 lg:flex-shrink-0">
+            <div className="relative h-80 w-80 mx-auto lg:mx-0">
+              <Image
+                src="/lama.png"
+                alt="Lama Padma Samten"
+                fill
+                className="rounded-full object-cover shadow-2xl ring-4 ring-white/50"
+                priority
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -98,7 +106,7 @@ export default function Home() {
             🎧 O que é o Repositório
           </span>
           <h2 className="mt-6 text-3xl font-bold text-slate-900 sm:text-4xl">
-            Um espaço para o estudo e contemplação do Darma
+            Um espaço para o estudo e<br />contemplação do Darma
           </h2>
           <p className="mt-6 text-lg leading-relaxed text-slate-700">
             O Repositório do Lama Padma Samten reúne ensinamentos oferecidos ao longo de décadas em
@@ -139,132 +147,107 @@ export default function Home() {
       </section>
 
       <section className="bg-white py-20" id="lama">
-        <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 sm:px-6 lg:flex-row lg:items-center lg:px-8">
-          <div className="relative flex-1 overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-100 via-white to-rose-100 p-10 shadow-lg">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Seção sobre Lama Padma Samten - Tela toda */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-100 via-white to-rose-100 p-8 sm:p-12 shadow-lg">
             <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-indigo-200/40 blur-2xl"></div>
             <div className="absolute -left-10 -bottom-12 h-40 w-40 rounded-full bg-rose-200/40 blur-2xl"></div>
-            <div className="relative">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-indigo-700 shadow ring-1 ring-indigo-100 backdrop-blur">
-                Sobre Lama Padma Samten
-              </span>
-              <p className="mt-6 text-lg leading-relaxed text-slate-700">
-                Lama Padma Samten é mestre budista e fundador do CEBB. Físico pela UFRGS, encontrou
-                na física quântica pontes para dialogar com a visão budista e, desde então, dedica-se
-                ao ensinamento do Darma como um caminho de lucidez, equilíbrio e compaixão. Por meio de
-                suas palestras e livros, inspira pessoas a transformarem suas vidas e redes de
-                convivência.
-              </p>
-              <a
-                href="https://acaoparamita.org/agenda"
-                target="_blank"
-                rel="noreferrer"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700"
-              >
-                📅 Ver Agenda e Ensinamentos Recentes
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </a>
+            
+            <div className="relative flex flex-col lg:flex-row lg:items-center lg:gap-12">
+              {/* Conteúdo de texto */}
+              <div className="flex-1 text-center lg:text-left">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-indigo-700 shadow ring-1 ring-indigo-100 backdrop-blur">
+                  Sobre Lama Padma Samten
+                </span>
+                <h2 className="mt-6 text-2xl sm:text-3xl font-bold text-slate-900 lg:text-4xl">
+                  Mestre budista e fundador do CEBB
+                </h2>
+                <p className="mt-6 text-base sm:text-lg leading-relaxed text-slate-700">
+                  Lama Padma Samten é mestre budista e fundador do CEBB. Físico pela UFRGS, encontrou
+                  na física quântica pontes para dialogar com a visão budista e, desde então, dedica-se
+                  ao ensinamento do Darma como um caminho de lucidez, equilíbrio e compaixão. Por meio de
+                  suas palestras e livros, inspira pessoas a transformarem suas vidas e redes de
+                  convivência.
+                </p>
+                <a
+                  href="https://cebb.org.br/agenda-lama-padma-samten/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-8 inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700"
+                >
+                  📅 Ver Agenda e Ensinamentos Recentes
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </a>
+              </div>
+
+              {/* Foto do Lama Padma Samten */}
+              <div className="mt-8 lg:mt-0 lg:flex-shrink-0">
+                <div className="relative h-64 w-64 sm:h-80 sm:w-80 mx-auto lg:mx-0">
+                  <Image
+                    src="/lama2.png"
+                    alt="Lama Padma Samten"
+                    fill
+                    className="object-cover rounded-lg"
+                    priority
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex-1 rounded-3xl border border-slate-200 p-10 shadow-sm">
-            <h3 className="text-2xl font-semibold text-slate-900">Parte da rede Ação Paramita</h3>
-            <p className="mt-4 text-base leading-relaxed text-slate-600">
+          {/* Seção da rede Ação Paramita - Maior */}
+          <div className="mt-12 sm:mt-16 rounded-3xl border border-slate-200 p-8 sm:p-12 shadow-sm">
+            <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 lg:text-4xl text-center lg:text-left">Parte da rede Ação Paramita</h3>
+            <p className="mt-6 text-base sm:text-lg leading-relaxed text-slate-600">
               A Ação Paramita é uma plataforma de educação e ação em rede, inspirada pelo Lama Padma
               Samten. Seu propósito é o reencantamento da realidade — fortalecendo redes de cooperação
               e auto-organização social através da lucidez, da prática e da convivência.
             </p>
-            <p className="mt-4 text-base leading-relaxed text-slate-600">
+            <p className="mt-4 text-base sm:text-lg leading-relaxed text-slate-600">
               O Repositório faz parte dessa grande teia de iniciativas dedicadas ao florescimento do
               Darma no mundo.
             </p>
-            <a
-              id="acao-paramita"
-              href="https://acaoparamita.org"
-              target="_blank"
-              rel="noreferrer"
-              className="mt-8 inline-flex items-center gap-2 rounded-full border border-emerald-500 bg-emerald-500/10 px-6 py-3 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-500/20"
-            >
-              🌍 Conheça a Ação Paramita
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-gradient-to-r from-sky-600 via-indigo-600 to-rose-600 py-20 text-white">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-3xl font-semibold sm:text-4xl">O Repositório em Números</h2>
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-3xl bg-white/10 p-8 text-center shadow-lg backdrop-blur transition hover:bg-white/15"
+            <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              <Image
+                src="/ap-logo.webp"
+                alt="Ação Paramita"
+                width={160}
+                height={64}
+                className="mx-auto sm:mx-0"
+              />
+              <a
+                id="acao-paramita"
+                href="https://acaoparamita.com.br"
+                target="_blank"
+                rel="noreferrer"
+                className="bg-blue-400 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors w-full sm:w-auto text-center"
               >
-                <div className="text-5xl font-extrabold">
-                  {stat.value === '∞' ? (
-                    <InfinityIcon className="mx-auto h-14 w-14" aria-hidden />
-                  ) : (
-                    stat.value
-                  )}
-                </div>
-                <p className="mt-4 text-sm font-medium uppercase tracking-wide text-white/80">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
+                Acessar Ação Paramita
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
-
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
-            Um convite à escuta e à transformação
-          </h2>
-          <p className="mt-6 text-lg leading-relaxed text-slate-700">
-            Os ensinamentos aqui reunidos são um convite à escuta profunda e ao cultivo da lucidez.
-            Que cada palavra e cada silêncio possam inspirar o florescimento de sabedoria, compaixão e
-            alegria em todos os seres.
-          </p>
-          <a
-            href="/playlists"
-            className="mt-10 inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 px-10 py-4 text-base font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
-          >
-            🌼 Comece a Explorar Agora
-            <ArrowRight className="h-5 w-5" aria-hidden />
-          </a>
         </div>
       </section>
 
       <section className="bg-slate-900 py-20 text-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-semibold sm:text-4xl">
-            Receba as novidades do Repositório e da Ação Paramita
+            Receba as novidades do Repositório <br />e da Ação Paramita
           </h2>
           <p className="mt-4 text-base text-white/80">
             Inscreva-se para receber atualizações sobre novos ensinamentos, transcrições e retiros com
             o Lama Padma Samten.
           </p>
-          <form className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center">
-            <label htmlFor="newsletter-email" className="sr-only">
-              E-mail
-            </label>
-            <input
-              id="newsletter-email"
-              type="email"
-              placeholder="Seu e-mail"
-              className="h-12 w-full max-w-sm rounded-full border border-white/20 bg-white/10 px-6 text-base text-white placeholder:text-white/60 focus:border-white focus:outline-none focus:ring-2 focus:ring-white"
-            />
-            <button
-              type="submit"
-              className="inline-flex h-12 items-center justify-center rounded-full bg-emerald-400 px-8 text-sm font-semibold text-slate-900 transition hover:bg-emerald-300"
-            >
-              Inscrever-se
-            </button>
-          </form>
+          <a
+            href="https://cebb.us3.list-manage.com/subscribe/post?u=c55340ec5081732ed81eff58b&id=7915b02cf2"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-8 inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-base font-semibold text-slate-900 transition hover:bg-emerald-300"
+          >
+            📧 Inscreva-se na nossa newsletter
+          </a>
           <p className="mt-6 text-xs uppercase tracking-wider text-white/60">
-            Integração futura:{' '}
-            <code className="rounded bg-white/10 px-2 py-1">[fluentform id=&quot;3&quot;]</code>
+            Newsletter oficial do CEBB
           </p>
         </div>
       </section>
