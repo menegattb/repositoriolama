@@ -2,16 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { youtubePlaylists } from '@/data/youtubeData';
+import { transcripts, categories } from '@/data/transcriptsData';
 import PlaylistCard from '@/components/PlaylistCard';
+import TranscriptCard from '@/components/TranscriptCard';
 import SkeletonCard from '@/components/SkeletonCard';
-import { Search, Calendar, Video, ChevronDown } from 'lucide-react';
+import { Search, Calendar, Video, ChevronDown, FileText } from 'lucide-react';
 
 export default function PlaylistsPage() {
   const [playlists] = useState(youtubePlaylists);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterYear, setFilterYear] = useState('');
-  const [contentFilter, setContentFilter] = useState<'audio' | 'transcript' | ''>('');
+  const [contentFilter, setContentFilter] = useState<'audio' | 'transcript' | 'english' | ''>('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [visibleCount, setVisibleCount] = useState(9);
 
   useEffect(() => {
@@ -30,6 +33,9 @@ export default function PlaylistsPage() {
   // Extrair anos únicos para o filtro
   const availableYears = [...new Set(playlists.map(p => p.metadata.year))].sort((a, b) => b.localeCompare(a));
   
+  // Extrair categorias únicas das transcrições
+  const availableCategories = Object.keys(categories).sort();
+  
 
   const filteredPlaylists = playlists.filter(playlist => {
     const matchesSearch = playlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -41,31 +47,51 @@ export default function PlaylistsPage() {
       playlist.metadata.hasAudio === true ||
       playlist.items?.some(item => item.format === 'audio');
     const hasTranscriptContent = playlist.metadata.hasTranscription === true;
+    
+    // Detectar se é em inglês baseado no título
+    const isEnglishContent = playlist.title.toLowerCase().includes('english') ||
+                            playlist.title.toLowerCase().includes('inglês') ||
+                            playlist.title.toLowerCase().includes('english teachings') ||
+                            playlist.title.toLowerCase().includes('teachings in english');
+    
     const matchesContent =
       contentFilter === '' ||
-      (contentFilter === 'audio' ? hasAudioContent : hasTranscriptContent);
+      (contentFilter === 'audio' ? hasAudioContent : 
+       contentFilter === 'english' ? isEnglishContent : hasTranscriptContent);
 
     return matchesSearch && matchesYear && matchesContent;
+  });
+
+  // Filtro para transcrições
+  const filteredTranscripts = transcripts.filter(transcript => {
+    const matchesSearch = transcript.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !categoryFilter || transcript.categories.includes(categoryFilter);
+    return matchesSearch && matchesCategory;
   });
 
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(9);
-  }, [searchTerm, filterYear, contentFilter]);
+  }, [searchTerm, filterYear, contentFilter, categoryFilter]);
 
   const clearFilters = () => {
     setSearchTerm('');
     setFilterYear('');
     setContentFilter('');
+    setCategoryFilter('');
     setVisibleCount(9);
   };
 
   const loadMore = () => {
-    setVisibleCount(prev => Math.min(prev + 9, filteredPlaylists.length));
+    const maxCount = contentFilter === 'transcript' ? filteredTranscripts.length : filteredPlaylists.length;
+    setVisibleCount(prev => Math.min(prev + 9, maxCount));
   };
 
   const visiblePlaylists = filteredPlaylists.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredPlaylists.length;
+  const visibleTranscripts = filteredTranscripts.slice(0, visibleCount);
+  const hasMore = contentFilter === 'transcript' 
+    ? visibleCount < filteredTranscripts.length 
+    : visibleCount < filteredPlaylists.length;
 
   console.log('Renderizando - loading:', loading, 'playlists:', playlists.length, 'filtered:', filteredPlaylists.length);
 
@@ -108,6 +134,25 @@ export default function PlaylistsPage() {
                 ))}
               </select>
 
+              {/* Filtro de categorias - apenas para transcrições */}
+              {/* Temporariamente oculto */}
+              {/* {contentFilter === 'transcript' && (
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  <option value="">Todas as categorias</option>
+                  {availableCategories.map(categoryKey => {
+                    const category = categories[categoryKey as keyof typeof categories];
+                    return (
+                      <option key={categoryKey} value={categoryKey}>
+                        {category.name} ({category.count})
+                      </option>
+                    );
+                  })}
+                </select>
+              )} */}
 
               <div className="flex items-center gap-2">
                 <button
@@ -115,7 +160,7 @@ export default function PlaylistsPage() {
                   onClick={() => setContentFilter(prev => (prev === 'audio' ? '' : 'audio'))}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     contentFilter === 'audio'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-white border border-gray-400 text-gray-800 hover:bg-gray-100'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
@@ -123,18 +168,30 @@ export default function PlaylistsPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setContentFilter(prev => (prev === 'english' ? '' : 'english'))}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    contentFilter === 'english'
+                      ? 'bg-white border border-gray-400 text-gray-800 hover:bg-gray-100'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Ensinamentos em Inglês
+                </button>
+                {/* Transcrições temporariamente ocultas */}
+                {/* <button
+                  type="button"
                   onClick={() => setContentFilter(prev => (prev === 'transcript' ? '' : 'transcript'))}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     contentFilter === 'transcript'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-red-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
                   Transcrições
-                </button>
+                </button> */}
               </div>
 
-              {(searchTerm || filterYear || contentFilter) && (
+              {(searchTerm || filterYear || contentFilter || categoryFilter) && (
                 <button
                   onClick={clearFilters}
                   className="px-4 py-2 text-blue-600 hover:text-blue-800 font-medium"
@@ -147,40 +204,27 @@ export default function PlaylistsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center">
-              <Video className="w-8 h-8 text-blue-600 mr-3" />
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {loading ? '...' : playlists.length}
-                </div>
-                <div className="text-sm text-gray-600">Total de Ensinamentos</div>
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Calendar className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Playlists</p>
+                <p className="text-2xl font-bold text-gray-900">{playlists.length}</p>
               </div>
             </div>
           </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-4">
+
+          <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center">
-              <Calendar className="w-8 h-8 text-green-600 mr-3" />
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {loading ? '...' : availableYears.length}
-                </div>
-                <div className="text-sm text-gray-600">Anos Diferentes</div>
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <FileText className="w-6 h-6 text-purple-600" />
               </div>
-            </div>
-          </div>
-          
-          
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center">
-              <Search className="w-8 h-8 text-orange-600 mr-3" />
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {loading ? '...' : playlists.reduce((acc, p) => acc + p.metadata.total_talks, 0)}
-                </div>
-                <div className="text-sm text-gray-600">Total de Vídeos</div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total de Vídeos</p>
+                <p className="text-2xl font-bold text-gray-900">{playlists.reduce((acc, p) => acc + p.metadata.total_talks, 0)}</p>
               </div>
             </div>
           </div>
@@ -190,7 +234,7 @@ export default function PlaylistsPage() {
         <div className="mb-6">
           <p className="text-sm text-gray-600">
             {loading ? 'Carregando...' : `${filteredPlaylists.length} playlist${filteredPlaylists.length !== 1 ? 's' : ''} encontrada${filteredPlaylists.length !== 1 ? 's' : ''}`}
-            {!loading && visibleCount < filteredPlaylists.length && (
+            {!loading && hasMore && (
               <span className="ml-2 text-blue-600">
                 (mostrando {visibleCount} de {filteredPlaylists.length})
               </span>
@@ -198,59 +242,108 @@ export default function PlaylistsPage() {
           </p>
         </div>
 
-        {/* Playlists Grid */}
+        {/* Content Grid */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(9)].map((_, index) => (
               <SkeletonCard key={index} />
             ))}
           </div>
-        ) : filteredPlaylists.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {visiblePlaylists.map((playlist, index) => (
-                <PlaylistCard 
-                  key={playlist.id} 
-                  playlist={playlist} 
-                  index={index} // Passar o índice para controle de carregamento
-                />
-              ))}
-            </div>
-
-            {/* Load More Button */}
-            {hasMore && (
-              <div className="flex justify-center mt-12">
-                <button
-                  onClick={loadMore}
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-                >
-                  <ChevronDown className="w-5 h-5" />
-                  Ver mais ensinamentos
-                  <span className="text-blue-200">
-                    ({filteredPlaylists.length - visibleCount} restantes)
-                  </span>
-                </button>
-              </div>
-            )}
-          </>
         ) : (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-12 h-12 text-gray-400" />
+          // Transcrições temporariamente ocultas
+          // contentFilter === 'transcript' ? (
+          //   // Transcrições Grid
+          //   filteredTranscripts.length > 0 ? (
+          //     <>
+          //       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          //         {visibleTranscripts.map((transcript) => (
+          //           <TranscriptCard 
+          //             key={transcript.id} 
+          //             transcript={transcript}
+          //           />
+          //         ))}
+          //       </div>
+          //       {/* Load More Button */}
+          //       {hasMore && (
+          //         <div className="flex justify-center mt-12">
+          //           <button
+          //             onClick={loadMore}
+          //             className="inline-flex items-center gap-2 px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+          //           >
+          //             <ChevronDown className="w-5 h-5" />
+          //             Ver mais transcrições
+          //             <span className="text-red-200">
+          //               ({filteredTranscripts.length - visibleCount} restantes)
+          //             </span>
+          //           </button>
+          //         </div>
+          //       )}
+          //     </>
+          //   ) : (
+          //     <div className="text-center py-12">
+          //       <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+          //         <FileText className="w-12 h-12 text-gray-400" />
+          //       </div>
+          //       <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          //         Nenhuma transcrição encontrada
+          //       </h3>
+          //       <p className="text-gray-600 mb-4">
+          //         Tente ajustar seus termos de pesquisa
+          //       </p>
+          //       <button
+          //         onClick={clearFilters}
+          //         className="text-red-600 hover:text-red-800 font-medium"
+          //       >
+          //         Limpar filtros
+          //       </button>
+          //     </div>
+          //   )
+          // ) : (
+          // Playlists Grid (código existente)
+          filteredPlaylists.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {visiblePlaylists.map((playlist, index) => (
+                  <PlaylistCard 
+                    key={playlist.id} 
+                    playlist={playlist} 
+                    index={index}
+                  />
+                ))}
+              </div>
+
+              {/* Load More Button */}
+              {hasMore && (
+                <div className="flex justify-center mt-12">
+                  <button
+                    onClick={loadMore}
+                    className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+                  >
+                    <ChevronDown className="w-5 h-5" />
+                    Ver mais ensinamentos
+                    <span className="text-blue-200">
+                      ({filteredPlaylists.length - visibleCount} restantes)
+                    </span>
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-12 h-12 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Em breve os áudios dos ensinamentos estarão disponíveis.
+              </h3>
+              <button
+                onClick={clearFilters}
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Limpar filtros
+              </button>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Nenhum ensinamento encontrado
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Tente ajustar seus termos de pesquisa ou filtros
-            </p>
-            <button
-              onClick={clearFilters}
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              Limpar filtros
-            </button>
-          </div>
+          )
         )}
       </div>
     </div>

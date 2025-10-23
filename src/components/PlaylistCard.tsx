@@ -72,7 +72,7 @@ export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps)
         <div className="flex gap-2">
           <Link 
             href={`/playlist/${playlist.id}`}
-            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-center text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="flex-1 bg-white border border-gray-400 text-gray-800 px-4 py-2 rounded-lg text-center text-sm font-medium hover:bg-gray-100 transition-colors"
           >
             Ver Playlist
           </Link>

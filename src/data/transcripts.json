@@ -1,0 +1,3115 @@
+{
+  "metadata": {
+    "total": 214,
+    "lastUpdated": "2025-10-23T17:17:52.944Z",
+    "version": "2.0.0"
+  },
+  "categories": {
+    "quatro-nobres-verdades": {
+      "name": "Quatro Nobres Verdades",
+      "description": "Ensinamentos sobre as 4 Nobres Verdades e Nobre Caminho Óctuplo",
+      "count": 12
+    },
+    "origem-dependente": {
+      "name": "Origem Dependente (12 Elos)",
+      "description": "Ensinamentos sobre origem dependente, 12 elos, interdependência",
+      "count": 12
+    },
+    "prajna-paramita": {
+      "name": "Prajna Paramita",
+      "description": "Sutra da Perfeição da Sabedoria, Roteiro 8 Pontos, Roteiro 21 itens",
+      "count": 28
+    },
+    "sutra-do-diamante": {
+      "name": "Sutra do Diamante",
+      "description": "Comentários específicos sobre Vajra Prajna Paramita",
+      "count": 16
+    },
+    "meditacao-e-pratica": {
+      "name": "Meditação e Prática",
+      "description": "Shamata, Mettabhavana, contemplação, práticas de meditação",
+      "count": 14
+    },
+    "satipathana": {
+      "name": "Satipathana",
+      "description": "Fundamentos da atenção plena, Satipathana Sutta",
+      "count": 10
+    },
+    "sabedoria-primordial": {
+      "name": "Sabedoria Primordial",
+      "description": "Iluminação, sabedoria primordial, natureza da mente",
+      "count": 13
+    },
+    "mahamudra": {
+      "name": "Mahamudra",
+      "description": "Ensinamentos Mahamudra, Tilopa, Naropa",
+      "count": 5
+    },
+    "bardos-e-morte": {
+      "name": "Bardos e Morte",
+      "description": "Estados intermediários, vida e morte, transição",
+      "count": 7
+    },
+    "bodhicitta-e-motivacao": {
+      "name": "Bodhicitta e Motivação",
+      "description": "Motivação, bodhicitta, compaixão",
+      "count": 4
+    },
+    "mandala": {
+      "name": "Mandala",
+      "description": "Método da mandala, visualização",
+      "count": 2
+    },
+    "ensinamentos-gerais": {
+      "name": "Ensinamentos Gerais",
+      "description": "Contexto, estrutura dos ensinamentos, visão geral",
+      "count": 9
+    },
+    "textos-especificos": {
+      "name": "Textos Específicos",
+      "description": "Dudjom Lingpa, Gampopa, Patrul Rinpoche, outros mestres",
+      "count": 31
+    },
+    "materiais-de-apoio": {
+      "name": "Materiais de Apoio",
+      "description": "Compilações, roteiros, anexos, templates",
+      "count": 24
+    },
+    "outros": {
+      "name": "Outros",
+      "description": "Documentos que não se encaixam nas categorias principais",
+      "count": 60
+    }
+  },
+  "transcripts": [
+    {
+      "id": "uJd7L0bMFGD",
+      "code": "uJd7L0bMFGD",
+      "title": "07 - 12 elos - Compilacao - Lama Padma Samten",
+      "slug": "07-12-elos-compilacao-lama-padma-samten",
+      "filename": "07 - 12 elos - Compilação - Lama Padma Samten.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/07%20-%2012%20elos%20-%20Compilac%CC%A7a%CC%83o%20-%20Lama%20Padma%20Samten.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 07 - 12 elos - Compilacao - Lama Padma Samten",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "JdA4xhMMIgj",
+      "code": "JdA4xhMMIgj",
+      "title": "14 Conselhos para a Pratica - Recife2015",
+      "slug": "14-conselhos-para-a-pratica-recife2015",
+      "filename": "14 Conselhos para a Prática - Recife2015.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/14%20Conselhos%20para%20a%20Pra%CC%81tica%20-%20Recife2015.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 14 Conselhos para a Pratica - Recife2015",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "rXcj0ijsiVz",
+      "code": "rXcj0ijsiVz",
+      "title": "14 conselhos para andar rapido",
+      "slug": "14-conselhos-para-andar-rapido",
+      "filename": "14 conselhos para andar rapido (2018).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/14%20conselhos%20para%20andar%20rapido%20(2018).pdf",
+      "preview": "Transcrição corrigida pela Sanga: 14 conselhos para andar rapido",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "Ji839eHq8UH",
+      "code": "Ji839eHq8UH",
+      "title": "2002 Curitiba Apostila_Curso_4NV_e_8NC",
+      "slug": "2002-curitiba-apostila_curso_4nv_e_8nc",
+      "filename": "2002 Curitiba Apostila_Curso_4NV_e_8NC.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2002%20Curitiba%20Apostila_Curso_4NV_e_8NC.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2002 Curitiba Apostila_Curso_4NV_e_8NC",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "X9qEaiyiST2",
+      "code": "X9qEaiyiST2",
+      "title": "2002_Curitiba_Apostila_Curso_4NV_e_8NC_1_",
+      "slug": "2002_curitiba_apostila_curso_4nv_e_8nc_1_",
+      "filename": "2002_Curitiba_Apostila_Curso_4NV_e_8NC_1_.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2002_Curitiba_Apostila_Curso_4NV_e_8NC_1_.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2002_Curitiba_Apostila_Curso_4NV_e_8NC_1_",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "Z2cKA2azA3j",
+      "code": "Z2cKA2azA3j",
+      "title": "2005 03 20 Responsabilidade Universal - Publicado em Bodisatva 11",
+      "slug": "2005-03-20-responsabilidade-universal-publicado-em-bodisatva-11",
+      "filename": "2005 03 20 Responsabilidade Universal - Publicado em Bodisatva 11.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2005%2003%2020%20Responsabilidade%20Universal%20-%20Publicado%20em%20Bodisatva%2011.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2005 03 20 Responsabilidade Universal - Publicado em Bodisatva 11",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "-QYg411u_LY",
+      "code": "-QYg411u_LY",
+      "title": "2005 06 23 PE 4 Os Doze Elos e os Seis Reinos",
+      "slug": "2005-06-23-pe-4-os-doze-elos-e-os-seis-reinos",
+      "filename": "2005 06 23 PE (4) Os Doze Elos e os Seis Reinos (texto).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2005%2006%2023%20PE%20(4)%20Os%20Doze%20Elos%20e%20os%20Seis%20Reinos%20(texto).pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2005 06 23 PE 4 Os Doze Elos e os Seis Reinos",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "IRtTI9KPD0K",
+      "code": "IRtTI9KPD0K",
+      "title": "2005_06_22__2__4PTM_e_Refugio__texto_",
+      "slug": "2005_06_22__2__4ptm_e_refugio__texto_",
+      "filename": "2005_06_22__2__4PTM_e_Refúgio__texto_.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2005_06_22__2__4PTM_e_Refu%CC%81gio__texto_.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2005_06_22__2__4PTM_e_Refugio__texto_",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "qy_KfbMAGZn",
+      "code": "qy_KfbMAGZn",
+      "title": "2005_06_22_PE__1__4NV_e_O_NC8P__texto___2_",
+      "slug": "2005_06_22_pe__1__4nv_e_o_nc8p__texto___2_",
+      "filename": "2005_06_22_PE__1__4NV_e_O_NC8P__texto___2_.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2005_06_22_PE__1__4NV_e_O_NC8P__texto___2_.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2005_06_22_PE__1__4NV_e_O_NC8P__texto___2_",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "xnee6ZNJb58",
+      "code": "xnee6ZNJb58",
+      "title": "2005_06_22_PE_1_4NV_e_O_NC8P_",
+      "slug": "2005_06_22_pe_1_4nv_e_o_nc8p_",
+      "filename": "2005_06_22_PE_(1)_4NV_e_O_NC8P_(texto).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2005_06_22_PE_(1)_4NV_e_O_NC8P_(texto).pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2005_06_22_PE_1_4NV_e_O_NC8P_",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "JONfqmUJwm2",
+      "code": "JONfqmUJwm2",
+      "title": "2005_06_23_PE__3__Responsabilidade_Universal__texto_",
+      "slug": "2005_06_23_pe__3__responsabilidade_universal__texto_",
+      "filename": "2005_06_23_PE__3__Responsabilidade_Universal__texto_.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2005_06_23_PE__3__Responsabilidade_Universal__texto_.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2005_06_23_PE__3__Responsabilidade_Universal__texto_",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "1IGrtdkBGg-",
+      "code": "1IGrtdkBGg-",
+      "title": "2005_06_23_PE__4__Os_Doze_Elos_e_os_Seis_Reinos__texto_",
+      "slug": "2005_06_23_pe__4__os_doze_elos_e_os_seis_reinos__texto_",
+      "filename": "2005_06_23_PE__4__Os_Doze_Elos_e_os_Seis_Reinos__texto_.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2005_06_23_PE__4__Os_Doze_Elos_e_os_Seis_Reinos__texto_.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2005_06_23_PE__4__Os_Doze_Elos_e_os_Seis_Reinos__texto_",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "djMRBV8n996",
+      "code": "djMRBV8n996",
+      "title": "2006 Jun Curitiba Prajnaparamita edicao final",
+      "slug": "2006-jun-curitiba-prajnaparamita-edicao-final",
+      "filename": "2006 Jun Curitiba Prajnaparamita ediçao final.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2006%20Jun%20Curitiba%20Prajnaparamita%20edic%CC%A7ao%20final.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2006 Jun Curitiba Prajnaparamita edicao final",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "tsM_fZd_2Zt",
+      "code": "tsM_fZd_2Zt",
+      "title": "2010_04_26_-_Motivacao_Correta_-_contemplacao_em_13_itens_-_abr_2010",
+      "slug": "2010_04_26_-_motivacao_correta_-_contemplacao_em_13_itens_-_abr_2010",
+      "filename": "2010_04_26_-_Motivacao_Correta_-_contemplacao_em_13_itens_-_abr_2010 (1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2010_04_26_-_Motivacao_Correta_-_contemplacao_em_13_itens_-_abr_2010%20(1).pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2010_04_26_-_Motivacao_Correta_-_contemplacao_em_13_itens_-_abr_2010",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "2z9U9XcLHAL",
+      "code": "2z9U9XcLHAL",
+      "title": "2010_04_26_-_Motivacao_Correta_-_contemplacao_em_13_itens_-_abr_2010",
+      "slug": "2010_04_26_-_motivacao_correta_-_contemplacao_em_13_itens_-_abr_2010",
+      "filename": "2010_04_26_-_Motivacao_Correta_-_contemplacao_em_13_itens_-_abr_2010.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2010_04_26_-_Motivacao_Correta_-_contemplacao_em_13_itens_-_abr_2010.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2010_04_26_-_Motivacao_Correta_-_contemplacao_em_13_itens_-_abr_2010",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "gdbWajs0i5h",
+      "code": "gdbWajs0i5h",
+      "title": "2011 11 - Retiro darmata tutores-8 ptos Prajna Presenca Identidade",
+      "slug": "2011-11-retiro-darmata-tutores-8-ptos-prajna-presenca-identidade",
+      "filename": "2011 11 - Retiro darmata tutores-8 ptos Prajna Presença Identidade.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2011%2011%20-%20Retiro%20darmata%20tutores-8%20ptos%20Prajna%20Presenc%CC%A7a%20Identidade.pdf",
+      "preview": "Reflexões sobre identidade e não-identidade...",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "cmNVgCjugTr",
+      "code": "cmNVgCjugTr",
+      "title": "2011_09_06_ROTEIRO_21_ITENS_-_Lama_Padma_Samten",
+      "slug": "2011_09_06_roteiro_21_itens_-_lama_padma_samten",
+      "filename": "2011_09_06_ROTEIRO_21_ITENS_-_Lama_Padma_Samten (2).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2011_09_06_ROTEIRO_21_ITENS_-_Lama_Padma_Samten%20(2).pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2011_09_06_ROTEIRO_21_ITENS_-_Lama_Padma_Samten",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "jnZReeVFhRe",
+      "code": "jnZReeVFhRe",
+      "title": "2012 07 Autonomia dos Lungs",
+      "slug": "2012-07-autonomia-dos-lungs",
+      "filename": "2012 07 Autonomia dos Lungs.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2012%2007%20Autonomia%20dos%20Lungs.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2012 07 Autonomia dos Lungs",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "dUU7w2UYSc9",
+      "code": "dUU7w2UYSc9",
+      "title": "2012 08 O Lung dos Cinco Elementos - ago 12",
+      "slug": "2012-08-o-lung-dos-cinco-elementos-ago-12",
+      "filename": "2012 08 O Lung dos Cinco Elementos - ago 12.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2012%2008%20O%20Lung%20dos%20Cinco%20Elementos%20-%20ago%2012.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2012 08 O Lung dos Cinco Elementos - ago 12",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "baOIOP0HZu_",
+      "code": "baOIOP0HZu_",
+      "title": "2014 - Retiro ponto ultimo",
+      "slug": "2014-retiro-ponto-ultimo",
+      "filename": "2014 -  Retiro ponto ultimo.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2014%20-%20%20Retiro%20ponto%20ultimo.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2014 - Retiro ponto ultimo",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "13NDebFxXMC",
+      "code": "13NDebFxXMC",
+      "title": "2015 01 07 Retiro Seis Selos Oito Pontos Prajnaparamita",
+      "slug": "2015-01-07-retiro-seis-selos-oito-pontos-prajnaparamita",
+      "filename": "2015 01 07 Retiro Seis Selos Oito Pontos Prajnaparamita[revisado].pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2015%2001%2007%20Retiro%20Seis%20Selos%20Oito%20Pontos%20Prajnaparamita%5Brevisado%5D.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2015 01 07 Retiro Seis Selos Oito Pontos Prajnaparamita",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "6SYmKdRuGQ9",
+      "code": "6SYmKdRuGQ9",
+      "title": "2015 01 07 Retiro Seis Selos Oito Pontos Prajnaparamitarevisado.pdf",
+      "slug": "2015-01-07-retiro-seis-selos-oito-pontos-prajnaparamitarevisadopdf",
+      "filename": "2015 01 07 Retiro Seis Selos Oito Pontos Prajnaparamita[revisado].pdf(1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2015%2001%2007%20Retiro%20Seis%20Selos%20Oito%20Pontos%20Prajnaparamita%5Brevisado%5D.pdf(1).pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2015 01 07 Retiro Seis Selos Oito Pontos Prajnaparamitarevisado.pdf",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "FwvfJKsAuse",
+      "code": "FwvfJKsAuse",
+      "title": "2015 01 07 Retiro Seis Selos Oito Pontos Prajnaparamitarevisado.pdf",
+      "slug": "2015-01-07-retiro-seis-selos-oito-pontos-prajnaparamitarevisadopdf",
+      "filename": "2015 01 07 Retiro Seis Selos Oito Pontos Prajnaparamita[revisado].pdf.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2015%2001%2007%20Retiro%20Seis%20Selos%20Oito%20Pontos%20Prajnaparamita%5Brevisado%5D.pdf.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2015 01 07 Retiro Seis Selos Oito Pontos Prajnaparamitarevisado.pdf",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "Fclf6hOM1Z0",
+      "code": "Fclf6hOM1Z0",
+      "title": "2015 07 Retiro Sutra da Haste de Arroz",
+      "slug": "2015-07-retiro-sutra-da-haste-de-arroz",
+      "filename": "2015 07 Retiro Sutra da Haste de Arroz (2º e 3ºdia).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2015%2007%20Retiro%20Sutra%20da%20Haste%20de%20Arroz%20(2%C2%BA%20e%203%C2%BAdia).pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2015 07 Retiro Sutra da Haste de Arroz",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "t9vu7A588Bp",
+      "code": "t9vu7A588Bp",
+      "title": "2015 12 1-8 Retiro Iluminacao do Buda - Ensinamentos dos Cinco Bardos",
+      "slug": "2015-12-1-8-retiro-iluminacao-do-buda-ensinamentos-dos-cinco-bardos",
+      "filename": "2015 12 1-8 Retiro Iluminação do Buda - Ensinamentos dos Cinco Bardos.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2015%2012%201-8%20Retiro%20Iluminac%CC%A7a%CC%83o%20do%20Buda%20-%20Ensinamentos%20dos%20Cinco%20Bardos.pdf",
+      "preview": "Ensinamentos sobre os estados intermediários (bardos)...",
+      "categories": [
+        "bardos-e-morte"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "tk3QQCkmoJY",
+      "code": "tk3QQCkmoJY",
+      "title": "2018 09 24 - Extraindo a Essencia Vital - Dudjom Rinpoche",
+      "slug": "2018-09-24-extraindo-a-essencia-vital-dudjom-rinpoche",
+      "filename": "2018 09 24 - Extraindo a Essência Vital - Dudjom Rinpoche.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2018%2009%2024%20-%20Extraindo%20a%20Esse%CC%82ncia%20Vital%20-%20Dudjom%20Rinpoche.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 2018 09 24 - Extraindo a Essencia Vital - Dudjom Rinpoche",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "wGvs6OdbmeX",
+      "code": "wGvs6OdbmeX",
+      "title": "2023 06 10 Estudo de Aprofundamento - Sutra Vajra Prajna Paramita Sutra do Diamante 04",
+      "slug": "2023-06-10-estudo-de-aprofundamento-sutra-vajra-prajna-paramita-sutra-do-diamante-04",
+      "filename": "2023 06 10 Estudo de Aprofundamento - Sutra Vajra Prajna Paramita – Sutra do Diamante #04.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/2023%2006%2010%20Estudo%20de%20Aprofundamento%20-%20Sutra%20Vajra%20Prajna%20Paramita%20%E2%80%93%20Sutra%20do%20Diamante%20%2304.pdf",
+      "preview": "Sutra da Perfeição da Sabedoria - ensinamentos profundos...",
+      "categories": [
+        "prajna-paramita",
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "UfBPs5BOtv0",
+      "code": "UfBPs5BOtv0",
+      "title": "28 Versos de Tilopa a Naropa 1",
+      "slug": "28-versos-de-tilopa-a-naropa-1",
+      "filename": "#63 28 Versos de Tilopa a Naropa 1.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2363%2028%20Versos%20de%20Tilopa%20a%20Naropa%201.pdf",
+      "preview": "Ensinamentos baseados nos versos de Tilopa a Naropa...",
+      "categories": [
+        "mahamudra",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "CI4m3hGWE3W",
+      "code": "CI4m3hGWE3W",
+      "title": "28 Versos de Tilopa a Naropa 2",
+      "slug": "28-versos-de-tilopa-a-naropa-2",
+      "filename": "#64 28 Versos de Tilopa a Naropa 2.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2364%2028%20Versos%20de%20Tilopa%20a%20Naropa%202.pdf",
+      "preview": "Ensinamentos baseados nos versos de Tilopa a Naropa...",
+      "categories": [
+        "mahamudra",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "V4WF8hVTDPe",
+      "code": "V4WF8hVTDPe",
+      "title": "4_Nobres_Verdades_e_Caminho_Octuplo_-_Recife_Junho_2005",
+      "slug": "4_nobres_verdades_e_caminho_octuplo_-_recife_junho_2005",
+      "filename": "4_Nobres_Verdades_e_Caminho_Octuplo_-_Recife_Junho_2005.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/4_Nobres_Verdades_e_Caminho_Octuplo_-_Recife_Junho_2005.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 4_Nobres_Verdades_e_Caminho_Octuplo_-_Recife_Junho_2005",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "RWXtw9psWhn",
+      "code": "RWXtw9psWhn",
+      "title": "6 formas de avydia",
+      "slug": "6-formas-de-avydia",
+      "filename": "6 formas de avydia.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/6%20formas%20de%20avydia.pdf",
+      "preview": "Transcrição corrigida pela Sanga: 6 formas de avydia",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "cYtCf_KXXTn",
+      "code": "cYtCf_KXXTn",
+      "title": "A Contemplacao desde a Primeira Nobre Verdade e Mettabhavana",
+      "slug": "a-contemplacao-desde-a-primeira-nobre-verdade-e-mettabhavana",
+      "filename": "#09 A Contemplação desde a Primeira Nobre Verdade e Mettabhavana REVISADO.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2309%20A%20Contemplac%CC%A7a%CC%83o%20desde%20a%20Primeira%20Nobre%20Verdade%20e%20Mettabhavana%20REVISADO.pdf",
+      "preview": "Prática de mettabhavana (meditação de amor bondade)...",
+      "categories": [
+        "quatro-nobres-verdades",
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "GtyDZZVHgqp",
+      "code": "GtyDZZVHgqp",
+      "title": "A Contemplacao desde a Primeira Nobre Verdade e Mettabhavana",
+      "slug": "a-contemplacao-desde-a-primeira-nobre-verdade-e-mettabhavana",
+      "filename": "#09 A Contemplação desde a Primeira Nobre Verdade e Mettabhavana – RI 2020.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2309%20A%20Contemplac%CC%A7a%CC%83o%20desde%20a%20Primeira%20Nobre%20Verdade%20e%20Mettabhavana%20%E2%80%93%20RI%202020.pdf",
+      "preview": "Prática de mettabhavana (meditação de amor bondade)...",
+      "categories": [
+        "quatro-nobres-verdades",
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "D44MBRmN3tW",
+      "code": "D44MBRmN3tW",
+      "title": "A Contemplacao desde a Primeira Nobre Verdade e Mettabhavana",
+      "slug": "a-contemplacao-desde-a-primeira-nobre-verdade-e-mettabhavana",
+      "filename": "#09 A Contemplação desde a Primeira Nobre Verdade e Mettabhavana.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2309%20A%20Contemplac%CC%A7a%CC%83o%20desde%20a%20Primeira%20Nobre%20Verdade%20e%20Mettabhavana.pdf",
+      "preview": "Prática de mettabhavana (meditação de amor bondade)...",
+      "categories": [
+        "quatro-nobres-verdades",
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "OVkNNaznePQ",
+      "code": "OVkNNaznePQ",
+      "title": "A Essencia do Roteiro dos Oito Pontos da Prajna Paramita",
+      "slug": "a-essencia-do-roteiro-dos-oito-pontos-da-prajna-paramita",
+      "filename": "#33 A Essência do Roteiro dos Oito Pontos da Prajna Paramita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2333%20A%20Esse%CC%82ncia%20do%20Roteiro%20dos%20Oito%20Pontos%20da%20Prajna%20Paramita.pdf",
+      "preview": "Sutra da Perfeição da Sabedoria - ensinamentos profundos...",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "IK4VqY6CpgB",
+      "code": "IK4VqY6CpgB",
+      "title": "A ILUMINACAO DA SABEDORIA PRIMORDIAL - coment GYATRUL revisado fev 2011",
+      "slug": "a-iluminacao-da-sabedoria-primordial-coment-gyatrul-revisado-fev-2011",
+      "filename": "A ILUMINAÇÃO DA SABEDORIA PRIMORDIAL - coment GYATRUL revisado fev 2011.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/A%20ILUMINAC%CC%A7A%CC%83O%20DA%20SABEDORIA%20PRIMORDIAL%20-%20coment%20GYATRUL%20revisado%20fev%202011.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "RS7J_x7BwQG",
+      "code": "RS7J_x7BwQG",
+      "title": "A Liberacao da Origem Dependente",
+      "slug": "a-liberacao-da-origem-dependente",
+      "filename": "#15 A Liberação da Origem Dependente.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2315%20A%20Liberac%CC%A7a%CC%83o%20da%20Origem%20Dependente.pdf",
+      "preview": "Ensinamentos sobre a origem dependente e interdependência...",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "ohpFPl9Z2bs",
+      "code": "ohpFPl9Z2bs",
+      "title": "A Meditacao do Pensar Contemplar e Repousar.pdf",
+      "slug": "a-meditacao-do-pensar-contemplar-e-repousarpdf",
+      "filename": "A Meditação do Pensar, Contemplar e Repousar.pdf.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/A%20Meditac%CC%A7a%CC%83o%20do%20Pensar%2C%20Contemplar%20e%20Repousar.pdf.pdf",
+      "preview": "Transcrição corrigida pela Sanga: A Meditacao do Pensar Contemplar e Repousar.pdf",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "y2PgaA5Bu9p",
+      "code": "y2PgaA5Bu9p",
+      "title": "A Operacao da Origem Dependente",
+      "slug": "a-operacao-da-origem-dependente",
+      "filename": "#11 A Operação da Origem Dependente.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2311%20A%20Operac%CC%A7a%CC%83o%20da%20Origem%20Dependente.pdf",
+      "preview": "Ensinamentos sobre a origem dependente e interdependência...",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "hK_8d8HTQsK",
+      "code": "hK_8d8HTQsK",
+      "title": "A Pratica de Shamata e Mettabhavana",
+      "slug": "a-pratica-de-shamata-e-mettabhavana",
+      "filename": "#06 A Prática de Shamata e Mettabhavana – RI 2020.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2306%20A%20Pra%CC%81tica%20de%20Shamata%20e%20Mettabhavana%20%E2%80%93%20RI%202020.pdf",
+      "preview": "Ensinamentos sobre a prática de shamata (meditação de tranquilidade)...",
+      "categories": [
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "XO_iG1FgVa0",
+      "code": "XO_iG1FgVa0",
+      "title": "A Pratica de Shamata e Mettabhavana",
+      "slug": "a-pratica-de-shamata-e-mettabhavana",
+      "filename": "#06 A Prática de Shamata e Mettabhavana.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2306%20A%20Pra%CC%81tica%20de%20Shamata%20e%20Mettabhavana.pdf",
+      "preview": "Ensinamentos sobre a prática de shamata (meditação de tranquilidade)...",
+      "categories": [
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "OB7OUxl_Mwp",
+      "code": "OB7OUxl_Mwp",
+      "title": "A Primeira Nobre Verdade Dukkha",
+      "slug": "a-primeira-nobre-verdade-dukkha",
+      "filename": "#08 A Primeira Nobre Verdade Dukkha – RI 2020.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2308%20A%20Primeira%20Nobre%20Verdade%20Dukkha%20%E2%80%93%20RI%202020.pdf",
+      "preview": "Explorando as Quatro Nobres Verdades do Budismo...",
+      "categories": [
+        "quatro-nobres-verdades"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "-N5xjaoRPCr",
+      "code": "-N5xjaoRPCr",
+      "title": "A Primeira Nobre Verdade Dukkha",
+      "slug": "a-primeira-nobre-verdade-dukkha",
+      "filename": "#08 A Primeira Nobre Verdade Dukkha.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2308%20A%20Primeira%20Nobre%20Verdade%20Dukkha.pdf",
+      "preview": "Explorando as Quatro Nobres Verdades do Budismo...",
+      "categories": [
+        "quatro-nobres-verdades"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "dIXRJxAj1w-",
+      "code": "dIXRJxAj1w-",
+      "title": "A Roda do Darma",
+      "slug": "a-roda-do-darma",
+      "filename": "#24 A Roda do Darma.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2324%20A%20Roda%20do%20Darma.pdf",
+      "preview": "Transcrição corrigida pela Sanga: A Roda do Darma",
+      "categories": [
+        "ensinamentos-gerais"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "Tn_tzWvtQ--",
+      "code": "Tn_tzWvtQ--",
+      "title": "A Segunda Nobre Verdade e as Inteligencias Budicas",
+      "slug": "a-segunda-nobre-verdade-e-as-inteligencias-budicas",
+      "filename": "#10 A Segunda Nobre Verdade e as Inteligências Búdicas.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2310%20A%20Segunda%20Nobre%20Verdade%20e%20as%20Intelige%CC%82ncias%20Bu%CC%81dicas.pdf",
+      "preview": "Explorando as Quatro Nobres Verdades do Budismo...",
+      "categories": [
+        "quatro-nobres-verdades"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "V0g9-wHBK0A",
+      "code": "V0g9-wHBK0A",
+      "title": "A Terceira Nobre Verdade",
+      "slug": "a-terceira-nobre-verdade",
+      "filename": "#16 A Terceira Nobre Verdade.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2316%20A%20Terceira%20Nobre%20Verdade.pdf",
+      "preview": "Explorando as Quatro Nobres Verdades do Budismo...",
+      "categories": [
+        "quatro-nobres-verdades"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "3GqOSpGF-u9",
+      "code": "3GqOSpGF-u9",
+      "title": "A_Meditacao_do_Pensar__Contemplar_e_Repousar",
+      "slug": "a_meditacao_do_pensar__contemplar_e_repousar",
+      "filename": "A_Meditação_do_Pensar__Contemplar_e_Repousar.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/A_Meditac%CC%A7a%CC%83o_do_Pensar__Contemplar_e_Repousar.pdf",
+      "preview": "Transcrição corrigida pela Sanga: A_Meditacao_do_Pensar__Contemplar_e_Repousar",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "1Y0YE7XZjpR",
+      "code": "1Y0YE7XZjpR",
+      "title": "Abordagem de guruioga",
+      "slug": "abordagem-de-guruioga",
+      "filename": "Abordagem de guruioga.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Abordagem%20de%20guruioga.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Abordagem de guruioga",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "TDl2_dBSHYk",
+      "code": "TDl2_dBSHYk",
+      "title": "Abordagem do Texto da Prajna Paramita",
+      "slug": "abordagem-do-texto-da-prajna-paramita",
+      "filename": "#32 Abordagem do Texto da Prajna Paramita (linha a linha).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2332%20Abordagem%20do%20Texto%20da%20Prajna%20Paramita%20(linha%20a%20linha).pdf",
+      "preview": "Sutra da Perfeição da Sabedoria - ensinamentos profundos...",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "QBEcv8QAcSQ",
+      "code": "QBEcv8QAcSQ",
+      "title": "ANEXO 1 - pratica_de_transcricao",
+      "slug": "anexo-1-pratica_de_transcricao",
+      "filename": "ANEXO 1 - prática_de_transcrição.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/ANEXO%201%20-%20pra%CC%81tica_de_transcric%CC%A7a%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: ANEXO 1 - pratica_de_transcricao",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "eQ5BdUuLqwY",
+      "code": "eQ5BdUuLqwY",
+      "title": "ANEXO 1 pratica_de_transcricao",
+      "slug": "anexo-1-pratica_de_transcricao",
+      "filename": "ANEXO 1 prática_de_transcrição.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/ANEXO%201%20pra%CC%81tica_de_transcric%CC%A7a%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: ANEXO 1 pratica_de_transcricao",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "7ZV54bGHBRz",
+      "code": "7ZV54bGHBRz",
+      "title": "ANEXO 2 recomendacoes_e_orientacoes",
+      "slug": "anexo-2-recomendacoes_e_orientacoes",
+      "filename": "ANEXO 2 recomendações_e_orientações.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/ANEXO%202%20recomendac%CC%A7o%CC%83es_e_orientac%CC%A7o%CC%83es.pdf",
+      "preview": "Transcrição corrigida pela Sanga: ANEXO 2 recomendacoes_e_orientacoes",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "0tBupico1Im",
+      "code": "0tBupico1Im",
+      "title": "ANEXO 2 recomendacoes_e_orientacoes.docx",
+      "slug": "anexo-2-recomendacoes_e_orientacoesdocx",
+      "filename": "ANEXO 2 recomendações_e_orientações.docx.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/ANEXO%202%20recomendac%CC%A7o%CC%83es_e_orientac%CC%A7o%CC%83es.docx.pdf",
+      "preview": "Transcrição corrigida pela Sanga: ANEXO 2 recomendacoes_e_orientacoes.docx",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "BSLDoa0vMJI",
+      "code": "BSLDoa0vMJI",
+      "title": "ANEXO 3 lista_de_nomes_e_termos",
+      "slug": "anexo-3-lista_de_nomes_e_termos",
+      "filename": "ANEXO 3 lista_de_nomes_e_termos.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/ANEXO%203%20lista_de_nomes_e_termos.pdf",
+      "preview": "Transcrição corrigida pela Sanga: ANEXO 3 lista_de_nomes_e_termos",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "LMwSUba-32-",
+      "code": "LMwSUba-32-",
+      "title": "ANEXOS 1 2 template_MAIS_orientacoes_revisao",
+      "slug": "anexos-1-2-template_mais_orientacoes_revisao",
+      "filename": "ANEXOS 1 + 2 template_MAIS_orientações_revisão.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/ANEXOS%201%20%2B%202%20template_MAIS_orientac%CC%A7o%CC%83es_revisa%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: ANEXOS 1 2 template_MAIS_orientacoes_revisao",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "ZB3L7Bypwhu",
+      "code": "ZB3L7Bypwhu",
+      "title": "As Varias Abordagens no Budismo LPS",
+      "slug": "as-varias-abordagens-no-budismo-lps",
+      "filename": "As Várias Abordagens no Budismo LPS.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/As%20Va%CC%81rias%20Abordagens%20no%20Budismo%20LPS.pdf",
+      "preview": "Transcrição corrigida pela Sanga: As Varias Abordagens no Budismo LPS",
+      "categories": [
+        "ensinamentos-gerais"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "DWY3TcoALsJ",
+      "code": "DWY3TcoALsJ",
+      "title": "As Varias Abordagens no Budismo LPS.pdf",
+      "slug": "as-varias-abordagens-no-budismo-lpspdf",
+      "filename": "As Várias Abordagens no Budismo LPS.pdf.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/As%20Va%CC%81rias%20Abordagens%20no%20Budismo%20LPS.pdf.pdf",
+      "preview": "Transcrição corrigida pela Sanga: As Varias Abordagens no Budismo LPS.pdf",
+      "categories": [
+        "ensinamentos-gerais"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "o8iI-GvhABm",
+      "code": "o8iI-GvhABm",
+      "title": "As_Varias_Abordagens_no_Budismo_LPS",
+      "slug": "as_varias_abordagens_no_budismo_lps",
+      "filename": "As_Várias_Abordagens_no_Budismo_LPS.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/As_Va%CC%81rias_Abordagens_no_Budismo_LPS.pdf",
+      "preview": "Transcrição corrigida pela Sanga: As_Varias_Abordagens_no_Budismo_LPS",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "1KfTACBu1Oo",
+      "code": "1KfTACBu1Oo",
+      "title": "Blocos e faixas _ Compilacao",
+      "slug": "blocos-e-faixas-_-compilacao",
+      "filename": "Blocos e faixas _ Compilação.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Blocos%20e%20faixas%20_%20Compilac%CC%A7a%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Blocos e faixas _ Compilacao",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "Mo1mSs6xH7s",
+      "code": "Mo1mSs6xH7s",
+      "title": "Bodicita e Essencial",
+      "slug": "bodicita-e-essencial",
+      "filename": "#20 Bodicita é Essencial.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2320%20Bodicita%20e%CC%81%20Essencial.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Bodicita e Essencial",
+      "categories": [
+        "bodhicitta-e-motivacao"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "HOYKJ9QibbS",
+      "code": "HOYKJ9QibbS",
+      "title": "Bom Coracao - com capa",
+      "slug": "bom-coracao-com-capa",
+      "filename": "Bom Coração - com capa.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Bom%20Corac%CC%A7a%CC%83o%20-%20com%20capa.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Bom Coracao - com capa",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "pesmqs4L_Rg",
+      "code": "pesmqs4L_Rg",
+      "title": "Buscando o Ponto Ultimo - comentado pelo Lama Samten",
+      "slug": "buscando-o-ponto-ultimo-comentado-pelo-lama-samten",
+      "filename": "Buscando o Ponto Ultimo - comentado   pelo Lama Samten.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Buscando%20o%20Ponto%20Ultimo%20-%20comentado%20%20%20pelo%20Lama%20Samten.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Buscando o Ponto Ultimo - comentado pelo Lama Samten",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "h0P6io2uvx2",
+      "code": "h0P6io2uvx2",
+      "title": "Buscando o Ponto Ultimo - comentado pelo Lama Samten alterado",
+      "slug": "buscando-o-ponto-ultimo-comentado-pelo-lama-samten-alterado",
+      "filename": "Buscando o Ponto Ultimo - comentado pelo Lama Samten alterado.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Buscando%20o%20Ponto%20Ultimo%20-%20comentado%20pelo%20Lama%20Samten%20alterado.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Buscando o Ponto Ultimo - comentado pelo Lama Samten alterado",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "--kBxc5_ueG",
+      "code": "--kBxc5_ueG",
+      "title": "Comentarios de Dudjom Rinpoche - The Light of Primordial Wisdom",
+      "slug": "comentarios-de-dudjom-rinpoche-the-light-of-primordial-wisdom",
+      "filename": "Comentários de Dudjom Rinpoche - The Light of Primordial Wisdom.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Comenta%CC%81rios%20de%20Dudjom%20Rinpoche%20-%20The%20Light%20of%20Primordial%20Wisdom.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Comentarios de Dudjom Rinpoche - The Light of Primordial Wisdom",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "4shZ2LPDQ03",
+      "code": "4shZ2LPDQ03",
+      "title": "Como Usar o Programa de transcricao",
+      "slug": "como-usar-o-programa-de-transcricao",
+      "filename": "Como Usar o Programa de transcrição.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Como%20Usar%20o%20Programa%20de%20transcric%CC%A7a%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Como Usar o Programa de transcricao",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "pzKJ2Uuxj3B",
+      "code": "pzKJ2Uuxj3B",
+      "title": "Compilacao de ensinamentos sobre o metodo da Mandala",
+      "slug": "compilacao-de-ensinamentos-sobre-o-metodo-da-mandala",
+      "filename": "Compilação de ensinamentos sobre o método da Mandala .pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Compilac%CC%A7a%CC%83o%20de%20ensinamentos%20sobre%20o%20me%CC%81todo%20da%20Mandala%20.pdf",
+      "preview": "Ensinamentos sobre mandala e visualização...",
+      "categories": [
+        "mandala"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "Yw_C63eR9Nq",
+      "code": "Yw_C63eR9Nq",
+      "title": "Compilacao_Mahamudra de Tilopa a Naropa",
+      "slug": "compilacao_mahamudra-de-tilopa-a-naropa",
+      "filename": "Compilacao_Mahamudra de Tilopa a Naropa.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Compilacao_Mahamudra%20de%20Tilopa%20a%20Naropa.pdf",
+      "preview": "Ensinamentos baseados nos versos de Tilopa a Naropa...",
+      "categories": [
+        "mahamudra",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "izynCwaUaPW",
+      "code": "izynCwaUaPW",
+      "title": "Construindo_terras_puras__vivendo_em_Sangha_com_sustentabilidade_-_Manha",
+      "slug": "construindo_terras_puras__vivendo_em_sangha_com_sustentabilidade_-_manha",
+      "filename": "Construindo_terras_puras__vivendo_em_Sangha_com_sustentabilidade_-_Manhã.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Construindo_terras_puras__vivendo_em_Sangha_com_sustentabilidade_-_Manha%CC%83.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Construindo_terras_puras__vivendo_em_Sangha_com_sustentabilidade_-_Manha",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "UES_tZ8y2ZE",
+      "code": "UES_tZ8y2ZE",
+      "title": "Construindo_Terras_Puras__vivendo_em_Sangha_com_sustentabilidade_-_Tarde",
+      "slug": "construindo_terras_puras__vivendo_em_sangha_com_sustentabilidade_-_tarde",
+      "filename": "Construindo_Terras_Puras__vivendo_em_Sangha_com_sustentabilidade_-_Tarde.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Construindo_Terras_Puras__vivendo_em_Sangha_com_sustentabilidade_-_Tarde.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Construindo_Terras_Puras__vivendo_em_Sangha_com_sustentabilidade_-_Tarde",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "nCIr6AWxlPJ",
+      "code": "nCIr6AWxlPJ",
+      "title": "Contemplacao motivacao atraves da prece de 7 linhas",
+      "slug": "contemplacao-motivacao-atraves-da-prece-de-7-linhas",
+      "filename": "Contemplação motivação atraves da prece de 7 linhas (1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Contemplac%CC%A7a%CC%83o%20motivac%CC%A7a%CC%83o%20atraves%20da%20prece%20de%207%20linhas%20(1).pdf",
+      "preview": "Transcrição corrigida pela Sanga: Contemplacao motivacao atraves da prece de 7 linhas",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "U8H8qZo2C_H",
+      "code": "U8H8qZo2C_H",
+      "title": "Contexto dos Ensinamentos",
+      "slug": "contexto-dos-ensinamentos",
+      "filename": "#03 Contexto dos Ensinamentos.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2303%20Contexto%20dos%20Ensinamentos.pdf",
+      "preview": "Explorando o contexto histórico e filosófico dos ensinamentos...",
+      "categories": [
+        "ensinamentos-gerais",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "t4fcwCPv4NI",
+      "code": "t4fcwCPv4NI",
+      "title": "Copia de 29 O Que e a Contemplacao",
+      "slug": "copia-de-29-o-que-e-a-contemplacao",
+      "filename": "Cópia de #29 O Que é a Contemplação.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Co%CC%81pia%20de%20%2329%20O%20Que%20e%CC%81%20a%20Contemplac%CC%A7a%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Copia de 29 O Que e a Contemplacao",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "lizF2l-9bok",
+      "code": "lizF2l-9bok",
+      "title": "Copia de 32 Abordagem do Texto da Prajna Paramita",
+      "slug": "copia-de-32-abordagem-do-texto-da-prajna-paramita",
+      "filename": "Cópia de #32 Abordagem do Texto da Prajna Paramita (linha a linha).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Co%CC%81pia%20de%20%2332%20Abordagem%20do%20Texto%20da%20Prajna%20Paramita%20(linha%20a%20linha).pdf",
+      "preview": "Sutra da Perfeição da Sabedoria - ensinamentos profundos...",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "jsCYJ3weZ8A",
+      "code": "jsCYJ3weZ8A",
+      "title": "Darma Tolo Dudjom Lingpa 1",
+      "slug": "darma-tolo-dudjom-lingpa-1",
+      "filename": "#65 Darma Tolo Dudjom Lingpa 1.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2365%20Darma%20Tolo%20Dudjom%20Lingpa%201.pdf",
+      "preview": "Comentários sobre os ensinamentos de Dudjom Lingpa...",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "fLdua3AFVNa",
+      "code": "fLdua3AFVNa",
+      "title": "Darma Tolo Dudjom Lingpa 2",
+      "slug": "darma-tolo-dudjom-lingpa-2",
+      "filename": "#66 Darma Tolo Dudjom Lingpa 2.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2366%20Darma%20Tolo%20Dudjom%20Lingpa%202.pdf",
+      "preview": "Comentários sobre os ensinamentos de Dudjom Lingpa...",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "EOBGk4Jkvue",
+      "code": "EOBGk4Jkvue",
+      "title": "Darma Tolo Dudjom Lingpa 3 - transcricao nao localizada",
+      "slug": "darma-tolo-dudjom-lingpa-3-transcricao-nao-localizada",
+      "filename": "#67 Darma Tolo Dudjom Lingpa 3 - transcrição não localizada.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2367%20Darma%20Tolo%20Dudjom%20Lingpa%203%20-%20transcric%CC%A7a%CC%83o%20na%CC%83o%20localizada.pdf",
+      "preview": "Comentários sobre os ensinamentos de Dudjom Lingpa...",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "P5XcaqXJzL0",
+      "code": "P5XcaqXJzL0",
+      "title": "Darma Tolo Dudjom Lingpa 3 revisado",
+      "slug": "darma-tolo-dudjom-lingpa-3-revisado",
+      "filename": "#67 Darma Tolo Dudjom Lingpa 3  revisado.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2367%20Darma%20Tolo%20Dudjom%20Lingpa%203%20%20revisado.pdf",
+      "preview": "Comentários sobre os ensinamentos de Dudjom Lingpa...",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "sRuq0MzDxlE",
+      "code": "sRuq0MzDxlE",
+      "title": "Darma Tolo Dudjom Lingpa 4",
+      "slug": "darma-tolo-dudjom-lingpa-4",
+      "filename": "#68 Darma Tolo Dudjom Lingpa 4.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2368%20Darma%20Tolo%20Dudjom%20Lingpa%204.pdf",
+      "preview": "Comentários sobre os ensinamentos de Dudjom Lingpa...",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "6SD5nQIBNUj",
+      "code": "6SD5nQIBNUj",
+      "title": "Darma Tolo Dudjom Lingpa 4 - transcricao nao localizada",
+      "slug": "darma-tolo-dudjom-lingpa-4-transcricao-nao-localizada",
+      "filename": "#68 Darma Tolo Dudjom Lingpa 4 - transcrição não localizada.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2368%20Darma%20Tolo%20Dudjom%20Lingpa%204%20-%20transcric%CC%A7a%CC%83o%20na%CC%83o%20localizada.pdf",
+      "preview": "Comentários sobre os ensinamentos de Dudjom Lingpa...",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "jWmn_Y2mBTF",
+      "code": "jWmn_Y2mBTF",
+      "title": "Darma Tolo Dudjom Lingpa final",
+      "slug": "darma-tolo-dudjom-lingpa-final",
+      "filename": "#69 Darma Tolo Dudjom Lingpa final.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2369%20Darma%20Tolo%20Dudjom%20Lingpa%20final.pdf",
+      "preview": "Comentários sobre os ensinamentos de Dudjom Lingpa...",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "wrkQSrN3KGq",
+      "code": "wrkQSrN3KGq",
+      "title": "Darma Tolo Dudjom Lingpa final - transcricao nao localizada",
+      "slug": "darma-tolo-dudjom-lingpa-final-transcricao-nao-localizada",
+      "filename": "#69 Darma Tolo Dudjom Lingpa final - transcrição não localizada.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2369%20Darma%20Tolo%20Dudjom%20Lingpa%20final%20-%20transcric%CC%A7a%CC%83o%20na%CC%83o%20localizada.pdf",
+      "preview": "Comentários sobre os ensinamentos de Dudjom Lingpa...",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "vRJPvO0DzVw",
+      "code": "vRJPvO0DzVw",
+      "title": "Dhyana o Sexto Passo do Nobre Caminho",
+      "slug": "dhyana-o-sexto-passo-do-nobre-caminho",
+      "filename": "#25 Dhyana – o Sexto Passo do Nobre Caminho.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2325%20Dhyana%20%E2%80%93%20o%20Sexto%20Passo%20do%20Nobre%20Caminho.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Dhyana o Sexto Passo do Nobre Caminho",
+      "categories": [
+        "quatro-nobres-verdades",
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "MEvl7cOt07N",
+      "code": "MEvl7cOt07N",
+      "title": "Diario_Rosana Folz",
+      "slug": "diario_rosana-folz",
+      "filename": "Diário_Rosana Folz.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Dia%CC%81rio_Rosana%20Folz.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Diario_Rosana Folz",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "hcAPsUzKbHN",
+      "code": "hcAPsUzKbHN",
+      "title": "Doze Elos da Orig - construcao Peiropolis",
+      "slug": "doze-elos-da-orig-construcao-peiropolis",
+      "filename": "Doze Elos da Orig - construçao Peiropolis .pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Doze%20Elos%20da%20Orig%20-%20construc%CC%A7ao%20Peiropolis%20.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Doze Elos da Orig - construcao Peiropolis",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "u-Rv8N7wnrv",
+      "code": "u-Rv8N7wnrv",
+      "title": "Dudjom Rinpoche The Light of Primordial Wisdom",
+      "slug": "dudjom-rinpoche-the-light-of-primordial-wisdom",
+      "filename": "Dudjom Rinpoche The Light of Primordial Wisdom.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Dudjom%20Rinpoche%20The%20Light%20of%20Primordial%20Wisdom.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Dudjom Rinpoche The Light of Primordial Wisdom",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "J14HUnqBFPj",
+      "code": "J14HUnqBFPj",
+      "title": "Dudjom_Rinpoche_-_Uma_introdu_o_ao_Bardo-3",
+      "slug": "dudjom_rinpoche_-_uma_introdu_o_ao_bardo-3",
+      "filename": "Dudjom_Rinpoche_-_Uma_introdu_o_ao_Bardo-3.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Dudjom_Rinpoche_-_Uma_introdu_o_ao_Bardo-3.pdf",
+      "preview": "Ensinamentos sobre os estados intermediários (bardos)...",
+      "categories": [
+        "bardos-e-morte",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "7Udt5xaY2xV",
+      "code": "7Udt5xaY2xV",
+      "title": "Encontrando a Tranquilidade da Mente _ Chagdud Tulku Rinpoche",
+      "slug": "encontrando-a-tranquilidade-da-mente-_-chagdud-tulku-rinpoche",
+      "filename": "Encontrando a Tranqüilidade da Mente _ Chagdud Tulku Rinpoche.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Encontrando%20a%20Tranqu%CC%88ilidade%20da%20Mente%20_%20Chagdud%20Tulku%20Rinpoche.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Encontrando a Tranquilidade da Mente _ Chagdud Tulku Rinpoche",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "z6lcCn5dTWx",
+      "code": "z6lcCn5dTWx",
+      "title": "Ensinamentos de Dudjom Rinpoche sobre Meditacao 1979",
+      "slug": "ensinamentos-de-dudjom-rinpoche-sobre-meditacao-1979",
+      "filename": "Ensinamentos de Düdjom Rinpoche sobre Meditação 1979.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Ensinamentos%20de%20Du%CC%88djom%20Rinpoche%20sobre%20Meditac%CC%A7a%CC%83o%201979.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Ensinamentos de Dudjom Rinpoche sobre Meditacao 1979",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "0rJk22hQ-58",
+      "code": "0rJk22hQ-58",
+      "title": "Estrutura dos Ensinamentos",
+      "slug": "estrutura-dos-ensinamentos",
+      "filename": "#01 Estrutura dos Ensinamentos – RI 2020.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2301%20Estrutura%20dos%20Ensinamentos%20%E2%80%93%20RI%202020.pdf",
+      "preview": "Uma introdução à estrutura fundamental dos ensinamentos budistas...",
+      "categories": [
+        "ensinamentos-gerais"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "8c2Ny1y0Qjn",
+      "code": "8c2Ny1y0Qjn",
+      "title": "Estrutura dos Ensinamentos",
+      "slug": "estrutura-dos-ensinamentos",
+      "filename": "#01 Estrutura dos Ensinamentos.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2301%20Estrutura%20dos%20Ensinamentos.pdf",
+      "preview": "Uma introdução à estrutura fundamental dos ensinamentos budistas...",
+      "categories": [
+        "ensinamentos-gerais"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "9NMBGmtR-9F",
+      "code": "9NMBGmtR-9F",
+      "title": "Identidade I e II - retiro jan 2012",
+      "slug": "identidade-i-e-ii-retiro-jan-2012",
+      "filename": "Identidade I e II - retiro jan 2012 (1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Identidade%20I%20e%20II%20-%20retiro%20jan%202012%20(1).pdf",
+      "preview": "Reflexões sobre identidade e não-identidade...",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "dJUPYgWZzrv",
+      "code": "dJUPYgWZzrv",
+      "title": "Identidade sutil Roteiro itens",
+      "slug": "identidade-sutil-roteiro-itens",
+      "filename": "Identidade sutil Roteiro itens.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Identidade%20sutil%20Roteiro%20itens.pdf",
+      "preview": "Reflexões sobre identidade e não-identidade...",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "2scYTzGOT3q",
+      "code": "2scYTzGOT3q",
+      "title": "Iluminacao da Sabedoria Primordial",
+      "slug": "iluminacao-da-sabedoria-primordial",
+      "filename": "#27 Iluminação da Sabedoria Primordial.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2327%20Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "dRlECVl_Zve",
+      "code": "dRlECVl_Zve",
+      "title": "Iluminacao da Sabedoria Primordial - Final",
+      "slug": "iluminacao-da-sabedoria-primordial-final",
+      "filename": "#62 Iluminação da Sabedoria Primordial - Final.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2362%20Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial%20-%20Final.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "AMWVAfvUd8F",
+      "code": "AMWVAfvUd8F",
+      "title": "Iluminacao da Sabedoria Primordial 1",
+      "slug": "iluminacao-da-sabedoria-primordial-1",
+      "filename": "#56 Iluminação da Sabedoria Primordial 1.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2356%20Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial%201.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "ZTJMRr5aXSo",
+      "code": "ZTJMRr5aXSo",
+      "title": "Iluminacao da Sabedoria Primordial 1 revisado",
+      "slug": "iluminacao-da-sabedoria-primordial-1-revisado",
+      "filename": "#56 Iluminação da Sabedoria Primordial 1 revisado.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2356%20Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial%201%20revisado.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "Vx2f6jncvr9",
+      "code": "Vx2f6jncvr9",
+      "title": "Iluminacao da Sabedoria Primordial 2",
+      "slug": "iluminacao-da-sabedoria-primordial-2",
+      "filename": "#57 Iluminação da Sabedoria Primordial 2.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2357%20Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial%202.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "LoU7vb7NKN7",
+      "code": "LoU7vb7NKN7",
+      "title": "Iluminacao da Sabedoria Primordial 3",
+      "slug": "iluminacao-da-sabedoria-primordial-3",
+      "filename": "#58 Iluminação da Sabedoria Primordial 3.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2358%20Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial%203.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "Mb1Lx_xrvo2",
+      "code": "Mb1Lx_xrvo2",
+      "title": "Iluminacao da Sabedoria Primordial 4",
+      "slug": "iluminacao-da-sabedoria-primordial-4",
+      "filename": "#59 Iluminação da Sabedoria Primordial 4.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2359%20Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial%204.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "PyfjtPA-_Mm",
+      "code": "PyfjtPA-_Mm",
+      "title": "Iluminacao da Sabedoria Primordial 5",
+      "slug": "iluminacao-da-sabedoria-primordial-5",
+      "filename": "#60 Iluminação da Sabedoria Primordial 5.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2360%20Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial%205.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "P2Me278LaZK",
+      "code": "P2Me278LaZK",
+      "title": "Iluminacao da Sabedoria Primordial 6",
+      "slug": "iluminacao-da-sabedoria-primordial-6",
+      "filename": "#61 Iluminação da Sabedoria Primordial 6.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2361%20Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial%206.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "yGR1PgfO2zm",
+      "code": "yGR1PgfO2zm",
+      "title": "Iluminacao da Sabedoria Primordial_Comenta Lama Samten",
+      "slug": "iluminacao-da-sabedoria-primordial_comenta-lama-samten",
+      "filename": "Iluminação da Sabedoria Primordial_Comenta Lama Samten.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Iluminac%CC%A7a%CC%83o%20da%20Sabedoria%20Primordial_Comenta%20Lama%20Samten.pdf",
+      "preview": "Reflexões sobre a sabedoria primordial e iluminação...",
+      "categories": [
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "HrXJhJm0XyB",
+      "code": "HrXJhJm0XyB",
+      "title": "Iluminacao_da_Sabedoria_Primordial_Comenta_Lama_Samten",
+      "slug": "iluminacao_da_sabedoria_primordial_comenta_lama_samten",
+      "filename": "Iluminação_da_Sabedoria_Primordial_Comenta_Lama_Samten.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Iluminac%CC%A7a%CC%83o_da_Sabedoria_Primordial_Comenta_Lama_Samten.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Iluminacao_da_Sabedoria_Primordial_Comenta_Lama_Samten",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "ogD4yLMKuDW",
+      "code": "ogD4yLMKuDW",
+      "title": "iluminacao-da-sabedoria-primordial-revisado- julho-2013-completo",
+      "slug": "iluminacao-da-sabedoria-primordial-revisado-julho-2013-completo",
+      "filename": "iluminacao-da-sabedoria-primordial-revisado- julho-2013-completo.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/iluminacao-da-sabedoria-primordial-revisado-%20julho-2013-completo.pdf",
+      "preview": "Transcrição corrigida pela Sanga: iluminacao-da-sabedoria-primordial-revisado- julho-2013-completo",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "aZmp7NlcX68",
+      "code": "aZmp7NlcX68",
+      "title": "Indo ao Ponto Ultimo completo",
+      "slug": "indo-ao-ponto-ultimo-completo",
+      "filename": "Indo ao Ponto Ultimo completo.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Indo%20ao%20Ponto%20Ultimo%20completo.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Indo ao Ponto Ultimo completo",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "I6kIrquCYT3",
+      "code": "I6kIrquCYT3",
+      "title": "Inevitabilidade das Acoes nas Bolhas do Samsara",
+      "slug": "inevitabilidade-das-acoes-nas-bolhas-do-samsara",
+      "filename": "#21 Inevitabilidade das Ações nas Bolhas do Samsara.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2321%20Inevitabilidade%20das%20Ac%CC%A7o%CC%83es%20nas%20Bolhas%20do%20Samsara.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Inevitabilidade das Acoes nas Bolhas do Samsara",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "Y7kfQQd-QP5",
+      "code": "Y7kfQQd-QP5",
+      "title": "Iniciando o Roteiro de 21 itens - Introducao Contexto",
+      "slug": "iniciando-o-roteiro-de-21-itens-introducao-contexto",
+      "filename": "#38 Iniciando o Roteiro de 21 itens - Introdução Contexto REVISADO.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2338%20Iniciando%20o%20Roteiro%20de%2021%20itens%20-%20Introduc%CC%A7a%CC%83o%20Contexto%20REVISADO.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Iniciando o Roteiro de 21 itens - Introducao Contexto",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "BWS9M_b90JH",
+      "code": "BWS9M_b90JH",
+      "title": "Iniciando o Roteiro de 21 itens - Introducao Contexto",
+      "slug": "iniciando-o-roteiro-de-21-itens-introducao-contexto",
+      "filename": "#38 Iniciando o Roteiro de 21 itens - Introdução Contexto.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2338%20Iniciando%20o%20Roteiro%20de%2021%20itens%20-%20Introduc%CC%A7a%CC%83o%20Contexto.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Iniciando o Roteiro de 21 itens - Introducao Contexto",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "zXWR5kGBC6x",
+      "code": "zXWR5kGBC6x",
+      "title": "JA INSERIDO OP - A Pratica de Shamata e Mettabhavana",
+      "slug": "ja-inserido-op-a-pratica-de-shamata-e-mettabhavana",
+      "filename": "#06 - JÁ INSERIDO OP - A Prática de Shamata e Mettabhavana REVISADO.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2306%20-%20JA%CC%81%20INSERIDO%20OP%20-%20A%20Pra%CC%81tica%20de%20Shamata%20e%20Mettabhavana%20REVISADO.pdf",
+      "preview": "Ensinamentos sobre a prática de shamata (meditação de tranquilidade)...",
+      "categories": [
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "FFUBkcshzxi",
+      "code": "FFUBkcshzxi",
+      "title": "JA INSERIDO OP - A Primeira Nobre Verdade Dukkha -",
+      "slug": "ja-inserido-op-a-primeira-nobre-verdade-dukkha",
+      "filename": "#08 - JÁ INSERIDO OP - A Primeira Nobre Verdade Dukkha - REVISADO.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2308%20-%20JA%CC%81%20INSERIDO%20OP%20-%20A%20Primeira%20Nobre%20Verdade%20Dukkha%20-%20REVISADO.pdf",
+      "preview": "Explorando as Quatro Nobres Verdades do Budismo...",
+      "categories": [
+        "quatro-nobres-verdades"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "GFfcPAJ1E_g",
+      "code": "GFfcPAJ1E_g",
+      "title": "JA INSERIDO OP - Contemplacao Sati",
+      "slug": "ja-inserido-op-contemplacao-sati",
+      "filename": "#49 - JÁ INSERIDO OP - Contemplação Sati.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2349%20-%20JA%CC%81%20INSERIDO%20OP%20-%20Contemplac%CC%A7a%CC%83o%20Sati.pdf",
+      "preview": "Transcrição corrigida pela Sanga: JA INSERIDO OP - Contemplacao Sati",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "1ufMbbpEpYP",
+      "code": "1ufMbbpEpYP",
+      "title": "JA INSERIDO OP - Estrutura dos Ensinamentos",
+      "slug": "ja-inserido-op-estrutura-dos-ensinamentos",
+      "filename": "#01 - JÁ INSERIDO OP - Estrutura dos Ensinamentos.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2301%20-%20JA%CC%81%20INSERIDO%20OP%20-%20Estrutura%20dos%20Ensinamentos.pdf",
+      "preview": "Uma introdução à estrutura fundamental dos ensinamentos budistas...",
+      "categories": [
+        "ensinamentos-gerais"
+      ],
+      "createdAt": "2025-10-23T17:17:52.932Z",
+      "updatedAt": "2025-10-23T17:17:52.933Z"
+    },
+    {
+      "id": "7foULbcth3K",
+      "code": "7foULbcth3K",
+      "title": "JA INSERIDO OP - Mettabhavana Vista em Contexto",
+      "slug": "ja-inserido-op-mettabhavana-vista-em-contexto",
+      "filename": "#07 - JÁ INSERIDO OP - Mettabhavana Vista em Contexto REVISADO.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2307%20-%20JA%CC%81%20INSERIDO%20OP%20-%20Mettabhavana%20Vista%20em%20Contexto%20REVISADO.pdf",
+      "preview": "Prática de mettabhavana (meditação de amor bondade)...",
+      "categories": [
+        "meditacao-e-pratica",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "ISvNABovXjH",
+      "code": "ISvNABovXjH",
+      "title": "JA INSERIDO OP - Perguntas e Respostas Os Cinco Elementos",
+      "slug": "ja-inserido-op-perguntas-e-respostas-os-cinco-elementos",
+      "filename": "#02 - JÁ INSERIDO OP - Perguntas e Respostas – Os Cinco Elementos REVISADO.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2302%20-%20JA%CC%81%20INSERIDO%20OP%20-%20Perguntas%20e%20Respostas%20%E2%80%93%20Os%20Cinco%20Elementos%20REVISADO.pdf",
+      "preview": "Sessão de perguntas e respostas sobre os ensinamentos...",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "oBYTZuLUly3",
+      "code": "oBYTZuLUly3",
+      "title": "JA INSERIDO OP - Visao Sati Tres Pontos Cruciais",
+      "slug": "ja-inserido-op-visao-sati-tres-pontos-cruciais",
+      "filename": "#50 - JÁ INSERIDO OP - Visão Sati Três Pontos Cruciais.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2350%20-%20JA%CC%81%20INSERIDO%20OP%20-%20Visa%CC%83o%20Sati%20Tre%CC%82s%20Pontos%20Cruciais.pdf",
+      "preview": "Transcrição corrigida pela Sanga: JA INSERIDO OP - Visao Sati Tres Pontos Cruciais",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "sf5sh4MvBbL",
+      "code": "sf5sh4MvBbL",
+      "title": "Kadag Lhundrub Zanghtal",
+      "slug": "kadag-lhundrub-zanghtal",
+      "filename": "Kadag, Lhundrub, Zanghtal.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Kadag%2C%20Lhundrub%2C%20Zanghtal.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Kadag Lhundrub Zanghtal",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "Ahcj1vaEDem",
+      "code": "Ahcj1vaEDem",
+      "title": "Leitor de PDF",
+      "slug": "leitor-de-pdf",
+      "filename": "Leitor de PDF(1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Leitor%20de%20PDF(1).pdf",
+      "preview": "Transcrição corrigida pela Sanga: Leitor de PDF",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "_HIJtHcyTHh",
+      "code": "_HIJtHcyTHh",
+      "title": "Leitor de PDF",
+      "slug": "leitor-de-pdf",
+      "filename": "Leitor de PDF.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Leitor%20de%20PDF.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Leitor de PDF",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "TLGqqUNsKj7",
+      "code": "TLGqqUNsKj7",
+      "title": "LS so Mantra Om Mani Peme Hum",
+      "slug": "ls-so-mantra-om-mani-peme-hum",
+      "filename": "LS so Mantra Om Mani Peme Hum.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/LS%20so%20Mantra%20Om%20Mani%20Peme%20Hum.pdf",
+      "preview": "Transcrição corrigida pela Sanga: LS so Mantra Om Mani Peme Hum",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "yptZo6fKjqZ",
+      "code": "yptZo6fKjqZ",
+      "title": "LS so Mantra Om Mani Peme Hum.pdf",
+      "slug": "ls-so-mantra-om-mani-peme-humpdf",
+      "filename": "LS so Mantra Om Mani Peme Hum.pdf.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/LS%20so%20Mantra%20Om%20Mani%20Peme%20Hum.pdf.pdf",
+      "preview": "Transcrição corrigida pela Sanga: LS so Mantra Om Mani Peme Hum.pdf",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "xeNS9yldo7X",
+      "code": "xeNS9yldo7X",
+      "title": "MAHAMUDRA COMENTARIOS_SAMTEN_2013 09 27 Instrucoes diretas para o Mahamudra - TesouroPicoJunipero - revisar",
+      "slug": "mahamudra-comentarios_samten_2013-09-27-instrucoes-diretas-para-o-mahamudra-tesouropicojunipero-revisar",
+      "filename": "MAHAMUDRA COMENTÁRIOS_SAMTEN_2013 09 27 Instruçoes diretas para o Mahamudra - TesouroPicoJunípero - revisar.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/MAHAMUDRA%20COMENTA%CC%81RIOS_SAMTEN_2013%2009%2027%20Instruc%CC%A7oes%20diretas%20para%20o%20Mahamudra%20-%20TesouroPicoJuni%CC%81pero%20-%20revisar.pdf",
+      "preview": "Instruções diretas sobre Mahamudra...",
+      "categories": [
+        "mahamudra"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "xZlm9nMuF8y",
+      "code": "xZlm9nMuF8y",
+      "title": "Mahasatipatthanasutta.pdf",
+      "slug": "mahasatipatthanasuttapdf",
+      "filename": "Mahasatipatthanasutta.pdf.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Mahasatipatthanasutta.pdf.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Mahasatipatthanasutta.pdf",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "TTshAH_UsmE",
+      "code": "TTshAH_UsmE",
+      "title": "Mandala Vajra e o Ponto Crucial",
+      "slug": "mandala-vajra-e-o-ponto-crucial",
+      "filename": "#48 Mandala Vajra é o Ponto Crucial.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2348%20Mandala%20Vajra%20e%CC%81%20o%20Ponto%20Crucial.pdf",
+      "preview": "Ensinamentos sobre mandala e visualização...",
+      "categories": [
+        "mandala"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "qKXlueScd1Y",
+      "code": "qKXlueScd1Y",
+      "title": "Meditacao Intuitiva e Valida - transcricao nao encontrada",
+      "slug": "meditacao-intuitiva-e-valida-transcricao-nao-encontrada",
+      "filename": "#18 Meditação Intuitiva é Válida - transcrição não encontrada.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2318%20Meditac%CC%A7a%CC%83o%20Intuitiva%20e%CC%81%20Va%CC%81lida%20-%20transcric%CC%A7a%CC%83o%20na%CC%83o%20encontrada.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Meditacao Intuitiva e Valida - transcricao nao encontrada",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "vlaouzBnHiT",
+      "code": "vlaouzBnHiT",
+      "title": "Mettabhavana Vista em Contexto",
+      "slug": "mettabhavana-vista-em-contexto",
+      "filename": "#07 Mettabhavana Vista em Contexto – RI 2020.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2307%20Mettabhavana%20Vista%20em%20Contexto%20%E2%80%93%20RI%202020.pdf",
+      "preview": "Prática de mettabhavana (meditação de amor bondade)...",
+      "categories": [
+        "meditacao-e-pratica",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "1pAbOyddg3z",
+      "code": "1pAbOyddg3z",
+      "title": "Mettabhavana Vista em Contexto",
+      "slug": "mettabhavana-vista-em-contexto",
+      "filename": "#07 Mettabhavana Vista em Contexto.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2307%20Mettabhavana%20Vista%20em%20Contexto.pdf",
+      "preview": "Prática de mettabhavana (meditação de amor bondade)...",
+      "categories": [
+        "meditacao-e-pratica",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "J5DoJlOaK-D",
+      "code": "J5DoJlOaK-D",
+      "title": "Motivacao Bodicita",
+      "slug": "motivacao-bodicita",
+      "filename": "#19 Motivação Bodicita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2319%20Motivac%CC%A7a%CC%83o%20Bodicita.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Motivacao Bodicita",
+      "categories": [
+        "bodhicitta-e-motivacao"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "pFRYw9r_73Y",
+      "code": "pFRYw9r_73Y",
+      "title": "Motivacao Compassiva e Motivacao da Grande Compaixao Bodicita",
+      "slug": "motivacao-compassiva-e-motivacao-da-grande-compaixao-bodicita",
+      "filename": "#05 Motivação Compassiva e Motivação da Grande Compaixão Bodicita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2305%20Motivac%CC%A7a%CC%83o%20Compassiva%20e%20Motivac%CC%A7a%CC%83o%20da%20Grande%20Compaixa%CC%83o%20Bodicita.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Motivacao Compassiva e Motivacao da Grande Compaixao Bodicita",
+      "categories": [
+        "bodhicitta-e-motivacao"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "OSuwGL7z1oZ",
+      "code": "OSuwGL7z1oZ",
+      "title": "MOTIVACAO CORRETA - CONTEMPLACAO EM 13 ITENS 2",
+      "slug": "motivacao-correta-contemplacao-em-13-itens-2",
+      "filename": "MOTIVAÇÃO CORRETA - CONTEMPLAÇÃO EM 13 ITENS 2.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/MOTIVAC%CC%A7A%CC%83O%20CORRETA%20-%20CONTEMPLAC%CC%A7A%CC%83O%20EM%2013%20ITENS%202.pdf",
+      "preview": "Transcrição corrigida pela Sanga: MOTIVACAO CORRETA - CONTEMPLACAO EM 13 ITENS 2",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "EonoF_Sfo7J",
+      "code": "EonoF_Sfo7J",
+      "title": "MOTIVACAO CORRETA EM 13 ITENS-abr 2010",
+      "slug": "motivacao-correta-em-13-itens-abr-2010",
+      "filename": "MOTIVAÇÃO CORRETA EM 13 ITENS-abr 2010.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/MOTIVAC%CC%A7A%CC%83O%20CORRETA%20EM%2013%20ITENS-abr%202010.pdf",
+      "preview": "Transcrição corrigida pela Sanga: MOTIVACAO CORRETA EM 13 ITENS-abr 2010",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "nLcb169-jC6",
+      "code": "nLcb169-jC6",
+      "title": "Motivacao na Perspectiva do Ornamento da Preciosa Liberacao de Gampopa",
+      "slug": "motivacao-na-perspectiva-do-ornamento-da-preciosa-liberacao-de-gampopa",
+      "filename": "#04 Motivação na Perspectiva do Ornamento da Preciosa Liberação de Gampopa.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2304%20Motivac%CC%A7a%CC%83o%20na%20Perspectiva%20do%20Ornamento%20da%20Preciosa%20Liberac%CC%A7a%CC%83o%20de%20Gampopa.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Motivacao na Perspectiva do Ornamento da Preciosa Liberacao de Gampopa",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "lS2JimsVhlH",
+      "code": "lS2JimsVhlH",
+      "title": "O Caminho Budista e a Origem Dependente",
+      "slug": "o-caminho-budista-e-a-origem-dependente",
+      "filename": "#14 O Caminho Budista e a Origem Dependente.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2314%20O%20Caminho%20Budista%20e%20a%20Origem%20Dependente.pdf",
+      "preview": "Ensinamentos sobre a origem dependente e interdependência...",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "nr7XvKRMp5k",
+      "code": "nr7XvKRMp5k",
+      "title": "O Contexto dos Ensinamentos de Prajna Paramita",
+      "slug": "o-contexto-dos-ensinamentos-de-prajna-paramita",
+      "filename": "#30 O Contexto dos Ensinamentos de Prajna Paramita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2330%20O%20Contexto%20dos%20Ensinamentos%20de%20Prajna%20Paramita.pdf",
+      "preview": "Explorando o contexto histórico e filosófico dos ensinamentos...",
+      "categories": [
+        "prajna-paramita",
+        "ensinamentos-gerais"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "eoEzTin1HvE",
+      "code": "eoEzTin1HvE",
+      "title": "O Lung dos Cinco Elementos - ago.12",
+      "slug": "o-lung-dos-cinco-elementos-ago12",
+      "filename": "O Lung dos Cinco Elementos - ago.12.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/O%20Lung%20dos%20Cinco%20Elementos%20-%20ago.12.pdf",
+      "preview": "Transcrição corrigida pela Sanga: O Lung dos Cinco Elementos - ago.12",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "wmJOW8cbtjc",
+      "code": "wmJOW8cbtjc",
+      "title": "O Primeiro Passo do Nobre Caminho - Bodicita",
+      "slug": "o-primeiro-passo-do-nobre-caminho-bodicita",
+      "filename": "#17 O Primeiro Passo do Nobre Caminho - Bodicita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2317%20O%20Primeiro%20Passo%20do%20Nobre%20Caminho%20-%20Bodicita.pdf",
+      "preview": "Transcrição corrigida pela Sanga: O Primeiro Passo do Nobre Caminho - Bodicita",
+      "categories": [
+        "quatro-nobres-verdades",
+        "bodhicitta-e-motivacao"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "yuCLpwmRcol",
+      "code": "yuCLpwmRcol",
+      "title": "O Que e a Contemplacao",
+      "slug": "o-que-e-a-contemplacao",
+      "filename": "#29 O Que é a Contemplação.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2329%20O%20Que%20e%CC%81%20a%20Contemplac%CC%A7a%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: O Que e a Contemplacao",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "CCT4_VbWuXN",
+      "code": "CCT4_VbWuXN",
+      "title": "O Que Vimos Ate Agora",
+      "slug": "o-que-vimos-ate-agora",
+      "filename": "#47 O Que Vimos Até Agora.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2347%20O%20Que%20Vimos%20Ate%CC%81%20Agora.pdf",
+      "preview": "Transcrição corrigida pela Sanga: O Que Vimos Ate Agora",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "3G0KW7T9zbK",
+      "code": "3G0KW7T9zbK",
+      "title": "O Quinto Passo do Nobre Caminho",
+      "slug": "o-quinto-passo-do-nobre-caminho",
+      "filename": "#23 O Quinto Passo do Nobre Caminho.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2323%20O%20Quinto%20Passo%20do%20Nobre%20Caminho.pdf",
+      "preview": "Transcrição corrigida pela Sanga: O Quinto Passo do Nobre Caminho",
+      "categories": [
+        "quatro-nobres-verdades"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "kR4Is438WBJ",
+      "code": "kR4Is438WBJ",
+      "title": "Oito Pontos do Prajnaparamita",
+      "slug": "oito-pontos-do-prajnaparamita",
+      "filename": "Oito Pontos do Prajnaparamita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Oito%20Pontos%20do%20Prajnaparamita.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Oito Pontos do Prajnaparamita",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "5IVmjUAnLJR",
+      "code": "5IVmjUAnLJR",
+      "title": "Oito Pontos do Prajnaparamita - roteiro para contemplacao",
+      "slug": "oito-pontos-do-prajnaparamita-roteiro-para-contemplacao",
+      "filename": "Oito Pontos do Prajnaparamita - roteiro para contemplação.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Oito%20Pontos%20do%20Prajnaparamita%20-%20roteiro%20para%20contemplac%CC%A7a%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Oito Pontos do Prajnaparamita - roteiro para contemplacao",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "Id_eW_u4N_U",
+      "code": "Id_eW_u4N_U",
+      "title": "Oito Pontos Prajnaparamita - Comentarios Lama Padma Samten",
+      "slug": "oito-pontos-prajnaparamita-comentarios-lama-padma-samten",
+      "filename": "Oito Pontos Prajnaparamita - Comentários Lama Padma Samten.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Oito%20Pontos%20Prajnaparamita%20-%20Comenta%CC%81rios%20Lama%20Padma%20Samten.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Oito Pontos Prajnaparamita - Comentarios Lama Padma Samten",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "tRp5JJR3czD",
+      "code": "tRp5JJR3czD",
+      "title": "Olhando o Contexto dos Ensinamentos",
+      "slug": "olhando-o-contexto-dos-ensinamentos",
+      "filename": "#26 Olhando o Contexto dos Ensinamentos.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2326%20Olhando%20o%20Contexto%20dos%20Ensinamentos.pdf",
+      "preview": "Explorando o contexto histórico e filosófico dos ensinamentos...",
+      "categories": [
+        "ensinamentos-gerais",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "TQRRSn0Egc3",
+      "code": "TQRRSn0Egc3",
+      "title": "Originacao Dependente - Lama Padma Samten",
+      "slug": "originacao-dependente-lama-padma-samten",
+      "filename": "Originação Dependente - Lama Padma Samten.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Originac%CC%A7a%CC%83o%20Dependente%20-%20Lama%20Padma%20Samten.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Originacao Dependente - Lama Padma Samten",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "BKnBmurwq7N",
+      "code": "BKnBmurwq7N",
+      "title": "Os cinco bardos- Pico do Junipero - Lama Samten 2013 11 10",
+      "slug": "os-cinco-bardos-pico-do-junipero-lama-samten-2013-11-10",
+      "filename": "Os cinco bardos- Pico do Junipero - Lama Samten 2013 11 10.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Os%20cinco%20bardos-%20Pico%20do%20Junipero%20-%20Lama%20Samten%202013%2011%2010.pdf",
+      "preview": "Ensinamentos sobre os estados intermediários (bardos)...",
+      "categories": [
+        "bardos-e-morte"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "HejDysWl7Jb",
+      "code": "HejDysWl7Jb",
+      "title": "Os Doze Elos da Origem Dependente",
+      "slug": "os-doze-elos-da-origem-dependente",
+      "filename": "#13 Os Doze Elos da Origem Dependente.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2313%20Os%20Doze%20Elos%20da%20Origem%20Dependente.pdf",
+      "preview": "Ensinamentos sobre a origem dependente e interdependência...",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "r7BOzMRQwWs",
+      "code": "r7BOzMRQwWs",
+      "title": "OS DOZE ELOS E OS SEIS REINOS NA VIDA COTIDIANA",
+      "slug": "os-doze-elos-e-os-seis-reinos-na-vida-cotidiana",
+      "filename": "OS DOZE ELOS E OS SEIS REINOS NA VIDA COTIDIANA.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/OS%20DOZE%20ELOS%20E%20OS%20SEIS%20REINOS%20NA%20VIDA%20COTIDIANA.pdf",
+      "preview": "Transcrição corrigida pela Sanga: OS DOZE ELOS E OS SEIS REINOS NA VIDA COTIDIANA",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "BS3vlI_iTf8",
+      "code": "BS3vlI_iTf8",
+      "title": "PATRUL - A COMPREENSAO SE LIBERANDO A SI MESMA0001",
+      "slug": "patrul-a-compreensao-se-liberando-a-si-mesma0001",
+      "filename": "PATRUL - A COMPREENSÃO SE LIBERANDO A SI MESMA0001.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/PATRUL%20-%20A%20COMPREENSA%CC%83O%20SE%20LIBERANDO%20A%20SI%20MESMA0001.pdf",
+      "preview": "Transcrição corrigida pela Sanga: PATRUL - A COMPREENSAO SE LIBERANDO A SI MESMA0001",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "hg9L0aVMT5H",
+      "code": "hg9L0aVMT5H",
+      "title": "Peiropolis-SET00-1-Os 12 Elos-construcao",
+      "slug": "peiropolis-set00-1-os-12-elos-construcao",
+      "filename": "Peirópolis-SET00-1-Os 12 Elos-construção.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Peiro%CC%81polis-SET00-1-Os%2012%20Elos-construc%CC%A7a%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Peiropolis-SET00-1-Os 12 Elos-construcao",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "BFdVC12Mv96",
+      "code": "BFdVC12Mv96",
+      "title": "Peiropolis-SET00-2-Os 12 Elos-dissolucao",
+      "slug": "peiropolis-set00-2-os-12-elos-dissolucao",
+      "filename": "Peirópolis-SET00-2-Os 12 Elos-dissolução (2).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Peiro%CC%81polis-SET00-2-Os%2012%20Elos-dissoluc%CC%A7a%CC%83o%20(2).pdf",
+      "preview": "Transcrição corrigida pela Sanga: Peiropolis-SET00-2-Os 12 Elos-dissolucao",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "0_IRcq7XNJL",
+      "code": "0_IRcq7XNJL",
+      "title": "Peiropolis-SET00-2-Os 12 Elos-dissolucao",
+      "slug": "peiropolis-set00-2-os-12-elos-dissolucao",
+      "filename": "Peirópolis-SET00-2-Os 12 Elos-dissolução.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Peiro%CC%81polis-SET00-2-Os%2012%20Elos-dissoluc%CC%A7a%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Peiropolis-SET00-2-Os 12 Elos-dissolucao",
+      "categories": [
+        "origem-dependente"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "XRXOokuv99O",
+      "code": "XRXOokuv99O",
+      "title": "Pensar contemplar meditar e repousar.",
+      "slug": "pensar-contemplar-meditar-e-repousar",
+      "filename": "Pensar, contemplar, meditar e repousar..pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Pensar%2C%20contemplar%2C%20meditar%20e%20repousar..pdf",
+      "preview": "Transcrição corrigida pela Sanga: Pensar contemplar meditar e repousar.",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "bOY_nAd8tnn",
+      "code": "bOY_nAd8tnn",
+      "title": "Perguntas e Respostas Os Cinco Elementos",
+      "slug": "perguntas-e-respostas-os-cinco-elementos",
+      "filename": "#02 Perguntas e Respostas – Os Cinco Elementos – RI 2020.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2302%20Perguntas%20e%20Respostas%20%E2%80%93%20Os%20Cinco%20Elementos%20%E2%80%93%20RI%202020.pdf",
+      "preview": "Sessão de perguntas e respostas sobre os ensinamentos...",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "wbMtvgKh4FQ",
+      "code": "wbMtvgKh4FQ",
+      "title": "Perguntas e Respostas Os Cinco Elementos",
+      "slug": "perguntas-e-respostas-os-cinco-elementos",
+      "filename": "#02 Perguntas e Respostas – Os Cinco Elementos.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2302%20Perguntas%20e%20Respostas%20%E2%80%93%20Os%20Cinco%20Elementos.pdf",
+      "preview": "Sessão de perguntas e respostas sobre os ensinamentos...",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "0OzFYfIkeNC",
+      "code": "0OzFYfIkeNC",
+      "title": "Prajnaparamita - Contemplando Luminosidade e Liberdade",
+      "slug": "prajnaparamita-contemplando-luminosidade-e-liberdade",
+      "filename": "Prajnaparamita - Contemplando Luminosidade e Liberdade.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Prajnaparamita%20-%20Contemplando%20Luminosidade%20e%20Liberdade.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Prajnaparamita - Contemplando Luminosidade e Liberdade",
+      "categories": [
+        "prajna-paramita",
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "IT4bvivD9h3",
+      "code": "IT4bvivD9h3",
+      "title": "Prajnaparamita - estudo linha a linha",
+      "slug": "prajnaparamita-estudo-linha-a-linha",
+      "filename": "Prajnaparamita - estudo linha a linha.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Prajnaparamita%20-%20estudo%20linha%20a%20linha.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Prajnaparamita - estudo linha a linha",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "ZYheUn2F5E5",
+      "code": "ZYheUn2F5E5",
+      "title": "Prajnaparamita meditation in eight points",
+      "slug": "prajnaparamita-meditation-in-eight-points",
+      "filename": "Prajñaparamita meditation in eight points.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Prajn%CC%83aparamita%20meditation%20in%20eight%20points.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Prajnaparamita meditation in eight points",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "H_vZn8C-gVB",
+      "code": "H_vZn8C-gVB",
+      "title": "Prajnaparamita_-_Contemplando_Luminosidade_e_Liberdade",
+      "slug": "prajnaparamita_-_contemplando_luminosidade_e_liberdade",
+      "filename": "Prajnaparamita_-_Contemplando_Luminosidade_e_Liberdade.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Prajnaparamita_-_Contemplando_Luminosidade_e_Liberdade.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Prajnaparamita_-_Contemplando_Luminosidade_e_Liberdade",
+      "categories": [
+        "prajna-paramita",
+        "sabedoria-primordial"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "8xv5mE6rjgf",
+      "code": "8xv5mE6rjgf",
+      "title": "Prajnaparamita_-_estudo_linha_a_linha",
+      "slug": "prajnaparamita_-_estudo_linha_a_linha",
+      "filename": "Prajnaparamita_-_estudo_linha_a_linha (1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Prajnaparamita_-_estudo_linha_a_linha%20(1).pdf",
+      "preview": "Transcrição corrigida pela Sanga: Prajnaparamita_-_estudo_linha_a_linha",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "euPwaIWhhjv",
+      "code": "euPwaIWhhjv",
+      "title": "Prajnaparamita_-_Recife_Nov2007",
+      "slug": "prajnaparamita_-_recife_nov2007",
+      "filename": "Prajnaparamita_-_Recife_Nov2007.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Prajnaparamita_-_Recife_Nov2007.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Prajnaparamita_-_Recife_Nov2007",
+      "categories": [
+        "prajna-paramita"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "0GSOM_rYIq1",
+      "code": "0GSOM_rYIq1",
+      "title": "Prece para alcancar a Cidadela da Sabedoria Intrinseca",
+      "slug": "prece-para-alcancar-a-cidadela-da-sabedoria-intrinseca",
+      "filename": "#28 Prece para alcançar a Cidadela da Sabedoria Intrínseca.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2328%20Prece%20para%20alcanc%CC%A7ar%20a%20Cidadela%20da%20Sabedoria%20Intri%CC%81nseca.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Prece para alcancar a Cidadela da Sabedoria Intrinseca",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "D0x9wfWn8jA",
+      "code": "D0x9wfWn8jA",
+      "title": "Repousar na Presenca - Comentarios Lama Padma Samten",
+      "slug": "repousar-na-presenca-comentarios-lama-padma-samten",
+      "filename": "Repousar na Presença - Comentários Lama Padma Samten.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Repousar%20na%20Presenc%CC%A7a%20-%20Comenta%CC%81rios%20Lama%20Padma%20Samten.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Repousar na Presenca - Comentarios Lama Padma Samten",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "cgLAVYOowKN",
+      "code": "cgLAVYOowKN",
+      "title": "retiro-2005-sp-capa-sumario",
+      "slug": "retiro-2005-sp-capa-sumario",
+      "filename": "retiro-2005-sp-capa-sumario.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/retiro-2005-sp-capa-sumario.pdf",
+      "preview": "Transcrição corrigida pela Sanga: retiro-2005-sp-capa-sumario",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "oNNcoWnBHA5",
+      "code": "oNNcoWnBHA5",
+      "title": "retiro-2005-sp-capa-sumario__1_",
+      "slug": "retiro-2005-sp-capa-sumario__1_",
+      "filename": "retiro-2005-sp-capa-sumario__1_.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/retiro-2005-sp-capa-sumario__1_.pdf",
+      "preview": "Transcrição corrigida pela Sanga: retiro-2005-sp-capa-sumario__1_",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "x_aCq0RXY31",
+      "code": "x_aCq0RXY31",
+      "title": "retiro-2005-sp-miolo-frente-verso.pdf",
+      "slug": "retiro-2005-sp-miolo-frente-versopdf",
+      "filename": "retiro-2005-sp-miolo-frente-verso.pdf.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/retiro-2005-sp-miolo-frente-verso.pdf.pdf",
+      "preview": "Transcrição corrigida pela Sanga: retiro-2005-sp-miolo-frente-verso.pdf",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "_XKb3rC5htj",
+      "code": "_XKb3rC5htj",
+      "title": "retiro-2005-sp-miolo-frente-verso.pdf__1_",
+      "slug": "retiro-2005-sp-miolo-frente-versopdf__1_",
+      "filename": "retiro-2005-sp-miolo-frente-verso.pdf__1_.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/retiro-2005-sp-miolo-frente-verso.pdf__1_.pdf",
+      "preview": "Transcrição corrigida pela Sanga: retiro-2005-sp-miolo-frente-verso.pdf__1_",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.938Z",
+      "updatedAt": "2025-10-23T17:17:52.938Z"
+    },
+    {
+      "id": "hKAUFhgSaHt",
+      "code": "hKAUFhgSaHt",
+      "title": "roda da vida explicada recente.jpeg",
+      "slug": "roda-da-vida-explicada-recentejpeg",
+      "filename": "roda da vida explicada recente.jpeg (1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/roda%20da%20vida%20explicada%20recente.jpeg%20(1).pdf",
+      "preview": "Transcrição corrigida pela Sanga: roda da vida explicada recente.jpeg",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.938Z",
+      "updatedAt": "2025-10-23T17:17:52.938Z"
+    },
+    {
+      "id": "IKrHAMF-8IY",
+      "code": "IKrHAMF-8IY",
+      "title": "Roda_da_vida_detalhada - PDF",
+      "slug": "roda_da_vida_detalhada-pdf",
+      "filename": "Roda_da_vida_detalhada - PDF (1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Roda_da_vida_detalhada%20-%20PDF%20(1).pdf",
+      "preview": "Transcrição corrigida pela Sanga: Roda_da_vida_detalhada - PDF",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "1_C3zbbLg_7",
+      "code": "1_C3zbbLg_7",
+      "title": "Roteiro de oito pontos para a meditacao no Prajnaparamita",
+      "slug": "roteiro-de-oito-pontos-para-a-meditacao-no-prajnaparamita",
+      "filename": "Roteiro de oito pontos para a meditação no Prajnaparamita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Roteiro%20de%20oito%20pontos%20para%20a%20meditac%CC%A7a%CC%83o%20no%20Prajnaparamita.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Roteiro de oito pontos para a meditacao no Prajnaparamita",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "YwwdX_VNQAa",
+      "code": "YwwdX_VNQAa",
+      "title": "Roteiro dos Oito Pontos",
+      "slug": "roteiro-dos-oito-pontos",
+      "filename": "#36 Roteiro dos Oito Pontos.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2336%20Roteiro%20dos%20Oito%20Pontos.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Roteiro dos Oito Pontos",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "jkcQ5rUPMfY",
+      "code": "jkcQ5rUPMfY",
+      "title": "Roteiro dos Oito Pontos - O Nucleo Central",
+      "slug": "roteiro-dos-oito-pontos-o-nucleo-central",
+      "filename": "#35 Roteiro dos Oito Pontos - O Núcleo Central REVISADO.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2335%20Roteiro%20dos%20Oito%20Pontos%20-%20O%20Nu%CC%81cleo%20Central%20REVISADO.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Roteiro dos Oito Pontos - O Nucleo Central",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "WozBH5jr4Hv",
+      "code": "WozBH5jr4Hv",
+      "title": "Roteiro dos Oito Pontos - O Nucleo Central",
+      "slug": "roteiro-dos-oito-pontos-o-nucleo-central",
+      "filename": "#35 Roteiro dos Oito Pontos - O Núcleo Central.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2335%20Roteiro%20dos%20Oito%20Pontos%20-%20O%20Nu%CC%81cleo%20Central.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Roteiro dos Oito Pontos - O Nucleo Central",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "tii6AbIBXC9",
+      "code": "tii6AbIBXC9",
+      "title": "Roteiro dos Oito Pontos Indo Adiante no Segundo Ponto",
+      "slug": "roteiro-dos-oito-pontos-indo-adiante-no-segundo-ponto",
+      "filename": "#36 Roteiro dos Oito Pontos – Indo Adiante no Segundo Ponto.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2336%20Roteiro%20dos%20Oito%20Pontos%20%E2%80%93%20Indo%20Adiante%20no%20Segundo%20Ponto.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Roteiro dos Oito Pontos Indo Adiante no Segundo Ponto",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "nFHVYYHbvRI",
+      "code": "nFHVYYHbvRI",
+      "title": "Roteiro dos Oito Pontos Indo do Terceiro ao Oitavo Conclusao",
+      "slug": "roteiro-dos-oito-pontos-indo-do-terceiro-ao-oitavo-conclusao",
+      "filename": "#37 Roteiro dos Oito Pontos – Indo do Terceiro ao Oitavo – Conclusão.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2337%20Roteiro%20dos%20Oito%20Pontos%20%E2%80%93%20Indo%20do%20Terceiro%20ao%20Oitavo%20%E2%80%93%20Conclusa%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Roteiro dos Oito Pontos Indo do Terceiro ao Oitavo Conclusao",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "APKXXN1HIHN",
+      "code": "APKXXN1HIHN",
+      "title": "Roteiro dos Oito Pontos Primeiro ao Inicio do Segundo",
+      "slug": "roteiro-dos-oito-pontos-primeiro-ao-inicio-do-segundo",
+      "filename": "#34 Roteiro dos Oito Pontos – Primeiro ao Início do Segundo.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2334%20Roteiro%20dos%20Oito%20Pontos%20%E2%80%93%20Primeiro%20ao%20Ini%CC%81cio%20do%20Segundo.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Roteiro dos Oito Pontos Primeiro ao Inicio do Segundo",
+      "categories": [
+        "prajna-paramita",
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "iqOmjjKPxN8",
+      "code": "iqOmjjKPxN8",
+      "title": "Satipathana Sutta",
+      "slug": "satipathana-sutta",
+      "filename": "#52 Satipathana Sutta (2).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2352%20Satipathana%20Sutta%20(2).pdf",
+      "preview": "Ensinamentos sobre os fundamentos da atenção plena...",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "ujr6qk_4jIL",
+      "code": "ujr6qk_4jIL",
+      "title": "Satipathana Sutta",
+      "slug": "satipathana-sutta",
+      "filename": "#53 Satipathana Sutta (3).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2353%20Satipathana%20Sutta%20(3).pdf",
+      "preview": "Ensinamentos sobre os fundamentos da atenção plena...",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "EIHl47uUyT2",
+      "code": "EIHl47uUyT2",
+      "title": "Satipathana Sutta",
+      "slug": "satipathana-sutta",
+      "filename": "#54 Satipathana Sutta (4).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2354%20Satipathana%20Sutta%20(4).pdf",
+      "preview": "Ensinamentos sobre os fundamentos da atenção plena...",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "D4ARxZFgcoy",
+      "code": "D4ARxZFgcoy",
+      "title": "Satipathana Sutta 1 Inicio",
+      "slug": "satipathana-sutta-1-inicio",
+      "filename": "#51 Satipathana Sutta (1) Início.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2351%20Satipathana%20Sutta%20(1)%20Ini%CC%81cio.pdf",
+      "preview": "Ensinamentos sobre os fundamentos da atenção plena...",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "zIM6jbO7yEQ",
+      "code": "zIM6jbO7yEQ",
+      "title": "Satipathana Sutta 4 revisado",
+      "slug": "satipathana-sutta-4-revisado",
+      "filename": "#54 Satipathana Sutta (4) revisado.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2354%20Satipathana%20Sutta%20(4)%20revisado.pdf",
+      "preview": "Ensinamentos sobre os fundamentos da atenção plena...",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "xNtgHpdxopL",
+      "code": "xNtgHpdxopL",
+      "title": "Satipathana Sutta 5 Final",
+      "slug": "satipathana-sutta-5-final",
+      "filename": "#55 Satipathana Sutta (5) Final.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2355%20Satipathana%20Sutta%20(5)%20Final.pdf",
+      "preview": "Ensinamentos sobre os fundamentos da atenção plena...",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "-ZY6byDT6fT",
+      "code": "-ZY6byDT6fT",
+      "title": "Satipatthanasutta MN10",
+      "slug": "satipatthanasutta-mn10",
+      "filename": "Satipatthanasutta MN10.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Satipatthanasutta%20MN10.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Satipatthanasutta MN10",
+      "categories": [
+        "satipathana"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "kP8Cf_fN7pP",
+      "code": "kP8Cf_fN7pP",
+      "title": "Segundo ao Quarto Passo do Nobre Caminho",
+      "slug": "segundo-ao-quarto-passo-do-nobre-caminho",
+      "filename": "#22 Segundo ao Quarto Passo do Nobre Caminho.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2322%20Segundo%20ao%20Quarto%20Passo%20do%20Nobre%20Caminho.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Segundo ao Quarto Passo do Nobre Caminho",
+      "categories": [
+        "quatro-nobres-verdades"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "dRldTc896ul",
+      "code": "dRldTc896ul",
+      "title": "Seis_Formas_de_Avidya_",
+      "slug": "seis_formas_de_avidya_",
+      "filename": "Seis_Formas_de_Avidya_.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Seis_Formas_de_Avidya_.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Seis_Formas_de_Avidya_",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "rNpgHnlLrbg",
+      "code": "rNpgHnlLrbg",
+      "title": "Sessao 1 Manha Retiro A Visao Budista da Vida e da Morte",
+      "slug": "sessao-1-manha-retiro-a-visao-budista-da-vida-e-da-morte",
+      "filename": "Sessão #1 Manhã  Retiro  A Visão Budista da Vida e da Morte.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Sessa%CC%83o%20%231%20Manha%CC%83%20%20Retiro%20%20A%20Visa%CC%83o%20Budista%20da%20Vida%20e%20da%20Morte.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Sessao 1 Manha Retiro A Visao Budista da Vida e da Morte",
+      "categories": [
+        "bardos-e-morte"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "nKCv6VXYC8r",
+      "code": "nKCv6VXYC8r",
+      "title": "Sessao 2 Tarde Retiro A Visao Budista da Vida e da Morte",
+      "slug": "sessao-2-tarde-retiro-a-visao-budista-da-vida-e-da-morte",
+      "filename": "Sessão #2 Tarde Retiro A Visão Budista da Vida e da Morte.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Sessa%CC%83o%20%232%20Tarde%20Retiro%20A%20Visa%CC%83o%20Budista%20da%20Vida%20e%20da%20Morte.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Sessao 2 Tarde Retiro A Visao Budista da Vida e da Morte",
+      "categories": [
+        "bardos-e-morte"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "2DGXjrGU1iD",
+      "code": "2DGXjrGU1iD",
+      "title": "Sessao 3 Manha Retiro A Visao Budista da Vida e da Morte",
+      "slug": "sessao-3-manha-retiro-a-visao-budista-da-vida-e-da-morte",
+      "filename": "Sessão #3 Manhã  Retiro A Visão Budista da Vida e da Morte.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Sessa%CC%83o%20%233%20Manha%CC%83%20%20Retiro%20A%20Visa%CC%83o%20Budista%20da%20Vida%20e%20da%20Morte.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Sessao 3 Manha Retiro A Visao Budista da Vida e da Morte",
+      "categories": [
+        "bardos-e-morte"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "TR_-QwCFDmN",
+      "code": "TR_-QwCFDmN",
+      "title": "Sessao 4 Tarde Retiro A Visao Budista da Vida e da Morte",
+      "slug": "sessao-4-tarde-retiro-a-visao-budista-da-vida-e-da-morte",
+      "filename": "Sessão #4 Tarde Retiro A Visão Budista da Vida e da Morte.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Sessa%CC%83o%20%234%20Tarde%20Retiro%20A%20Visa%CC%83o%20Budista%20da%20Vida%20e%20da%20Morte.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Sessao 4 Tarde Retiro A Visao Budista da Vida e da Morte",
+      "categories": [
+        "bardos-e-morte"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "XBlqQrPRFRl",
+      "code": "XBlqQrPRFRl",
+      "title": "Shamata e os cinco elementos",
+      "slug": "shamata-e-os-cinco-elementos",
+      "filename": "Shamata e os cinco elementos.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Shamata%20e%20os%20cinco%20elementos.pdf",
+      "preview": "Ensinamentos sobre a prática de shamata (meditação de tranquilidade)...",
+      "categories": [
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "jArXJk0dyHV",
+      "code": "jArXJk0dyHV",
+      "title": "Shamata_Impura_e_Shamata_Pura",
+      "slug": "shamata_impura_e_shamata_pura",
+      "filename": "Shamata_Impura_e_Shamata_Pura (1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Shamata_Impura_e_Shamata_Pura%20(1).pdf",
+      "preview": "Ensinamentos sobre a prática de shamata (meditação de tranquilidade)...",
+      "categories": [
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "3fJWb5vOfIh",
+      "code": "3fJWb5vOfIh",
+      "title": "Sutra do Diamante - Comentarios",
+      "slug": "sutra-do-diamante-comentarios",
+      "filename": "#44 Sutra do Diamante - Comentários.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2344%20Sutra%20do%20Diamante%20-%20Comenta%CC%81rios.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "45Z_VySD2nS",
+      "code": "45Z_VySD2nS",
+      "title": "Sutra do Diamante - Dhyana Paramita",
+      "slug": "sutra-do-diamante-dhyana-paramita",
+      "filename": "#45 Sutra do Diamante - Dhyana Paramita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2345%20Sutra%20do%20Diamante%20-%20Dhyana%20Paramita.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante",
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "BH-19thig3m",
+      "code": "BH-19thig3m",
+      "title": "Sutra do Diamante - Dhyana Paramita revisado",
+      "slug": "sutra-do-diamante-dhyana-paramita-revisado",
+      "filename": "#45 Sutra do Diamante - Dhyana Paramita revisado.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2345%20Sutra%20do%20Diamante%20-%20Dhyana%20Paramita%20revisado.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante",
+        "meditacao-e-pratica"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "Km-GPJg_OnJ",
+      "code": "Km-GPJg_OnJ",
+      "title": "Sutra do Diamante - fev 2002 - Goddard.doc",
+      "slug": "sutra-do-diamante-fev-2002-goddarddoc",
+      "filename": "Sutra do Diamante - fev 2002 - Goddard.doc.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Sutra%20do%20Diamante%20-%20fev%202002%20-%20Goddard.doc.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "BEAp3NfT0cy",
+      "code": "BEAp3NfT0cy",
+      "title": "Sutra do Diamante - Generosidade",
+      "slug": "sutra-do-diamante-generosidade",
+      "filename": "#39 Sutra do Diamante - Generosidade REVISADO.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2339%20Sutra%20do%20Diamante%20-%20Generosidade%20REVISADO.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "IXeqXGUqCB6",
+      "code": "IXeqXGUqCB6",
+      "title": "Sutra do Diamante - Generosidade",
+      "slug": "sutra-do-diamante-generosidade",
+      "filename": "#39 Sutra do Diamante - Generosidade.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2339%20Sutra%20do%20Diamante%20-%20Generosidade.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "2t5BmhBYnSO",
+      "code": "2t5BmhBYnSO",
+      "title": "Sutra do Diamante - Kshanti Paramita",
+      "slug": "sutra-do-diamante-kshanti-paramita",
+      "filename": "#42 Sutra do Diamante - Kshanti Paramita (1).pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2342%20Sutra%20do%20Diamante%20-%20Kshanti%20Paramita%20(1).pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "xD366zI5nrP",
+      "code": "xD366zI5nrP",
+      "title": "Sutra do Diamante - Kshanti Paramita",
+      "slug": "sutra-do-diamante-kshanti-paramita",
+      "filename": "#42 Sutra do Diamante - Kshanti Paramita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2342%20Sutra%20do%20Diamante%20-%20Kshanti%20Paramita.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "AYSbU9btStP",
+      "code": "AYSbU9btStP",
+      "title": "Sutra do Diamante - Nao Identidade",
+      "slug": "sutra-do-diamante-nao-identidade",
+      "filename": "#40 Sutra do Diamante - Não Identidade.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2340%20Sutra%20do%20Diamante%20-%20Na%CC%83o%20Identidade.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "XKhPAJ_mh4_",
+      "code": "XKhPAJ_mh4_",
+      "title": "Sutra do Diamante - Sila Paramita",
+      "slug": "sutra-do-diamante-sila-paramita",
+      "filename": "#41 Sutra do Diamante - Sila Paramita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2341%20Sutra%20do%20Diamante%20-%20Sila%20Paramita.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "2fhSmfiixtB",
+      "code": "2fhSmfiixtB",
+      "title": "Sutra do Diamante - Sila Paramita revisado",
+      "slug": "sutra-do-diamante-sila-paramita-revisado",
+      "filename": "#41 Sutra do Diamante - Sila Paramita revisado.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2341%20Sutra%20do%20Diamante%20-%20Sila%20Paramita%20revisado.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "deDzUDgCRfb",
+      "code": "deDzUDgCRfb",
+      "title": "Sutra do Diamante - Virya Paramita",
+      "slug": "sutra-do-diamante-virya-paramita",
+      "filename": "#43 Sutra do Diamante - Virya Paramita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2343%20Sutra%20do%20Diamante%20-%20Virya%20Paramita.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "hxXuxd41tHb",
+      "code": "hxXuxd41tHb",
+      "title": "Sutra do Diamante - Virya Paramita revisado",
+      "slug": "sutra-do-diamante-virya-paramita-revisado",
+      "filename": "#43 Sutra do Diamante - Virya Paramita revisado.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2343%20Sutra%20do%20Diamante%20-%20Virya%20Paramita%20revisado.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "mpnLsVhWZfb",
+      "code": "mpnLsVhWZfb",
+      "title": "Sutra do Diamante Final",
+      "slug": "sutra-do-diamante-final",
+      "filename": "#46 Sutra do Diamante Final.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2346%20Sutra%20do%20Diamante%20Final.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "o-5pO6I4R9f",
+      "code": "o-5pO6I4R9f",
+      "title": "Sutra do Diamante Final - transcricao em andamento",
+      "slug": "sutra-do-diamante-final-transcricao-em-andamento",
+      "filename": "#46 Sutra do Diamante Final - transcrição em andamento.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2346%20Sutra%20do%20Diamante%20Final%20-%20transcric%CC%A7a%CC%83o%20em%20andamento.pdf",
+      "preview": "Comentários sobre o Sutra do Diamante...",
+      "categories": [
+        "sutra-do-diamante"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "-KLcXTJrYmk",
+      "code": "-KLcXTJrYmk",
+      "title": "Tabela Conteudos - hierarquia",
+      "slug": "tabela-conteudos-hierarquia",
+      "filename": "Tabela Conteúdos - hierarquia.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Tabela%20Conteu%CC%81dos%20-%20hierarquia.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Tabela Conteudos - hierarquia",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "JkxNO6C7vkp",
+      "code": "JkxNO6C7vkp",
+      "title": "Tarde jade.docx",
+      "slug": "tarde-jadedocx",
+      "filename": "#4-Tarde (jade).docx.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%234-Tarde%20(jade).docx.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Tarde jade.docx",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.936Z",
+      "updatedAt": "2025-10-23T17:17:52.936Z"
+    },
+    {
+      "id": "c8R9rSNMRiS",
+      "code": "c8R9rSNMRiS",
+      "title": "template_para_transcricao_CEBB",
+      "slug": "template_para_transcricao_cebb",
+      "filename": "template_para_transcrição_CEBB.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/template_para_transcric%CC%A7a%CC%83o_CEBB.pdf",
+      "preview": "Transcrição corrigida pela Sanga: template_para_transcricao_CEBB",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.938Z",
+      "updatedAt": "2025-10-23T17:17:52.938Z"
+    },
+    {
+      "id": "a6yodnKH8iE",
+      "code": "a6yodnKH8iE",
+      "title": "template_transcricao_MAIS_orientacoes_revisao",
+      "slug": "template_transcricao_mais_orientacoes_revisao",
+      "filename": "template_transcrição_MAIS_orientações_revisão.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/template_transcric%CC%A7a%CC%83o_MAIS_orientac%CC%A7o%CC%83es_revisa%CC%83o.pdf",
+      "preview": "Transcrição corrigida pela Sanga: template_transcricao_MAIS_orientacoes_revisao",
+      "categories": [
+        "materiais-de-apoio"
+      ],
+      "createdAt": "2025-10-23T17:17:52.938Z",
+      "updatedAt": "2025-10-23T17:17:52.938Z"
+    },
+    {
+      "id": "X-bjvbXC5vv",
+      "code": "X-bjvbXC5vv",
+      "title": "Tesouro Profundo do Oceano do Darma Henrique Lemes 02092024",
+      "slug": "tesouro-profundo-do-oceano-do-darma-henrique-lemes-02092024",
+      "filename": "#1 Tesouro Profundo do Oceano do Darma ｜ Henrique Lemes ｜ 02⧸09⧸2024.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%231%20Tesouro%20Profundo%20do%20Oceano%20do%20Darma%20%EF%BD%9C%20Henrique%20Lemes%20%EF%BD%9C%2002%E2%A7%B809%E2%A7%B82024.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Tesouro Profundo do Oceano do Darma Henrique Lemes 02092024",
+      "categories": [
+        "outros"
+      ],
+      "createdAt": "2025-10-23T17:17:52.934Z",
+      "updatedAt": "2025-10-23T17:17:52.934Z"
+    },
+    {
+      "id": "k4XaGG8CpBW",
+      "code": "k4XaGG8CpBW",
+      "title": "Texto 3 Psicologia Budista - Recife Ago-2004",
+      "slug": "texto-3-psicologia-budista-recife-ago-2004",
+      "filename": "Texto 3 Psicologia Budista - Recife Ago-2004.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Texto%203%20Psicologia%20Budista%20-%20Recife%20Ago-2004.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Texto 3 Psicologia Budista - Recife Ago-2004",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "JQwUkZKg3Ew",
+      "code": "JQwUkZKg3Ew",
+      "title": "Texto_3_Psicologia_Budista_-_Recife_Ago-2004",
+      "slug": "texto_3_psicologia_budista_-_recife_ago-2004",
+      "filename": "Texto_3_Psicologia_Budista_-_Recife_Ago-2004.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Texto_3_Psicologia_Budista_-_Recife_Ago-2004.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Texto_3_Psicologia_Budista_-_Recife_Ago-2004",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    },
+    {
+      "id": "4EX2kwjb9mL",
+      "code": "4EX2kwjb9mL",
+      "title": "Versos Iniciais da Prajna Paramita",
+      "slug": "versos-iniciais-da-prajna-paramita",
+      "filename": "#31 Versos Iniciais da Prajna Paramita.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2331%20Versos%20Iniciais%20da%20Prajna%20Paramita.pdf",
+      "preview": "Sutra da Perfeição da Sabedoria - ensinamentos profundos...",
+      "categories": [
+        "prajna-paramita",
+        "mahamudra"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "Px47ntiOL1r",
+      "code": "Px47ntiOL1r",
+      "title": "Visao da Origem Dependente em Contexto",
+      "slug": "visao-da-origem-dependente-em-contexto",
+      "filename": "#12 Visão da Origem Dependente em Contexto.pdf",
+      "url": "/pdfs_transcricoes_corrigidas/%2312%20Visa%CC%83o%20da%20Origem%20Dependente%20em%20Contexto.pdf",
+      "preview": "Ensinamentos sobre a origem dependente e interdependência...",
+      "categories": [
+        "origem-dependente",
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.935Z",
+      "updatedAt": "2025-10-23T17:17:52.935Z"
+    },
+    {
+      "id": "6xPYIY6vKxu",
+      "code": "6xPYIY6vKxu",
+      "title": "Visao Geral - Textos Tradicionais do Cebb",
+      "slug": "visao-geral-textos-tradicionais-do-cebb",
+      "filename": "Visão Geral - Textos Tradicionais do Cebb .pdf",
+      "url": "/pdfs_transcricoes_corrigidas/Visa%CC%83o%20Geral%20-%20Textos%20Tradicionais%20do%20Cebb%20.pdf",
+      "preview": "Transcrição corrigida pela Sanga: Visao Geral - Textos Tradicionais do Cebb",
+      "categories": [
+        "textos-especificos"
+      ],
+      "createdAt": "2025-10-23T17:17:52.937Z",
+      "updatedAt": "2025-10-23T17:17:52.937Z"
+    }
+  ]
+}
