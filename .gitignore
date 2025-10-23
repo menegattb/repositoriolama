@@ -40,3 +40,11 @@ next-env.d.ts
 
 # secrets
 secret.json
+
+# transcrições e arquivos relacionados
+public/pdfs_transcricoes_corrigidas/
+src/data/transcripts.json
+src/data/transcriptsData.ts
+src/components/TranscriptCard.tsx
+create_transcript_system.js
+transcript_files.txt
