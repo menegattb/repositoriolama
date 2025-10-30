@@ -45,6 +45,5 @@ secret.json
 public/pdfs_transcricoes_corrigidas/
 src/data/transcripts.json
 src/data/transcriptsData.ts
-src/components/TranscriptCard.tsx
 create_transcript_system.js
 transcript_files.txt
