@@ -29,21 +29,34 @@ export default function PlaylistDetailClient({
         setLoading(true);
         const videos = await youtubePlaylistService.getPlaylistVideos(playlist.id);
         
-        setPlaylistVideos(videos);
+        // Se retornou vídeos válidos (com URLs de vídeo, não playlist)
+        const validVideos = videos.filter(v => 
+          v.media_url && 
+          (v.media_url.includes('youtube.com/watch') || v.media_url.includes('youtu.be/'))
+        );
         
-        // Se não há item atual ou o item atual não existe nos novos dados, usar o primeiro
-        if (!currentMediaItem || !videos.find(v => v.id === currentMediaItem.id)) {
-          setCurrentMediaItem(videos[0] || null);
+        if (validVideos.length > 0) {
+          setPlaylistVideos(validVideos);
+          // Se não há item atual ou o item atual não existe nos novos dados, usar o primeiro
+          if (!currentMediaItem || !validVideos.find(v => v.id === currentMediaItem.id)) {
+            setCurrentMediaItem(validVideos[0] || null);
+          }
+        } else {
+          // Se não há vídeos válidos, manter os itens da playlist mas não tentar buscar mais
+          console.log('[PlaylistDetailClient] Usando itens da playlist (sem API key do YouTube)');
+          setPlaylistVideos(playlist.items || []);
         }
       } catch (error) {
         console.error('Error fetching playlist videos:', error);
+        // Em caso de erro, usar os itens da playlist original
+        setPlaylistVideos(playlist.items || []);
       } finally {
         setLoading(false);
       }
     };
 
     fetchPlaylistVideos();
-  }, [playlist.id, currentMediaItem]);
+  }, [playlist.id]);
 
   const handleMediaItemSelect = (item: MediaItem) => {
     console.log('Selected item:', item.title);
