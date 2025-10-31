@@ -56,6 +56,7 @@ export default function PlaylistDetailClient({
     };
 
     fetchPlaylistVideos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playlist.id]);
 
   const handleMediaItemSelect = (item: MediaItem) => {

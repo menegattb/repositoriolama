@@ -37,10 +37,16 @@ async function fetchYouTubeData(): Promise<YouTubePlaylist[]> {
       headers: {
         'Accept': 'application/json',
       },
-      // No client-side, não usar cache: 'no-store' que pode causar problemas
+      // Configuração de cache
       ...(typeof window === 'undefined' 
-        ? { cache: 'no-store' as RequestCache }  // Server-side
-        : { cache: 'default' as RequestCache }   // Client-side
+        ? { 
+            // Server-side: não usar cache para garantir dados atualizados
+            cache: 'no-store' as RequestCache
+          }
+        : { 
+            // Client-side: usar cache padrão
+            cache: 'default' as RequestCache 
+          }
       ),
     };
     
@@ -190,7 +196,8 @@ function getEventTypeFromTitle(title: string): string {
 }
 
 // Função auxiliar para obter thumbnail do YouTube
-function getYouTubeThumbnail(playlistId: string): string {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getYouTubeThumbnail(_playlistId: string): string {
   // Para playlists, não há thumbnail direto, usar placeholder
   return `https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg`; // Placeholder
 }

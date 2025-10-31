@@ -6,13 +6,7 @@ import { notFound } from 'next/navigation';
 // Tornar a página dinâmica (renderizada sob demanda)
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true; // Permitir parâmetros dinâmicos
-export const revalidate = 0; // Sempre buscar dados atualizados
-
-// Não gerar páginas estáticas - todas serão dinâmicas
-export async function generateStaticParams() {
-  // Retornar array vazio para forçar geração dinâmica
-  return [];
-}
+export const fetchCache = 'force-no-store'; // Forçar não usar cache no fetch
 
 interface PageProps {
   params: Promise<{
