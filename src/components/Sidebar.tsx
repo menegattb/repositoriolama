@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Playlist, MediaItem, Transcript } from '@/types';
-import { Search, Clock } from 'lucide-react';
+import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
+import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface SidebarProps {
   playlist: Playlist;
@@ -20,6 +20,15 @@ export default function Sidebar({
   const [activeTab, setActiveTab] = useState<'playlist' | 'transcript' | 'audio'>('playlist');
   const [searchTerm, setSearchTerm] = useState('');
   const [playlistUrl, setPlaylistUrl] = useState('');
+  
+  // Estados para transcrição automática
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcriptUrl, setTranscriptUrl] = useState<string | null>(null);
+  const [transcriptContent, setTranscriptContent] = useState<string | null>(null);
+  const [formattedContent, setFormattedContent] = useState<string | null>(null);
+  const [transcriptArray, setTranscriptArray] = useState<any[] | null>(null);
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
+  const [transcriptLang, setTranscriptLang] = useState<string | null>(null);
 
   useEffect(() => {
     setPlaylistUrl(window.location.href);
@@ -48,6 +57,143 @@ export default function Sidebar({
     }
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Função para transcrever vídeo usando Supadata API
+  const handleTranscribe = async () => {
+    if (!currentMediaItem) {
+      setTranscriptError('Nenhum vídeo selecionado');
+      return;
+    }
+
+    setIsTranscribing(true);
+    setTranscriptError(null);
+    setTranscriptUrl(null);
+    setTranscriptContent(null);
+    setFormattedContent(null);
+    setTranscriptArray(null);
+    setTranscriptLang(null);
+
+    try {
+      // Extrair videoId do media_url ou usar o id diretamente
+      let videoId = currentMediaItem.id;
+      const videoUrl = currentMediaItem.media_url;
+
+      // Se o ID contém hífen (formato playlist-id), extrair o videoId real da URL
+      if (videoUrl && videoUrl.includes('youtube.com')) {
+        const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+        if (match && match[1]) {
+          videoId = match[1];
+        }
+      }
+
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoId: videoId,
+          videoUrl: videoUrl,
+        }),
+      });
+
+      const data: TranscriptResponse = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao transcrever vídeo');
+      }
+
+      // Sucesso
+      setTranscriptUrl(data.transcriptUrl || null);
+      setTranscriptContent(data.content || null);
+      setFormattedContent(data.formattedContent || null);
+      setTranscriptArray(data.transcriptArray || null);
+      setTranscriptLang(data.lang || null);
+    } catch (error: any) {
+      setTranscriptError(error.message || 'Erro desconhecido ao transcrever');
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  // Função para baixar transcrição em formato DOCX
+  const handleDownloadDocx = async () => {
+    if (!transcriptArray || transcriptArray.length === 0) {
+      alert('Não há transcrição disponível para download');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/transcribe/docx', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transcriptArray: transcriptArray,
+          videoTitle: currentMediaItem?.title || 'Transcrição',
+          lang: transcriptLang || 'pt',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao gerar DOCX');
+      }
+
+      // Obter blob do documento
+      const blob = await response.blob();
+      
+      // Criar URL temporária e fazer download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Criar nome do arquivo seguro
+      const safeTitle = (currentMediaItem?.title || 'transcricao')
+        .replace(/[^a-z0-9\s-]/gi, '')
+        .replace(/\s+/g, '-')
+        .substring(0, 50);
+      
+      a.download = `transcricao-${safeTitle}-${Date.now()}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Limpar recursos
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error: any) {
+      console.error('Erro ao baixar DOCX:', error);
+      alert(`Erro ao baixar documento: ${error.message || 'Erro desconhecido'}. Tente novamente.`);
+    }
+  };
+
+  // Verificar se já existe transcrição quando o item mudar
+  useEffect(() => {
+    if (currentMediaItem) {
+      // Resetar estados quando mudar de vídeo
+      setTranscriptUrl(null);
+      setTranscriptContent(null);
+      setFormattedContent(null);
+      setTranscriptArray(null);
+      setTranscriptError(null);
+      setTranscriptLang(null);
+
+      // Tentar verificar se já existe transcrição em cache
+      const videoUrl = currentMediaItem.media_url;
+      let videoId = currentMediaItem.id;
+      
+      if (videoUrl && videoUrl.includes('youtube.com')) {
+        const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+        if (match && match[1]) {
+          videoId = match[1];
+        }
+      }
+
+      // Verificar se o arquivo existe (opcional - pode fazer uma chamada leve)
+      // Por enquanto, vamos deixar o usuário clicar no botão
+    }
+  }, [currentMediaItem?.id]);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -213,33 +359,124 @@ export default function Sidebar({
 
         {activeTab === 'transcript' && (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm text-gray-700">
-                Para solicitar a transcrição desta playlist, mande uma mensagem para o Bruno.
-              </p>
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors"
-              >
-                Solicitar via WhatsApp
-              </a>
-            </div>
+            {/* Transcrição existente (prop) - manter compatibilidade */}
             {transcript ? (
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-gray-900">
                   Transcrição: {currentMediaItem?.title}
                 </h3>
-                <div className="text-sm text-gray-600 max-h-96 overflow-y-auto">
+                <div className="text-sm text-gray-600 max-h-96 overflow-y-auto bg-gray-50 p-3 rounded border">
                   {transcript.content}
                 </div>
               </div>
+            ) : transcriptUrl || transcriptContent ? (
+              /* Transcrição gerada automaticamente */
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    Transcrição: {currentMediaItem?.title}
+                  </h3>
+                  {transcriptLang && (
+                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                      {transcriptLang.toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex gap-2 flex-wrap">
+                  {transcriptUrl && (
+                    <a
+                      href={transcriptUrl}
+                      download
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      <Download className="w-3 h-3" />
+                      Baixar .srt
+                    </a>
+                  )}
+                  {transcriptArray && transcriptArray.length > 0 && (
+                    <button
+                      onClick={handleDownloadDocx}
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 transition-colors"
+                    >
+                      <Download className="w-3 h-3" />
+                      Baixar .docx
+                    </button>
+                  )}
+                </div>
+                
+                <div className="text-xs text-gray-600 max-h-96 overflow-y-auto bg-gray-50 p-3 rounded border whitespace-pre-wrap font-mono leading-relaxed">
+                  {formattedContent || transcriptContent || 'Transcrição disponível. Clique em "Baixar .srt" para visualizar.'}
+                </div>
+              </div>
             ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">
-                  Nenhuma transcrição disponível para este item.
-                </p>
+              /* Nenhuma transcrição - mostrar opções */
+              <div className="space-y-4">
+                {transcriptError ? (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-red-800 mb-1">Erro ao gerar transcrição</p>
+                        <p className="text-xs text-red-700">{transcriptError}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-700">
+                      {currentMediaItem 
+                        ? `Gerar transcrição automática para: "${currentMediaItem.title}"`
+                        : 'Selecione um vídeo para gerar a transcrição'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      A transcrição será gerada automaticamente usando as legendas do YouTube.
+                    </p>
+                  </div>
+                )}
+                
+                <button
+                  onClick={handleTranscribe}
+                  disabled={isTranscribing || !currentMediaItem}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isTranscribing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Gerando transcrição...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4" />
+                      Gerar Transcrição Automática
+                    </>
+                  )}
+                </button>
+
+                {transcriptError && (
+                  <button
+                    onClick={handleTranscribe}
+                    disabled={isTranscribing}
+                    className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+                  >
+                    Tentar novamente
+                  </button>
+                )}
+
+                <div className="pt-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 mb-2">
+                    Ou solicite uma transcrição corrigida manualmente:
+                  </p>
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-full px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors"
+                  >
+                    Solicitar via WhatsApp
+                  </a>
+                </div>
               </div>
             )}
           </div>

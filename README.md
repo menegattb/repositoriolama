@@ -177,19 +177,72 @@ NEXT_PUBLIC_MEDIA_BASE_URL=https://your-cdn.com/media/
 # Configurações de autenticação (futuro)
 NEXTAUTH_SECRET=your-secret-key
 NEXTAUTH_URL=http://localhost:3000
+
+# Supadata API Key para transcrições automáticas
+# Obtenha sua chave em: https://dash.supadata.ai/
+# Plano gratuito oferece 100 requisições/mês
+SUPADATA_API_KEY=your_supadata_api_key_here
 ```
+
+### Transcrições Automáticas
+
+O projeto integra com a [Supadata YouTube Transcript API](https://supadata.ai/) para gerar transcrições automáticas de vídeos do YouTube.
+
+#### Configuração
+
+1. **Obter chave de API:**
+   - Acesse https://dash.supadata.ai/
+   - Crie uma conta (plano gratuito disponível)
+   - Copie sua chave de API
+
+2. **Configurar variável de ambiente:**
+   - Adicione `SUPADATA_API_KEY` no arquivo `.env.local`
+   - Para produção, configure a variável no seu provedor de hosting
+
+#### Funcionalidades
+
+- **Geração automática de transcrições** usando legendas do YouTube
+- **Cache inteligente** - transcrições são salvas em `public/transcripts/` e reutilizadas
+- **Suporte a múltiplos idiomas** - detecta automaticamente o idioma (PT/EN)
+- **Download em formato .srt** - transcrições podem ser baixadas
+- **Tratamento de erros** - mensagens amigáveis para vídeos sem transcrição, rate limits, etc.
+
+#### Limites
+
+- **Plano gratuito:** 100 requisições/mês
+- **Rate limits:** A API retornará erro 429 quando o limite for atingido
+- **Vídeos sem legendas:** Apenas vídeos com legendas disponíveis no YouTube podem ser transcritos
+
+#### Uso
+
+1. Navegue até uma playlist
+2. Selecione um vídeo
+3. Clique na aba "Transcrição"
+4. Clique em "Gerar Transcrição Automática"
+5. Aguarde o processamento (pode levar alguns segundos)
+6. Baixe ou visualize a transcrição gerada
+
+#### Armazenamento
+
+As transcrições são salvas em `public/transcripts/{videoId}.srt` e servidas como arquivos estáticos. O diretório `public/transcripts/` é criado automaticamente na primeira transcrição.
+
+**Nota:** Removemos `output: 'export'` do `next.config.ts` para habilitar API routes server-side. Isso muda a estratégia de deploy de estático para server-side. Verifique se seu hosting suporta Next.js server-side antes de fazer deploy.
 
 ### Deploy
 
 #### Vercel (Recomendado)
 1. Conecte seu repositório GitHub ao Vercel
-2. Configure as variáveis de ambiente
+2. Configure as variáveis de ambiente (incluindo `SUPADATA_API_KEY`)
 3. Deploy automático a cada push
+4. **Importante:** Vercel suporta Next.js server-side e API routes por padrão
 
 #### Outras Plataformas
-- **Netlify**: Compatível com Next.js
-- **Railway**: Para aplicações full-stack
+- **Netlify**: Compatível com Next.js (requer configuração para API routes)
+- **Railway**: Para aplicações full-stack (recomendado para server-side)
 - **Heroku**: Com configuração adicional
+- **VPS/Server próprio**: Requer Node.js e configuração de servidor
+
+**Atenção:** Com a remoção de `output: 'export'`, o projeto agora requer um ambiente que suporte Next.js server-side para que as API routes funcionem corretamente.
 
 ## 📈 Estatísticas do Conteúdo
 

@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export',
+  // Removido 'output: export' para habilitar API routes server-side
+  // Nota: Isso muda a estratégia de deploy de estático para server-side
   images: {
     unoptimized: true,
     remotePatterns: [

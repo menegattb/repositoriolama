@@ -47,3 +47,6 @@ src/data/transcripts.json
 src/data/transcriptsData.ts
 create_transcript_system.js
 transcript_files.txt
+
+# transcrições geradas automaticamente (mantém .gitkeep)
+public/transcripts/*.srt

@@ -56,3 +56,18 @@ export interface SearchResult {
   description: string;
   relevance_score: number;
 }
+
+export interface TranscriptResponse {
+  success: boolean;
+  videoId: string;
+  transcriptUrl?: string;
+  content?: string;
+  formattedContent?: string; // Texto formatado com timestamps [HH:MM:SS]
+  transcriptArray?: any[]; // Array original de objetos da transcrição
+  srtContent?: string; // Conteúdo em formato SRT completo
+  lang?: string;
+  error?: string;
+  message?: string;
+  cached?: boolean;
+  details?: any;
+}
