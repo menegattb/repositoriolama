@@ -1,0 +1,16 @@
+# Permitir CORS para o arquivo JSON do YouTube
+# Este arquivo deve estar em: public_html/repositorio/api/.htaccess
+
+<IfModule mod_headers.c>
+  # Permitir acesso de qualquer origem (ou especifique o domínio do Vercel)
+  Header set Access-Control-Allow-Origin "*"
+  Header set Access-Control-Allow-Methods "GET, OPTIONS"
+  Header set Access-Control-Allow-Headers "Accept, Content-Type"
+</IfModule>
+
+# Para requisições OPTIONS (preflight)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_METHOD} OPTIONS
+  RewriteRule ^(.*)$ $1 [R=200,L]
+</IfModule>

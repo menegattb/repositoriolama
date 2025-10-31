@@ -22,11 +22,21 @@ export default function PlaylistsPage() {
     async function loadPlaylists() {
       try {
         setLoading(true);
+        console.log('[PlaylistsPage] Iniciando carregamento de playlists...');
         const data = await getYouTubePlaylists();
+        console.log('[PlaylistsPage] Playlists recebidas:', data.length);
         setPlaylists(data);
-        console.log('Playlists carregadas da Hostinger:', data.length);
+        
+        if (data.length === 0) {
+          console.warn('[PlaylistsPage] ⚠️ Nenhuma playlist carregada. Verifique:');
+          console.warn('  1. O arquivo JSON está acessível em: https://repositorio.acaoparamita.com.br/api/youtube-data.json');
+          console.warn('  2. Não há erro de CORS no console');
+          console.warn('  3. O arquivo JSON tem a estrutura correta');
+        }
       } catch (error) {
-        console.error('Erro ao carregar playlists:', error);
+        console.error('[PlaylistsPage] ❌ Erro ao carregar playlists:', error);
+        // Manter array vazio em caso de erro
+        setPlaylists([]);
       } finally {
         setLoading(false);
       }

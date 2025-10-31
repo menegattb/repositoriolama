@@ -22,6 +22,8 @@ let fetchPromise: Promise<Playlist[]> | null = null;
  */
 async function fetchYouTubeData(): Promise<YouTubePlaylist[]> {
   try {
+    console.log('[YouTube Data] Buscando dados de:', YOUTUBE_DATA_URL);
+    
     const response = await fetch(YOUTUBE_DATA_URL, {
       // Adicionar cache para evitar múltiplas requisições
       cache: 'no-store', // Sempre buscar dados atualizados
@@ -30,14 +32,32 @@ async function fetchYouTubeData(): Promise<YouTubePlaylist[]> {
       },
     });
 
+    console.log('[YouTube Data] Status da resposta:', response.status, response.statusText);
+
     if (!response.ok) {
-      throw new Error(`Failed to fetch YouTube data: ${response.status}`);
+      const errorText = await response.text();
+      console.error('[YouTube Data] Erro na resposta:', response.status, errorText);
+      throw new Error(`Failed to fetch YouTube data: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    return data.playlists || [];
+    console.log('[YouTube Data] Dados recebidos. Total de playlists:', data.playlists?.length || 0);
+    
+    if (!data.playlists || !Array.isArray(data.playlists)) {
+      console.error('[YouTube Data] Formato de dados inválido:', data);
+      return [];
+    }
+    
+    return data.playlists;
   } catch (error) {
-    console.error('Error fetching YouTube data from Hostinger:', error);
+    console.error('[YouTube Data] Erro ao buscar dados:', error);
+    console.error('[YouTube Data] URL tentada:', YOUTUBE_DATA_URL);
+    
+    // Em desenvolvimento, mostrar erro completo
+    if (typeof window !== 'undefined') {
+      console.error('[YouTube Data] Erro completo:', error);
+    }
+    
     // Retornar array vazio em caso de erro (fallback)
     return [];
   }
