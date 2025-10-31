@@ -7,13 +7,13 @@ REMOTE_USER="u670352471"
 REMOTE_PORT="65002"
 REMOTE_PATH="/home/u670352471/domains/acaoparamita.com.br/public_html/repositorio"
 
-# Diretório de build do Next.js
-BUILD_DIR="repositoriolama/out"
+# Diretório de build do Next.js (server-side)
+BUILD_DIR="repositoriolama/.next"
 
-echo "[INFO] 🚀 Building Next.js application..."
+echo "[INFO] 🚀 Building Next.js application (server-side)..."
 cd repositoriolama
 
-# Build do Next.js (export estático)
+# Build do Next.js (server-side mode)
 npm run build
 
 if [ $? -ne 0 ]; then
@@ -55,23 +55,27 @@ else
     exit 1
 fi
 
-# Deploy via rsync
+# Deploy via rsync (server-side)
 # IMPORTANTE: --exclude='public/transcripts/' previne que o rsync --delete apague os arquivos .srt dentro do diretório
 echo "[INFO] 📤 Uploading Next.js build files via rsync..."
-rsync -avz --delete \
+rsync -avz \
     -e "ssh -p $REMOTE_PORT" \
+    --exclude='node_modules' \
+    --exclude='.git' \
     --exclude='*.mp3' \
     --exclude='*.wav' \
     --exclude='*.ogg' \
     --exclude='audios/' \
     --exclude='audio/' \
-    --exclude='public/transcripts/' \
+    --exclude='public/transcripts/*.srt' \
+    --exclude='.env.local' \
+    --exclude='.next/cache' \
     --progress \
-    $BUILD_DIR/ \
+    repositoriolama/ \
     $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 
 if [ $? -eq 0 ]; then
-    echo "[SUCCESS] ✅ Next.js build uploaded successfully via SSH!"
+    echo "[SUCCESS] ✅ Next.js files uploaded successfully via SSH!"
     echo "[INFO] 📝 Audio files were NOT sent (as requested)"
     echo "[INFO] 💾 Transcripts directory preserved (public/transcripts/)"
 else
@@ -79,11 +83,21 @@ else
     exit 2
 fi
 
+# Instalar dependências no servidor
+echo "[INFO] 📦 Installing dependencies on server..."
+ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "cd $REMOTE_PATH && npm install --production" || {
+    echo "[WARNING] ⚠️  Could not install dependencies, continuing anyway..."
+}
+
 # Garantir que diretório de transcrições existe após deploy (pós-deploy)
 echo "[INFO] 📁 Verifying transcripts directory after deploy..."
 ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_PATH/public/transcripts && chmod 755 $REMOTE_PATH/public/transcripts" || {
     echo "[WARNING] ⚠️  Could not verify transcripts directory"
 }
+
+# Reiniciar aplicação Node.js (se usar PM2 ou similar)
+echo "[INFO] 🔄 To start the application, SSH to the server and run: npm start"
+echo "[INFO] 💡 Or if using PM2: pm2 restart repositoriolama"
 
 # Check if site is accessible
 echo "[INFO] 🌐 Checking if site is accessible..."
