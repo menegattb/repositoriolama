@@ -37,6 +37,12 @@ echo ""
 echo "[INFO] 🔐 Starting SSH deployment to $REMOTE_HOST..."
 echo "[INFO] ⚠️  NOT sending audio files - only Next.js static files"
 
+# Criar diretório de transcrições no servidor se não existir (pré-deploy)
+echo "[INFO] 📁 Ensuring transcripts directory exists on server..."
+ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_PATH/public/transcripts && chmod 755 $REMOTE_PATH/public/transcripts" || {
+    echo "[WARNING] ⚠️  Could not create transcripts directory, continuing anyway..."
+}
+
 # Testar conexão SSH primeiro
 echo "[INFO] 🔌 Testing SSH connection..."
 if ssh -o ConnectTimeout=10 -o BatchMode=yes -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "echo 'SSH connection successful'" 2>/dev/null; then
@@ -50,6 +56,7 @@ else
 fi
 
 # Deploy via rsync
+# IMPORTANTE: --exclude='public/transcripts/' previne que o rsync --delete apague os arquivos .srt dentro do diretório
 echo "[INFO] 📤 Uploading Next.js build files via rsync..."
 rsync -avz --delete \
     -e "ssh -p $REMOTE_PORT" \
@@ -58,6 +65,7 @@ rsync -avz --delete \
     --exclude='*.ogg' \
     --exclude='audios/' \
     --exclude='audio/' \
+    --exclude='public/transcripts/' \
     --progress \
     $BUILD_DIR/ \
     $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
@@ -65,10 +73,17 @@ rsync -avz --delete \
 if [ $? -eq 0 ]; then
     echo "[SUCCESS] ✅ Next.js build uploaded successfully via SSH!"
     echo "[INFO] 📝 Audio files were NOT sent (as requested)"
+    echo "[INFO] 💾 Transcripts directory preserved (public/transcripts/)"
 else
     echo "[ERROR] ❌ SSH upload failed" >&2
     exit 2
 fi
+
+# Garantir que diretório de transcrições existe após deploy (pós-deploy)
+echo "[INFO] 📁 Verifying transcripts directory after deploy..."
+ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_PATH/public/transcripts && chmod 755 $REMOTE_PATH/public/transcripts" || {
+    echo "[WARNING] ⚠️  Could not verify transcripts directory"
+}
 
 # Check if site is accessible
 echo "[INFO] 🌐 Checking if site is accessible..."

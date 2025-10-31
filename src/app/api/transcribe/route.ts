@@ -3,6 +3,65 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 /**
+ * Função auxiliar para formatar tempo para exibição (HH:MM:SS)
+ */
+const formatTimeForDisplay = (milliseconds: number): string => {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
+/**
+ * Função auxiliar para parsear SRT e converter para array de objetos
+ */
+const parseSRTToArray = (srtContent: string): any[] => {
+  const items: any[] = [];
+  const blocks = srtContent.trim().split(/\n\s*\n/).filter(block => block.trim());
+  
+  for (const block of blocks) {
+    const lines = block.trim().split('\n');
+    if (lines.length < 3) continue;
+    
+    // Linha 1: número sequencial (ignorar)
+    // Linha 2: timestamps (00:00:00,000 --> 00:00:01,000)
+    const timeLine = lines[1];
+    const timeMatch = timeLine.match(/(\d{2}):(\d{2}):(\d{2}),(\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2}),(\d{3})/);
+    
+    if (timeMatch) {
+      const startHours = parseInt(timeMatch[1]);
+      const startMinutes = parseInt(timeMatch[2]);
+      const startSeconds = parseInt(timeMatch[3]);
+      const startMs = parseInt(timeMatch[4]);
+      const offset = (startHours * 3600 + startMinutes * 60 + startSeconds) * 1000 + startMs;
+      
+      const endHours = parseInt(timeMatch[5]);
+      const endMinutes = parseInt(timeMatch[6]);
+      const endSeconds = parseInt(timeMatch[7]);
+      const endMs = parseInt(timeMatch[8]);
+      const endOffset = (endHours * 3600 + endMinutes * 60 + endSeconds) * 1000 + endMs;
+      
+      const duration = endOffset - offset;
+      
+      // Linhas restantes: texto
+      const text = lines.slice(2).join(' ').trim();
+      
+      if (text) {
+        items.push({
+          text: text,
+          offset: offset,
+          duration: duration
+        });
+      }
+    }
+  }
+  
+  return items;
+};
+
+/**
  * API Route para transcrever vídeos do YouTube usando Supadata API
  * Endpoint: POST /api/transcribe
  */
@@ -53,16 +112,44 @@ export async function POST(request: NextRequest) {
     try {
       const existingTranscript = await fs.readFile(transcriptFilePath, 'utf-8');
       
+      // Log informativo em desenvolvimento
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[CACHE HIT] Transcrição encontrada para videoId: ${finalVideoId}`);
+        console.log(`[CACHE] Arquivo: ${transcriptFilePath}`);
+      }
+      
+      // Criar versão formatada do cache também
+      const plainTextCache = existingTranscript.split('\n')
+        .filter(line => !line.includes('-->') && !/^\d+$/.test(line.trim()))
+        .join('\n');
+      
+      // Converter SRT para array para gerar formattedContent e transcriptArray
+      const transcriptArrayFromCache = parseSRTToArray(existingTranscript);
+      const formattedContentFromCache = transcriptArrayFromCache.length > 0
+        ? transcriptArrayFromCache.map(item => {
+            const text = item.text || '';
+            if (!text || text.trim().length === 0) return '';
+            const timeStr = formatTimeForDisplay(item.offset || 0);
+            return `[${timeStr}] ${text.trim()}`;
+          }).filter(Boolean).join('\n')
+        : plainTextCache;
+      
       return NextResponse.json({
         success: true,
         videoId: finalVideoId,
         transcriptUrl: `/transcripts/${finalVideoId}.srt`,
-        content: existingTranscript,
+        content: plainTextCache,
+        formattedContent: formattedContentFromCache,
+        transcriptArray: transcriptArrayFromCache,
+        srtContent: existingTranscript,
         cached: true,
         message: 'Transcrição encontrada em cache'
       });
     } catch (error) {
       // Arquivo não existe, continuar para gerar nova transcrição
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[CACHE MISS] Transcrição não encontrada para videoId: ${finalVideoId}, gerando nova...`);
+      }
     }
 
     // Verificar se a API key está configurada
@@ -261,9 +348,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Salvar arquivo .srt
+    let fileSaved = false;
     try {
       // Criar diretório se não existir
       await fs.mkdir(transcriptDir, { recursive: true });
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[FS] Diretório criado/verificado: ${transcriptDir}`);
+      }
+      
+      // Verificar permissões tentando criar arquivo temporário
+      try {
+        const testFilePath = path.join(transcriptDir, '.test-write');
+        await fs.writeFile(testFilePath, 'test', 'utf-8');
+        await fs.unlink(testFilePath);
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[FS] Permissões de escrita verificadas com sucesso`);
+        }
+      } catch (permError: any) {
+        console.error(`[FS ERROR] Erro ao verificar permissões de escrita:`, permError.message);
+        // Continuar mesmo assim, tentar salvar o arquivo real
+      }
       
       // O transcriptContent já está no formato SRT se veio de um array
       // Se não estiver em formato SRT (sem -->), criar um SRT básico
@@ -280,24 +386,27 @@ export async function POST(request: NextRequest) {
       
       // Salvar arquivo
       await fs.writeFile(transcriptFilePath, srtContent, 'utf-8');
+      fileSaved = true;
       
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Arquivo SRT salvo em: ${transcriptFilePath}`);
+        console.log(`[FS SUCCESS] Arquivo SRT salvo com sucesso: ${transcriptFilePath}`);
+        console.log(`[FS] Tamanho do arquivo: ${srtContent.length} caracteres`);
       }
     } catch (fileError: any) {
-      console.error('Erro ao salvar arquivo de transcrição:', fileError);
+      console.error('[FS ERROR] Erro ao salvar arquivo de transcrição:', fileError.message);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[FS ERROR] Detalhes:', {
+          code: fileError.code,
+          path: transcriptFilePath,
+          dir: transcriptDir,
+          stack: fileError.stack
+        });
+      }
       // Continuar mesmo se falhar ao salvar, retornar o conteúdo na resposta
+      fileSaved = false;
     }
 
-    // Função auxiliar para formatar tempo para exibição (HH:MM:SS) - apenas horas, minutos e segundos inteiros
-    const formatTimeForDisplay = (milliseconds: number): string => {
-      const totalSeconds = Math.floor(milliseconds / 1000);
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-      
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    };
+    // Função formatTimeForDisplay já está definida no topo do arquivo
 
     // Criar versão de texto simples para exibição (sem timestamps SRT)
     const plainText = transcriptArray.length > 0
@@ -318,13 +427,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       videoId: finalVideoId,
-      transcriptUrl: `/transcripts/${finalVideoId}.srt`,
+      transcriptUrl: fileSaved ? `/transcripts/${finalVideoId}.srt` : undefined,
       content: plainText, // Texto simples para exibição
       formattedContent: formattedContent, // Texto formatado com timestamps [HH:MM:SS]
       transcriptArray: transcriptArray, // Array original para gerar DOCX
       srtContent: transcriptContent, // Formato SRT completo para download
       lang: result.lang || result.language || 'pt',
-      message: 'Transcrição gerada com sucesso!'
+      message: fileSaved 
+        ? 'Transcrição gerada e salva com sucesso!' 
+        : 'Transcrição gerada com sucesso! (Nota: arquivo não pôde ser salvo, mas o conteúdo está disponível)',
+      fileSaved: fileSaved
     });
 
   } catch (error: any) {

@@ -226,6 +226,17 @@ O projeto integra com a [Supadata YouTube Transcript API](https://supadata.ai/) 
 
 As transcrições são salvas em `public/transcripts/{videoId}.srt` e servidas como arquivos estáticos. O diretório `public/transcripts/` é criado automaticamente na primeira transcrição.
 
+**Configuração no Servidor (Primeira vez):**
+- O diretório é criado automaticamente pelo código quando necessário
+- O script de deploy (`deploy.sh`) garante que o diretório existe antes e depois do deploy
+- O diretório `public/transcripts/` é preservado entre deploys (excluído do rsync delete)
+- Permissões: O código tenta criar o diretório com permissões adequadas (755)
+
+**Persistência:**
+- Arquivos `.srt` são preservados entre deploys
+- O script de deploy exclui `public/transcripts/` do rsync `--delete` para manter os arquivos
+- Se o diretório for deletado, será recriado automaticamente na próxima transcrição
+
 **Nota:** Removemos `output: 'export'` do `next.config.ts` para habilitar API routes server-side. Isso muda a estratégia de deploy de estático para server-side. Verifique se seu hosting suporta Next.js server-side antes de fazer deploy.
 
 ### Deploy
