@@ -1,23 +1,21 @@
-# Configuração Apache para Next.js Export
+# Configuração Apache para Next.js Server-Side (Node.js)
 RewriteEngine On
 
 # Redirecionar para HTTPS
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Servir arquivos estáticos diretamente
+# Servir arquivos estáticos diretamente (public/)
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
-# Redirecionar para index.html para rotas do Next.js
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ /$1/index.html [L]
+# IMPORTANTE: API routes e páginas dinâmicas precisam do servidor Node.js
+# Se estiver usando Node.js na Hostinger, descomente as linhas abaixo:
 
-# Fallback para homepage
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ /index.html [L]
+# Para Hostinger com Node.js configurado:
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{REQUEST_FILENAME} !-d
+# RewriteRule ^(.*)$ http://localhost:3000/$1 [P,L]
 
 # Compressão Gzip
 <IfModule mod_deflate.c>
