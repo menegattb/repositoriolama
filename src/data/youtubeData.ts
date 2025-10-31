@@ -10,8 +10,12 @@ interface YouTubePlaylist {
 }
 
 // URL da Hostinger onde o JSON está hospedado
+// Usar API route do Next.js como proxy para evitar problemas de CORS
 const YOUTUBE_DATA_URL = process.env.NEXT_PUBLIC_YOUTUBE_DATA_URL || 
-  'https://repositorio.acaoparamita.com.br/api/youtube-data.json';
+  (typeof window !== 'undefined' 
+    ? '/api/youtube-data'  // Client-side: usar API route do Next.js (evita CORS)
+    : 'https://repositorio.acaoparamita.com.br/api/youtube-data.json'  // Server-side: buscar direto
+  );
 
 // Cache para os dados
 let cachedData: Playlist[] | null = null;
@@ -56,9 +60,16 @@ async function fetchYouTubeData(): Promise<YouTubePlaylist[]> {
 
     const data = await response.json();
     console.log('[YouTube Data] ✅ Dados recebidos. Total de playlists:', data.playlists?.length || 0);
+    console.log('[YouTube Data] 📦 Estrutura dos dados:', Object.keys(data));
     
     if (!data || typeof data !== 'object') {
       console.error('[YouTube Data] ❌ Dados não são um objeto:', typeof data);
+      return [];
+    }
+    
+    // Verificar se há erro na resposta
+    if (data.error) {
+      console.error('[YouTube Data] ❌ Erro na resposta da API:', data.error);
       return [];
     }
     
@@ -66,6 +77,7 @@ async function fetchYouTubeData(): Promise<YouTubePlaylist[]> {
       console.error('[YouTube Data] ❌ Formato de dados inválido. Estrutura recebida:', Object.keys(data));
       console.error('[YouTube Data] ❌ playlists existe?', 'playlists' in data);
       console.error('[YouTube Data] ❌ playlists é array?', Array.isArray(data.playlists));
+      console.error('[YouTube Data] ❌ Dados recebidos:', JSON.stringify(data).substring(0, 500));
       return [];
     }
     
