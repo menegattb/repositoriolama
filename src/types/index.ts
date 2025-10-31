@@ -63,11 +63,11 @@ export interface TranscriptResponse {
   transcriptUrl?: string;
   content?: string;
   formattedContent?: string; // Texto formatado com timestamps [HH:MM:SS]
-  transcriptArray?: any[]; // Array original de objetos da transcrição
+  transcriptArray?: Array<{ text: string; offset: number; duration?: number }>; // Array original de objetos da transcrição
   srtContent?: string; // Conteúdo em formato SRT completo
   lang?: string;
   error?: string;
   message?: string;
   cached?: boolean;
-  details?: any;
+  details?: Record<string, unknown>;
 }

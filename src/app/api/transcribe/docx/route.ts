@@ -122,15 +122,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
-  } catch (error: any) {
-    console.error('Erro ao gerar DOCX:', error);
-    console.error('Stack trace:', error.stack);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Erro ao gerar DOCX:', errorMessage);
+    if (errorStack) {
+      console.error('Stack trace:', errorStack);
+    }
     
     return NextResponse.json(
       { 
         success: false,
         error: 'Erro interno do servidor ao gerar documento DOCX',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
       },
       { status: 500 }
     );

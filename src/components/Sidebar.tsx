@@ -26,7 +26,7 @@ export default function Sidebar({
   const [transcriptUrl, setTranscriptUrl] = useState<string | null>(null);
   const [transcriptContent, setTranscriptContent] = useState<string | null>(null);
   const [formattedContent, setFormattedContent] = useState<string | null>(null);
-  const [transcriptArray, setTranscriptArray] = useState<any[] | null>(null);
+  const [transcriptArray, setTranscriptArray] = useState<Array<{ text: string; offset: number; duration?: number }> | null>(null);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
   const [transcriptLang, setTranscriptLang] = useState<string | null>(null);
 
@@ -109,8 +109,9 @@ export default function Sidebar({
       setFormattedContent(data.formattedContent || null);
       setTranscriptArray(data.transcriptArray || null);
       setTranscriptLang(data.lang || null);
-    } catch (error: any) {
-      setTranscriptError(error.message || 'Erro desconhecido ao transcrever');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao transcrever';
+      setTranscriptError(errorMessage);
     } finally {
       setIsTranscribing(false);
     }
@@ -162,9 +163,10 @@ export default function Sidebar({
       // Limpar recursos
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       console.error('Erro ao baixar DOCX:', error);
-      alert(`Erro ao baixar documento: ${error.message || 'Erro desconhecido'}. Tente novamente.`);
+      alert(`Erro ao baixar documento: ${errorMessage}. Tente novamente.`);
     }
   };
 
@@ -179,21 +181,10 @@ export default function Sidebar({
       setTranscriptError(null);
       setTranscriptLang(null);
 
-      // Tentar verificar se já existe transcrição em cache
-      const videoUrl = currentMediaItem.media_url;
-      let videoId = currentMediaItem.id;
-      
-      if (videoUrl && videoUrl.includes('youtube.com')) {
-        const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-        if (match && match[1]) {
-          videoId = match[1];
-        }
-      }
-
       // Verificar se o arquivo existe (opcional - pode fazer uma chamada leve)
       // Por enquanto, vamos deixar o usuário clicar no botão
     }
-  }, [currentMediaItem?.id]);
+  }, [currentMediaItem]);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">

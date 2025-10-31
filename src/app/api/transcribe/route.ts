@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+interface TranscriptItem {
+  text?: string;
+  content?: string;
+  offset: number;
+  duration?: number;
+}
+
 /**
  * Função auxiliar para formatar tempo para exibição (HH:MM:SS)
  */
@@ -17,8 +24,8 @@ const formatTimeForDisplay = (milliseconds: number): string => {
 /**
  * Função auxiliar para parsear SRT e converter para array de objetos
  */
-const parseSRTToArray = (srtContent: string): any[] => {
-  const items: any[] = [];
+const parseSRTToArray = (srtContent: string): TranscriptItem[] => {
+  const items: TranscriptItem[] = [];
   const blocks = srtContent.trim().split(/\n\s*\n/).filter(block => block.trim());
   
   for (const block of blocks) {
@@ -145,7 +152,7 @@ export async function POST(request: NextRequest) {
         cached: true,
         message: 'Transcrição encontrada em cache'
       });
-    } catch (error) {
+    } catch {
       // Arquivo não existe, continuar para gerar nova transcrição
       if (process.env.NODE_ENV === 'development') {
         console.log(`[CACHE MISS] Transcrição não encontrada para videoId: ${finalVideoId}, gerando nova...`);
@@ -191,7 +198,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
         },
       });
-    } catch (networkError) {
+    } catch {
       return NextResponse.json(
         { 
           success: false,
@@ -276,7 +283,7 @@ export async function POST(request: NextRequest) {
     };
     
     // Função auxiliar para converter array de objetos para SRT
-    const convertToSRT = (items: any[]): string => {
+    const convertToSRT = (items: TranscriptItem[]): string => {
       if (!items || items.length === 0) return '';
       
       return items.map((item, index) => {
@@ -294,7 +301,7 @@ export async function POST(request: NextRequest) {
     // Verificar se a resposta contém conteúdo
     // A API Supadata retorna 'content' como array de objetos com {text, duration, offset, lang}
     let transcriptContent: string = '';
-    let transcriptArray: any[] = [];
+    let transcriptArray: TranscriptItem[] = [];
     
     // Processar diferentes formatos de resposta
     if (Array.isArray(result.content) && result.content.length > 0) {
@@ -366,8 +373,9 @@ export async function POST(request: NextRequest) {
         if (process.env.NODE_ENV === 'development') {
           console.log(`[FS] Permissões de escrita verificadas com sucesso`);
         }
-      } catch (permError: any) {
-        console.error(`[FS ERROR] Erro ao verificar permissões de escrita:`, permError.message);
+      } catch (permError) {
+        const errorMessage = permError instanceof Error ? permError.message : 'Erro desconhecido';
+        console.error(`[FS ERROR] Erro ao verificar permissões de escrita:`, errorMessage);
         // Continuar mesmo assim, tentar salvar o arquivo real
       }
       
@@ -392,14 +400,17 @@ export async function POST(request: NextRequest) {
         console.log(`[FS SUCCESS] Arquivo SRT salvo com sucesso: ${transcriptFilePath}`);
         console.log(`[FS] Tamanho do arquivo: ${srtContent.length} caracteres`);
       }
-    } catch (fileError: any) {
-      console.error('[FS ERROR] Erro ao salvar arquivo de transcrição:', fileError.message);
+    } catch (fileError) {
+      const errorMessage = fileError instanceof Error ? fileError.message : 'Erro desconhecido';
+      const errorCode = (fileError as NodeJS.ErrnoException)?.code;
+      const errorStack = fileError instanceof Error ? fileError.stack : undefined;
+      console.error('[FS ERROR] Erro ao salvar arquivo de transcrição:', errorMessage);
       if (process.env.NODE_ENV === 'development') {
         console.error('[FS ERROR] Detalhes:', {
-          code: fileError.code,
+          code: errorCode,
           path: transcriptFilePath,
           dir: transcriptDir,
-          stack: fileError.stack
+          stack: errorStack
         });
       }
       // Continuar mesmo se falhar ao salvar, retornar o conteúdo na resposta
@@ -410,13 +421,13 @@ export async function POST(request: NextRequest) {
 
     // Criar versão de texto simples para exibição (sem timestamps SRT)
     const plainText = transcriptArray.length > 0
-      ? transcriptArray.map(item => item.text || item.content || '').filter(Boolean).join('\n')
+      ? transcriptArray.map(item => (item.text || item.content || '')).filter(Boolean).join('\n')
       : transcriptContent.split('\n').filter(line => !line.includes('-->') && !/^\d+$/.test(line.trim())).join('\n');
     
     // Criar versão formatada com timestamps [HH:MM:SS] texto
     const formattedContent = transcriptArray.length > 0
       ? transcriptArray.map(item => {
-          const text = item.text || item.content || '';
+          const text = (item.text || item.content || '');
           if (!text || text.trim().length === 0) return '';
           const timeStr = formatTimeForDisplay(item.offset || 0);
           return `[${timeStr}] ${text.trim()}`;
@@ -439,13 +450,14 @@ export async function POST(request: NextRequest) {
       fileSaved: fileSaved
     });
 
-  } catch (error: any) {
-    console.error('Erro ao transcrever vídeo:', error);
-    console.error('Stack trace:', error.stack);
-    
-    // Verificar se é um erro de tipo específico
-    const errorMessage = error?.message || 'Erro desconhecido';
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    const errorStack = error instanceof Error ? error.stack : undefined;
     const isTypeError = error instanceof TypeError;
+    console.error('Erro ao transcrever vídeo:', errorMessage);
+    if (errorStack) {
+      console.error('Stack trace:', errorStack);
+    }
     
     return NextResponse.json(
       { 
@@ -454,8 +466,8 @@ export async function POST(request: NextRequest) {
         details: process.env.NODE_ENV === 'development' 
           ? {
               message: errorMessage,
-              type: isTypeError ? 'TypeError' : error?.constructor?.name,
-              stack: error.stack
+              type: isTypeError ? 'TypeError' : (error?.constructor?.name || 'Unknown'),
+              stack: errorStack
             }
           : undefined
       },

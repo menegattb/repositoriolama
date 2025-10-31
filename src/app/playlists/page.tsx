@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { youtubePlaylists } from '@/data/youtubeData';
-import { transcripts, categories } from '@/data/transcriptsData';
+import { transcripts } from '@/data/transcriptsData';
 import PlaylistCard from '@/components/PlaylistCard';
-import TranscriptCard from '@/components/TranscriptCard';
 import SkeletonCard from '@/components/SkeletonCard';
-import { Search, Calendar, Video, ChevronDown, FileText } from 'lucide-react';
+import { Search, Calendar, ChevronDown, FileText } from 'lucide-react';
 
 export default function PlaylistsPage() {
   const [playlists] = useState(youtubePlaylists);
@@ -32,10 +31,6 @@ export default function PlaylistsPage() {
 
   // Extrair anos únicos para o filtro
   const availableYears = [...new Set(playlists.map(p => p.metadata.year))].sort((a, b) => b.localeCompare(a));
-  
-  // Extrair categorias únicas das transcrições
-  const availableCategories = Object.keys(categories).sort();
-  
 
   const filteredPlaylists = playlists.filter(playlist => {
     const matchesSearch = playlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,7 +83,6 @@ export default function PlaylistsPage() {
   };
 
   const visiblePlaylists = filteredPlaylists.slice(0, visibleCount);
-  const visibleTranscripts = filteredTranscripts.slice(0, visibleCount);
   const hasMore = contentFilter === 'transcript' 
     ? visibleCount < filteredTranscripts.length 
     : visibleCount < filteredPlaylists.length;
