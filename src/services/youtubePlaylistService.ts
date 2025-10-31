@@ -1,17 +1,11 @@
-// import secret from '../../secret.json';
 import { MediaItem } from '@/types';
 
-// Fallback para quando não há secret.json
+// Não usar secret.json - o serviço já tem fallback para mock data
+// Se precisar de API key do YouTube, usar variável de ambiente
 const getApiKey = (): string => {
-  try {
-    // Tentar importar o secret.json dinamicamente
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const secret = require('../../secret.json');
-    return secret.web?.api_key || secret.api_key || '';
-  } catch {
-    console.warn('secret.json not found, using mock data');
-    return '';
-  }
+  // Retornar vazio para usar mock data
+  // Para usar API do YouTube, configure YOUTUBE_API_KEY como variável de ambiente
+  return process.env.YOUTUBE_API_KEY || '';
 };
 
 interface YouTubeVideoItem {

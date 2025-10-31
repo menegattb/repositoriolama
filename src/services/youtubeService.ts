@@ -1,22 +1,10 @@
 // Serviço para buscar dados do YouTube usando OAuth
-
-// Fallback para quando não há secret.json
-const getSecret = () => {
-  try {
-    // Tentar importar o secret.json dinamicamente
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const secret = require('../../secret.json');
-    return secret;
-  } catch {
-    return null;
-  }
-};
+// Não usa secret.json - usar variáveis de ambiente se necessário
 
 class YouTubeService {
   private accessToken: string | null = null;
-  private readonly secret = getSecret();
-  private readonly clientId = this.secret?.web?.client_id || '';
-  private readonly clientSecret = this.secret?.web?.client_secret || '';
+  private readonly clientId = process.env.YOUTUBE_CLIENT_ID || '';
+  private readonly clientSecret = process.env.YOUTUBE_CLIENT_SECRET || '';
 
   // Método simplificado - usar API key em vez de OAuth
   async getAccessToken(): Promise<string> {
@@ -27,10 +15,10 @@ class YouTubeService {
   // Buscar primeiro vídeo de uma playlist - usar API key
   async getFirstVideoFromPlaylist(playlistId: string): Promise<string | null> {
     try {
-      const apiKey = this.secret?.web?.api_key || this.secret?.api_key;
+      const apiKey = process.env.YOUTUBE_API_KEY;
       
       if (!apiKey) {
-        console.log('API key not found in secret.json');
+        console.log('YouTube API key not configured. Use YOUTUBE_API_KEY environment variable.');
         return null;
       }
 
