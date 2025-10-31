@@ -21,41 +21,75 @@ let fetchPromise: Promise<Playlist[]> | null = null;
  * Busca os dados do YouTube da Hostinger
  */
 async function fetchYouTubeData(): Promise<YouTubePlaylist[]> {
+  const url = YOUTUBE_DATA_URL;
+  
   try {
-    console.log('[YouTube Data] Buscando dados de:', YOUTUBE_DATA_URL);
+    console.log('[YouTube Data] 🌐 Buscando dados de:', url);
+    console.log('[YouTube Data] 📍 Ambiente:', typeof window !== 'undefined' ? 'Client' : 'Server');
     
-    const response = await fetch(YOUTUBE_DATA_URL, {
-      // Adicionar cache para evitar múltiplas requisições
-      cache: 'no-store', // Sempre buscar dados atualizados
+    // Configuração de fetch diferente para client vs server
+    const fetchOptions: RequestInit = {
+      method: 'GET',
       headers: {
         'Accept': 'application/json',
       },
-    });
+      // No client-side, não usar cache: 'no-store' que pode causar problemas
+      ...(typeof window === 'undefined' 
+        ? { cache: 'no-store' as RequestCache }  // Server-side
+        : { cache: 'default' as RequestCache }   // Client-side
+      ),
+    };
+    
+    const response = await fetch(url, fetchOptions);
 
-    console.log('[YouTube Data] Status da resposta:', response.status, response.statusText);
+    console.log('[YouTube Data] 📊 Status da resposta:', response.status, response.statusText);
+    console.log('[YouTube Data] 📋 Headers CORS:', {
+      'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+      'access-control-allow-methods': response.headers.get('access-control-allow-methods'),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[YouTube Data] Erro na resposta:', response.status, errorText);
+      console.error('[YouTube Data] ❌ Erro na resposta:', response.status, errorText);
       throw new Error(`Failed to fetch YouTube data: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('[YouTube Data] Dados recebidos. Total de playlists:', data.playlists?.length || 0);
+    console.log('[YouTube Data] ✅ Dados recebidos. Total de playlists:', data.playlists?.length || 0);
+    
+    if (!data || typeof data !== 'object') {
+      console.error('[YouTube Data] ❌ Dados não são um objeto:', typeof data);
+      return [];
+    }
     
     if (!data.playlists || !Array.isArray(data.playlists)) {
-      console.error('[YouTube Data] Formato de dados inválido:', data);
+      console.error('[YouTube Data] ❌ Formato de dados inválido. Estrutura recebida:', Object.keys(data));
+      console.error('[YouTube Data] ❌ playlists existe?', 'playlists' in data);
+      console.error('[YouTube Data] ❌ playlists é array?', Array.isArray(data.playlists));
       return [];
+    }
+    
+    if (data.playlists.length === 0) {
+      console.warn('[YouTube Data] ⚠️ Array de playlists está vazio');
     }
     
     return data.playlists;
   } catch (error) {
-    console.error('[YouTube Data] Erro ao buscar dados:', error);
-    console.error('[YouTube Data] URL tentada:', YOUTUBE_DATA_URL);
+    console.error('[YouTube Data] ❌ Erro ao buscar dados:', error);
+    console.error('[YouTube Data] 🔗 URL tentada:', url);
     
-    // Em desenvolvimento, mostrar erro completo
+    // Em client-side, mostrar erro detalhado
     if (typeof window !== 'undefined') {
-      console.error('[YouTube Data] Erro completo:', error);
+      const err = error as Error;
+      console.error('[YouTube Data] ❌ Tipo do erro:', err.name);
+      console.error('[YouTube Data] ❌ Mensagem:', err.message);
+      console.error('[YouTube Data] ❌ Stack:', err.stack);
+      
+      // Verificar se é erro de CORS
+      if (err.message.includes('CORS') || err.message.includes('Failed to fetch')) {
+        console.error('[YouTube Data] ⚠️ POSSÍVEL ERRO DE CORS!');
+        console.error('[YouTube Data] 💡 Verifique se o .htaccess está configurado corretamente na Hostinger');
+      }
     }
     
     // Retornar array vazio em caso de erro (fallback)
