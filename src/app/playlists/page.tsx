@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { youtubePlaylists } from '@/data/youtubeData';
+import { getYouTubePlaylists } from '@/data/youtubeData';
 import { transcripts } from '@/data/transcriptsData';
+import { Playlist } from '@/types';
 import PlaylistCard from '@/components/PlaylistCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import { Search, Calendar, ChevronDown, FileText } from 'lucide-react';
 
 export default function PlaylistsPage() {
-  const [playlists] = useState(youtubePlaylists);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterYear, setFilterYear] = useState('');
@@ -16,18 +17,23 @@ export default function PlaylistsPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [visibleCount, setVisibleCount] = useState(9);
 
+  // Buscar dados do YouTube da Hostinger
   useEffect(() => {
-    // Debug: verificar se os dados estão carregando
-    console.log('Playlists carregadas:', playlists.length);
-    
-    // Timer mais curto para debug
-    const timer = setTimeout(() => {
-      console.log('Timer executado, setLoading(false)');
-      setLoading(false);
-    }, 500); // Reduzido para 500ms
+    async function loadPlaylists() {
+      try {
+        setLoading(true);
+        const data = await getYouTubePlaylists();
+        setPlaylists(data);
+        console.log('Playlists carregadas da Hostinger:', data.length);
+      } catch (error) {
+        console.error('Erro ao carregar playlists:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    return () => clearTimeout(timer);
-  }, [playlists.length]);
+    loadPlaylists();
+  }, []);
 
   // Extrair anos únicos para o filtro
   const availableYears = [...new Set(playlists.map(p => p.metadata.year))].sort((a, b) => b.localeCompare(a));

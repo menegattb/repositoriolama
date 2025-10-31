@@ -1,10 +1,11 @@
-import { youtubePlaylists } from '@/data/youtubeData';
+import { getYouTubePlaylists } from '@/data/youtubeData';
 import { mockTranscripts } from '@/data/mockData';
 import PlaylistDetailClient from '@/components/PlaylistDetailClient';
 import { notFound } from 'next/navigation';
 
 // Função necessária para static export
 export async function generateStaticParams() {
+  const youtubePlaylists = await getYouTubePlaylists();
   return youtubePlaylists.map((playlist) => ({
     id: playlist.id,
   }));
@@ -19,6 +20,7 @@ interface PageProps {
 export default async function PlaylistDetailPage({ params }: PageProps) {
   const { id: playlistId } = await params;
   
+  const youtubePlaylists = await getYouTubePlaylists();
   const playlist = youtubePlaylists.find(p => p.id === playlistId);
   
   if (!playlist) {
