@@ -3,12 +3,28 @@ import { mockTranscripts } from '@/data/mockData';
 import PlaylistDetailClient from '@/components/PlaylistDetailClient';
 import { notFound } from 'next/navigation';
 
-// Função necessária para static export
+// Tornar a página dinâmica (renderizada sob demanda)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Sempre buscar dados atualizados
+
+// Função opcional para gerar algumas páginas estáticas (se os dados estiverem disponíveis no build)
 export async function generateStaticParams() {
-  const youtubePlaylists = await getYouTubePlaylists();
-  return youtubePlaylists.map((playlist) => ({
-    id: playlist.id,
-  }));
+  try {
+    const youtubePlaylists = await getYouTubePlaylists();
+    if (youtubePlaylists.length > 0) {
+      // Gerar apenas as primeiras 50 para não sobrecarregar o build
+      return youtubePlaylists.slice(0, 50).map((playlist) => ({
+        id: playlist.id,
+      }));
+    }
+    // Se não conseguir buscar dados no build, retornar array vazio
+    // As páginas serão geradas dinamicamente quando acessadas
+    return [];
+  } catch (error) {
+    console.error('[generateStaticParams] Erro ao buscar playlists:', error);
+    // Retornar array vazio - páginas serão geradas dinamicamente
+    return [];
+  }
 }
 
 interface PageProps {
