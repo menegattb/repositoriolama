@@ -66,12 +66,39 @@ class YouTubePlaylistService {
 
   // Buscar todos os vídeos de uma playlist
   async getPlaylistVideos(playlistId: string): Promise<MediaItem[]> {
+    // Se estiver no cliente (browser), usar API route para manter API key segura
+    if (typeof window !== 'undefined') {
+      try {
+        console.log('[YouTubePlaylistService] 🌐 Client-side: usando API route para buscar vídeos');
+        const response = await fetch(`/api/youtube/playlist/${playlistId}/videos`);
+        
+        if (!response.ok) {
+          console.error(`[YouTubePlaylistService] API route error: ${response.status}`);
+          return this.getMockVideos(playlistId);
+        }
+
+        const data = await response.json();
+        if (data.videos && data.videos.length > 0) {
+          console.log(`[YouTubePlaylistService] ✅ Recebeu ${data.videos.length} vídeos da API route`);
+          return data.videos;
+        }
+        
+        // Se não retornou vídeos, usar mock
+        return this.getMockVideos(playlistId);
+      } catch (error) {
+        console.error('[YouTubePlaylistService] Error fetching from API route:', error);
+        return this.getMockVideos(playlistId);
+      }
+    }
+
+    // Server-side: usar API key diretamente se disponível
     if (!this.apiKey) {
-      console.warn('YouTube API key not found, using mock data');
+      console.warn('[YouTubePlaylistService] Server-side: YouTube API key not found, using mock data');
       return this.getMockVideos(playlistId);
     }
 
     try {
+      console.log('[YouTubePlaylistService] 🖥️ Server-side: buscando vídeos diretamente da API do YouTube');
       const videos = [];
       let nextPageToken = '';
 
@@ -81,7 +108,7 @@ class YouTubePlaylistService {
         );
 
         if (!response.ok) {
-          console.error(`YouTube API error: ${response.status}`);
+          console.error(`[YouTubePlaylistService] YouTube API error: ${response.status}`);
           return this.getMockVideos(playlistId);
         }
 
@@ -111,9 +138,10 @@ class YouTubePlaylistService {
       // Buscar durações dos vídeos
       await this.fillVideoDurations(videos);
 
+      console.log(`[YouTubePlaylistService] ✅ Server-side: retornando ${videos.length} vídeos`);
       return videos;
     } catch (error) {
-      console.error('Error fetching playlist videos:', error);
+      console.error('[YouTubePlaylistService] Error fetching playlist videos:', error);
       return this.getMockVideos(playlistId);
     }
   }

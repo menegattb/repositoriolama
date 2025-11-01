@@ -210,7 +210,26 @@ export async function POST(request: NextRequest) {
 
     // Tratar diferentes status de resposta
     if (!supadataResponse.ok) {
-      const errorData = await supadataResponse.json().catch(() => ({}));
+      let errorData: { message?: string; error?: string; [key: string]: unknown } = {};
+      try {
+        const errorText = await supadataResponse.text();
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Erro desconhecido da API' };
+        }
+      } catch {
+        errorData = { message: 'Erro ao processar resposta da API' };
+      }
+      
+      // Log detalhado do erro
+      console.error('[Supadata API] Erro na resposta:', {
+        status: supadataResponse.status,
+        statusText: supadataResponse.statusText,
+        errorData,
+        videoUrl: finalVideoUrl,
+        videoId: finalVideoId
+      });
       
       // Rate limit
       if (supadataResponse.status === 429) {
@@ -248,13 +267,29 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Bad Request (400)
+      if (supadataResponse.status === 400) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: errorData.message || errorData.error || 'URL do vídeo inválida ou formato não suportado.',
+            details: errorData
+          },
+          { status: 400 }
+        );
+      }
+
       // Outros erros
+      const errorMessage = errorData.message || errorData.error || `Erro ao obter transcrição da API Supadata (Status: ${supadataResponse.status})`;
       return NextResponse.json(
         { 
           success: false,
-          error: 'Erro ao obter transcrição da API Supadata',
-          details: errorData,
-          status: supadataResponse.status
+          error: errorMessage,
+          details: {
+            ...errorData,
+            status: supadataResponse.status,
+            statusText: supadataResponse.statusText
+          }
         },
         { status: supadataResponse.status || 500 }
       );

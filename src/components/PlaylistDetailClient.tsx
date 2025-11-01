@@ -19,37 +19,80 @@ export default function PlaylistDetailClient({
   initialMediaItem, 
   transcript 
 }: PlaylistDetailClientProps) {
-  const [currentMediaItem, setCurrentMediaItem] = useState<MediaItem | null>(initialMediaItem);
+  // Inicializar currentMediaItem com initialMediaItem ou o primeiro item da playlist
+  const [currentMediaItem, setCurrentMediaItem] = useState<MediaItem | null>(
+    initialMediaItem || playlist.items?.[0] || null
+  );
   const [playlistVideos, setPlaylistVideos] = useState<MediaItem[]>(playlist.items || []);
   const [loading, setLoading] = useState(true);
+  
+  console.log('[PlaylistDetailClient] 🎬 Inicializado com:', {
+    hasInitialMediaItem: !!initialMediaItem,
+    initialMediaItemUrl: initialMediaItem?.media_url,
+    playlistItemsCount: playlist.items?.length || 0,
+    firstItemUrl: playlist.items?.[0]?.media_url
+  });
 
   useEffect(() => {
     const fetchPlaylistVideos = async () => {
       try {
         setLoading(true);
-        const videos = await youtubePlaylistService.getPlaylistVideos(playlist.id);
+        console.log('[PlaylistDetailClient] 🔍 Buscando vídeos da playlist:', playlist.id);
+        console.log('[PlaylistDetailClient] 📦 Itens iniciais da playlist:', playlist.items?.length || 0);
         
-        // Se retornou vídeos válidos (com URLs de vídeo, não playlist)
-        const validVideos = videos.filter(v => 
+        const videos = await youtubePlaylistService.getPlaylistVideos(playlist.id);
+        console.log('[PlaylistDetailClient] 📹 Vídeos recebidos da API:', videos.length);
+        console.log('[PlaylistDetailClient] 📹 Primeiro vídeo:', videos[0] ? {
+          id: videos[0].id,
+          title: videos[0].title,
+          media_url: videos[0].media_url
+        } : 'nenhum');
+        
+        // Verificar se os vídeos retornados são reais (têm videoIds válidos do YouTube, não mock)
+        // Vídeos reais da API têm IDs que são videoIds do YouTube (11 caracteres, sem hífen/underscore)
+        const realVideos = videos.filter(v => 
           v.media_url && 
-          (v.media_url.includes('youtube.com/watch') || v.media_url.includes('youtu.be/'))
+          v.media_url.includes('youtube.com/watch') && // URLs de vídeo individual
+          !v.id.includes('-') && // Não é formato playlistId-1
+          !v.id.includes('_') && // Não é formato playlistId_1
+          v.id.length >= 11 // VideoId do YouTube tem 11 caracteres
         );
         
-        if (validVideos.length > 0) {
-          setPlaylistVideos(validVideos);
+        console.log('[PlaylistDetailClient] ✅ Vídeos reais encontrados da API:', realVideos.length);
+        console.log('[PlaylistDetailClient] 📹 Total de vídeos retornados:', videos.length);
+        
+        // Se encontrou vídeos reais da API do YouTube, usar eles
+        if (realVideos.length > 0) {
+          console.log('[PlaylistDetailClient] ✅ Usando vídeos reais da API do YouTube');
+          setPlaylistVideos(realVideos);
           // Se não há item atual ou o item atual não existe nos novos dados, usar o primeiro
-          if (!currentMediaItem || !validVideos.find(v => v.id === currentMediaItem.id)) {
-            setCurrentMediaItem(validVideos[0] || null);
+          if (!currentMediaItem || !realVideos.find(v => v.id === currentMediaItem.id)) {
+            console.log('[PlaylistDetailClient] 🎬 Definindo primeiro vídeo como atual:', realVideos[0].title);
+            setCurrentMediaItem(realVideos[0] || null);
           }
         } else {
-          // Se não há vídeos válidos, manter os itens da playlist mas não tentar buscar mais
-          console.log('[PlaylistDetailClient] Usando itens da playlist (sem API key do YouTube)');
+          // Se não encontrou vídeos reais, usar os itens da playlist original (mock ou playlist completa)
+          console.log('[PlaylistDetailClient] ⚠️ Usando itens da playlist original');
+          console.log('[PlaylistDetailClient] 📦 Itens da playlist:', playlist.items?.length || 0);
           setPlaylistVideos(playlist.items || []);
+          
+          // Garantir que o primeiro item está selecionado (se ainda não tiver um)
+          if (playlist.items && playlist.items.length > 0) {
+            if (!currentMediaItem || !playlist.items.find(item => item.id === currentMediaItem.id)) {
+              console.log('[PlaylistDetailClient] 🎬 Definindo primeiro item da playlist como atual:', playlist.items[0].title);
+              setCurrentMediaItem(playlist.items[0]);
+            }
+          }
         }
       } catch (error) {
-        console.error('Error fetching playlist videos:', error);
+        console.error('[PlaylistDetailClient] ❌ Erro ao buscar vídeos:', error);
         // Em caso de erro, usar os itens da playlist original
         setPlaylistVideos(playlist.items || []);
+        
+        // Garantir que o primeiro item está selecionado
+        if (playlist.items && playlist.items.length > 0 && !currentMediaItem) {
+          setCurrentMediaItem(playlist.items[0]);
+        }
       } finally {
         setLoading(false);
       }

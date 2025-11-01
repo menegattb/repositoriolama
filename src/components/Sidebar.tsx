@@ -110,7 +110,15 @@ export default function Sidebar({
       setTranscriptArray(data.transcriptArray || null);
       setTranscriptLang(data.lang || null);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao transcrever';
+      let errorMessage = 'Erro desconhecido ao transcrever';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      console.error('[Sidebar] Erro ao transcrever:', error);
       setTranscriptError(errorMessage);
     } finally {
       setIsTranscribing(false);
@@ -476,3 +484,4 @@ export default function Sidebar({
     </div>
   );
 }
+
