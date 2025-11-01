@@ -14,7 +14,9 @@ interface YouTubePlaylist {
 const YOUTUBE_DATA_URL = process.env.NEXT_PUBLIC_YOUTUBE_DATA_URL || 
   (typeof window !== 'undefined' 
     ? '/api/youtube-data'  // Client-side: usar API route do Next.js (evita CORS)
-    : 'https://repositorio.acaoparamita.com.br/api/youtube-data.json'  // Server-side: buscar direto
+    : (process.env.HOSTINGER_API_URL 
+        ? `${process.env.HOSTINGER_API_URL}/repositorio/api/youtube-data.json`
+        : 'https://acaoparamita.com.br/repositorio/api/youtube-data.json')  // Server-side: novo domínio
   );
 
 // Cache para os dados

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 
-const YOUTUBE_DATA_URL = 'https://repositorio.acaoparamita.com.br/api/youtube-data.json';
+// Usar variável de ambiente ou novo domínio padrão
+const YOUTUBE_DATA_URL = process.env.HOSTINGER_API_URL 
+  ? `${process.env.HOSTINGER_API_URL}/repositorio/api/youtube-data.json`
+  : 'https://acaoparamita.com.br/repositorio/api/youtube-data.json';
 
 /**
  * API Route para buscar dados do YouTube da Hostinger
