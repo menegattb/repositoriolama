@@ -20,8 +20,35 @@ export default function MediaPlayer({ mediaItem }: MediaPlayerProps) {
   console.log('[MediaPlayer] 🎬 Recebido mediaItem:', {
     id: mediaItem.id,
     title: mediaItem.title,
-    media_url: mediaItem.media_url
+    media_url: mediaItem.media_url,
+    format: mediaItem.format
   });
+
+  // Detectar se é áudio local (URL começa com /api/audio) ou format é audio
+  const isLocalAudio = mediaItem.media_url?.startsWith('/api/audio') || mediaItem.format === 'audio';
+
+  if (isLocalAudio) {
+    return (
+      <div className="w-full bg-gray-900 rounded-lg overflow-hidden">
+        <div className="p-6">
+          <h3 className="text-white font-medium mb-4">{mediaItem.title}</h3>
+          <audio
+            controls
+            className="w-full"
+            src={mediaItem.media_url}
+            preload="metadata"
+          >
+            Seu navegador não suporta reprodução de áudio.
+          </audio>
+          {mediaItem.description && (
+            <p className="text-gray-400 text-sm mt-4 line-clamp-3">
+              {mediaItem.description}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // Extrair playlistId da URL (pode ser playlist ou vídeo individual)
   let playlistId: string | null = null;

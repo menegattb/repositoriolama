@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Playlist, MediaItem, Transcript } from '@/types';
 import MediaPlayer from '@/components/MediaPlayer';
 import Sidebar from '@/components/Sidebar';
+import AudioPlayerBottomBar from '@/components/AudioPlayerBottomBar';
 import { Share2, ArrowLeft, ExternalLink, Calendar, MapPin, Headphones } from 'lucide-react';
 import Link from 'next/link';
 import { youtubePlaylistService } from '@/services/youtubePlaylistService';
@@ -25,6 +26,7 @@ export default function PlaylistDetailClient({
   );
   const [playlistVideos, setPlaylistVideos] = useState<MediaItem[]>(playlist.items || []);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'playlist' | 'transcript' | 'audio'>('playlist');
   
   console.log('[PlaylistDetailClient] 🎬 Inicializado com:', {
     hasInitialMediaItem: !!initialMediaItem,
@@ -103,8 +105,42 @@ export default function PlaylistDetailClient({
   }, [playlist.id]);
 
   const handleMediaItemSelect = (item: MediaItem) => {
-    console.log('Selected item:', item.title);
+    console.log('[PlaylistDetailClient] 🎬 Selected item:', {
+      title: item.title,
+      format: item.format,
+      media_url: item.media_url
+    });
     setCurrentMediaItem(item);
+    // Se for áudio, mudar para aba de áudio automaticamente
+    if (item.format === 'audio') {
+      console.log('[PlaylistDetailClient] 🎵 Mudando para aba de áudio');
+      setActiveTab('audio');
+    }
+  };
+
+  // Debug: log do currentMediaItem quando mudar
+  useEffect(() => {
+    console.log('[PlaylistDetailClient] 🎬 currentMediaItem atualizado:', {
+      hasItem: !!currentMediaItem,
+      title: currentMediaItem?.title,
+      format: currentMediaItem?.format,
+      media_url: currentMediaItem?.media_url
+    });
+  }, [currentMediaItem]);
+
+  const handleCloseAudioPlayer = () => {
+    // Ao fechar o player de áudio, mudar para um vídeo ou primeiro item
+    const firstVideo = playlistVideos.find(v => v.format !== 'audio') || playlistVideos[0];
+    if (firstVideo) {
+      setCurrentMediaItem(firstVideo);
+    }
+  };
+
+  const handleSwitchToTranscript = () => {
+    // Mudar para aba de transcrição
+    setActiveTab('transcript');
+    // Scroll para o topo da página para ver a transcrição
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleShare = () => {
@@ -119,8 +155,11 @@ export default function PlaylistDetailClient({
     }
   };
 
+  // Verificar se há áudio tocando para adicionar padding-bottom
+  const hasAudioPlaying = currentMediaItem?.format === 'audio' || currentMediaItem?.media_url?.startsWith('/api/audio');
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 pt-20">
+    <div className={`min-h-screen bg-gray-50 py-8 pt-20 ${hasAudioPlaying ? 'pb-24' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back to Playlists */}
         <div className="mb-6 flex justify-between items-center">
@@ -160,10 +199,22 @@ export default function PlaylistDetailClient({
                 </div>
               </div>
             ) : (
-              <MediaPlayer 
-                mediaItem={currentMediaItem} 
-                key={currentMediaItem?.id}
-              />
+              // Só mostrar MediaPlayer se não for áudio (áudio vai no player fixo da base)
+              currentMediaItem?.format !== 'audio' ? (
+                <MediaPlayer 
+                  mediaItem={currentMediaItem} 
+                  key={currentMediaItem?.id}
+                />
+              ) : (
+                <div className="w-full bg-gray-900 rounded-lg p-8 flex flex-col items-center justify-center min-h-[400px]">
+                  <div className="text-center">
+                    <Headphones className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-medium text-white mb-2">{currentMediaItem.title}</h3>
+                    <p className="text-gray-400 text-sm">O áudio está sendo reproduzido no player fixo abaixo</p>
+                    <p className="text-gray-500 text-xs mt-4">Use o player na parte inferior da página para controlar a reprodução</p>
+                  </div>
+                </div>
+              )
             )}
 
             {/* Series Information */}
@@ -198,10 +249,19 @@ export default function PlaylistDetailClient({
               currentMediaItem={currentMediaItem} 
               transcript={transcript}
               onMediaItemSelect={handleMediaItemSelect}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
             />
           </div>
         </div>
       </div>
+
+      {/* Audio Player Bottom Bar - Fixo na base */}
+      <AudioPlayerBottomBar
+        currentMediaItem={currentMediaItem}
+        onClose={handleCloseAudioPlayer}
+        onSwitchToTranscript={handleSwitchToTranscript}
+      />
     </div>
   );
 }

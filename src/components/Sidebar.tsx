@@ -2,22 +2,37 @@
 
 import { useState, useEffect } from 'react';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
-import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2, Headphones } from 'lucide-react';
+import { audioService } from '@/services/audioService';
 
 interface SidebarProps {
   playlist: Playlist;
   currentMediaItem: MediaItem | null;
   transcript: Transcript | null;
   onMediaItemSelect?: (item: MediaItem) => void;
+  activeTab?: 'playlist' | 'transcript' | 'audio';
+  onTabChange?: (tab: 'playlist' | 'transcript' | 'audio') => void;
 }
 
 export default function Sidebar({ 
   playlist, 
   currentMediaItem, 
   transcript,
-  onMediaItemSelect
+  onMediaItemSelect,
+  activeTab: externalActiveTab,
+  onTabChange
 }: SidebarProps) {
-  const [activeTab, setActiveTab] = useState<'playlist' | 'transcript' | 'audio'>('playlist');
+  const [internalActiveTab, setInternalActiveTab] = useState<'playlist' | 'transcript' | 'audio'>('playlist');
+  
+  // Usar aba externa se fornecida, senão usar interna
+  const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
+  const setActiveTab = (tab: 'playlist' | 'transcript' | 'audio') => {
+    if (onTabChange) {
+      onTabChange(tab);
+    } else {
+      setInternalActiveTab(tab);
+    }
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [playlistUrl, setPlaylistUrl] = useState('');
   
@@ -30,17 +45,26 @@ export default function Sidebar({
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
   const [transcriptLang, setTranscriptLang] = useState<string | null>(null);
 
+  // Estados para áudio
+  const [audioFiles, setAudioFiles] = useState<Array<{ videoId: string; url: string }>>([]);
+  const [loadingAudio, setLoadingAudio] = useState(false);
+
   useEffect(() => {
     setPlaylistUrl(window.location.href);
   }, []);
+
+  // Carregar áudios quando a aba de áudio estiver ativa
+  useEffect(() => {
+    if (activeTab === 'audio' && playlist.id) {
+      loadAudioFiles();
+    }
+  }, [activeTab, playlist.id]);
 
   const matchesSearch = (item: MediaItem) =>
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description.toLowerCase().includes(searchTerm.toLowerCase());
 
   const filteredItems = playlist.items?.filter(matchesSearch) || [];
-  const audioItems = playlist.items?.filter(item => item.format === 'audio') || [];
-  const filteredAudioItems = audioItems.filter(matchesSearch);
   const whatsappNumber = '5548991486176';
   const whatsappMessage = encodeURIComponent(
     `Olá Bruno! Gostaria de solicitar a transcrição da playlist "${playlist.title}". Link: ${playlistUrl}`
@@ -56,6 +80,75 @@ export default function Sidebar({
       return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Função para carregar arquivos de áudio
+  const loadAudioFiles = async () => {
+    setLoadingAudio(true);
+    try {
+      console.log('[Sidebar] 🎵 Carregando áudios para playlist:', playlist.id);
+      const files = await audioService.getAudioFiles(playlist.id);
+      console.log('[Sidebar] 🎵 Arquivos encontrados:', files.length);
+      console.log('[Sidebar] 🎵 VideoIds dos áudios:', files.map(f => f.videoId));
+      setAudioFiles(files.map(file => ({ videoId: file.videoId, url: file.url })));
+      
+      // Log dos videoIds dos itens da playlist para comparação
+      if (playlist.items && playlist.items.length > 0) {
+        const playlistVideoIds = playlist.items.map(item => extractVideoId(item));
+        console.log('[Sidebar] 🎵 VideoIds dos itens da playlist:', playlistVideoIds.slice(0, 5), '...');
+      }
+    } catch (error) {
+      console.error('[Sidebar] ❌ Erro ao carregar áudios:', error);
+      setAudioFiles([]);
+    } finally {
+      setLoadingAudio(false);
+    }
+  };
+
+  // Função para verificar se um vídeo tem áudio disponível
+  const hasAudioForVideo = (videoId: string): boolean => {
+    return audioFiles.some(file => file.videoId === videoId);
+  };
+
+  // Função para obter URL do áudio
+  const getAudioUrl = (videoId: string): string => {
+    return audioService.getAudioUrl(playlist.id, videoId);
+  };
+
+  // Função para extrair videoId de um MediaItem
+  const extractVideoId = (item: MediaItem): string => {
+    // Tentar extrair da URL primeiro
+    if (item.media_url && item.media_url.includes('youtube.com')) {
+      const match = item.media_url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+      if (match && match[1]) {
+        console.log(`[Sidebar] 🎬 Extraído videoId da URL: ${match[1]} para item: ${item.title}`);
+        return match[1];
+      }
+    }
+    // Se não encontrar, usar o id diretamente (que já deve ser o videoId quando vem da API do YouTube)
+    console.log(`[Sidebar] 🎬 Usando id diretamente como videoId: ${item.id} para item: ${item.title}`);
+    return item.id;
+  };
+
+  // Função para reproduzir áudio no player principal
+  const handlePlayAudio = (item: MediaItem) => {
+    console.log('[Sidebar] 🎵 handlePlayAudio chamado para:', item.title);
+    const videoId = extractVideoId(item);
+    const audioUrl = getAudioUrl(videoId);
+    console.log('[Sidebar] 🎵 videoId:', videoId, 'audioUrl:', audioUrl);
+    
+    if (audioUrl) {
+      // Criar um novo MediaItem com a URL do áudio
+      const audioItem: MediaItem = {
+        ...item,
+        format: 'audio',
+        media_url: audioUrl,
+      };
+      console.log('[Sidebar] 🎵 Criando audioItem:', audioItem);
+      onMediaItemSelect?.(audioItem);
+    } else {
+      console.error('[Sidebar] ❌ audioUrl não encontrado para:', item.title);
+    }
   };
 
   // Função para transcrever vídeo usando Supadata API
@@ -310,47 +403,96 @@ export default function Sidebar({
               />
             </div>
 
-            {/* Audio Items */}
-            {filteredAudioItems.length > 0 ? (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {filteredAudioItems.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => onMediaItemSelect?.(item)}
-                    className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                      currentMediaItem?.id === item.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="space-y-2">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                      <audio controls className="w-full">
-                        <source src={item.media_url} />
-                        Seu navegador não suporta reprodução de áudio.
-                      </audio>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Clock size={12} className="text-gray-400" />
-                        <span>{formatDuration(item.duration)}</span>
-                        <span>•</span>
-                        <span>{item.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {loadingAudio ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                <span className="ml-2 text-sm text-gray-500">Carregando áudios...</span>
               </div>
             ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">
-                  Nenhum áudio disponível para esta playlist.
-                </p>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {playlist.items?.filter(matchesSearch).map((item) => {
+                  const videoId = extractVideoId(item);
+                  const hasAudio = hasAudioForVideo(videoId);
+                  const audioUrl = hasAudio ? getAudioUrl(videoId) : null;
+                  
+                  console.log(`[Sidebar] 🎵 Item: ${item.title.substring(0, 50)}..., videoId: ${videoId}, hasAudio: ${hasAudio}`);
+
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        console.log('[Sidebar] 🎵 Card clicado:', item.title, 'hasAudio:', hasAudio);
+                        // Se tem áudio, reproduzir no player principal ao clicar no card
+                        if (hasAudio) {
+                          console.log('[Sidebar] 🎵 Chamando handlePlayAudio');
+                          handlePlayAudio(item);
+                        }
+                      }}
+                      className={`p-3 rounded-lg border ${
+                        hasAudio ? 'border-green-200 bg-green-50 cursor-pointer hover:bg-green-100' : 'border-gray-200 bg-gray-50'
+                      } transition-colors`}
+                    >
+                      <div className="space-y-2">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
+                            {item.title}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            {item.description}
+                          </p>
+                        </div>
+
+                        {hasAudio ? (
+                          <div className="space-y-2">
+                            <audio 
+                              controls 
+                              className="w-full" 
+                              src={audioUrl || undefined}
+                              onPlay={(e) => {
+                                // Quando começar a tocar, também atualizar o player principal
+                                e.stopPropagation();
+                                handlePlayAudio(item);
+                              }}
+                            >
+                              Seu navegador não suporta reprodução de áudio.
+                            </audio>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePlayAudio(item);
+                              }}
+                              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
+                            >
+                              <Headphones className="w-3 h-3" />
+                              Tocar no Player Principal
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="pt-2 border-t border-gray-200">
+                            <a
+                              href={`https://wa.me/5548991486176?text=${encodeURIComponent(
+                                `Olá Bruno! Gostaria de solicitar o áudio do ensinamento: "${item.title}"\n\nPlaylist: ${playlist.title}\nLink: ${playlistUrl}`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-green-500 text-white rounded-md text-xs font-medium hover:bg-green-600 transition-colors"
+                            >
+                              <Headphones className="w-3 h-3" />
+                              Requerir áudio deste ensinamento
+                            </a>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Clock size={12} className="text-gray-400" />
+                          <span>{formatDuration(item.duration)}</span>
+                          <span>•</span>
+                          <span>{item.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
