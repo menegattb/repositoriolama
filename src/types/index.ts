@@ -71,3 +71,26 @@ export interface TranscriptResponse {
   cached?: boolean;
   details?: Record<string, unknown>;
 }
+
+export interface StandaloneVideo {
+  id: string;
+  title: string;
+  description: string;
+  publishedAt: string;
+  duration: number;
+  thumbnail?: string;
+}
+
+export interface YouTubeDataResponse {
+  version: string;
+  generatedAt: string;
+  updatedAt?: string;
+  playlists: Array<{
+    id: string;
+    title: string;
+    description: string;
+    publishedAt: string;
+    itemCount: number;
+  }>;
+  standaloneVideos?: StandaloneVideo[];
+}

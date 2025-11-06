@@ -1,4 +1,4 @@
-import { Playlist, MediaItem } from '@/types';
+import { Playlist, MediaItem, StandaloneVideo } from '@/types';
 
 // Interface para os dados do YouTube
 interface YouTubePlaylist {
@@ -245,6 +245,40 @@ export async function getYouTubePlaylists(): Promise<Playlist[]> {
  * Componentes Client devem usar useEffect para buscar dados
  */
 export const youtubePlaylists: Playlist[] = [];
+
+/**
+ * Função para buscar vídeos sem playlist do JSON
+ */
+export async function getStandaloneVideos(): Promise<StandaloneVideo[]> {
+  const url = YOUTUBE_DATA_URL;
+  
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      cache: typeof window === 'undefined' ? 'no-store' as RequestCache : 'default' as RequestCache,
+    });
+
+    if (!response.ok) {
+      console.error('[YouTube Data] ❌ Erro ao buscar vídeos standalone:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.standaloneVideos && Array.isArray(data.standaloneVideos)) {
+      console.log('[YouTube Data] ✅ Vídeos standalone encontrados:', data.standaloneVideos.length);
+      return data.standaloneVideos;
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('[YouTube Data] ❌ Erro ao buscar vídeos standalone:', error);
+    return [];
+  }
+}
 
 // Exportar função de conversão caso precise ser usada externamente
 export { convertYouTubeToPlaylist };
