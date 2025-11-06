@@ -6,7 +6,6 @@ import { User, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Header() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -37,11 +36,11 @@ export default function Header() {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <button 
-              onClick={() => setIsLoggedIn(!isLoggedIn)}
-              className="flex items-center space-x-2 bg-primary-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="flex items-center space-x-2 bg-primary-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-not-allowed opacity-75"
+              disabled
             >
               <User className="w-4 h-4" />
-              <span>{isLoggedIn ? 'Logout' : 'Login'}</span>
+              <span>Login (em breve)</span>
             </button>
           </div>
 
@@ -74,14 +73,11 @@ export default function Header() {
               </Link>
               <div className="pt-4 border-t border-gray-200">
                 <button 
-                  onClick={() => {
-                    setIsLoggedIn(!isLoggedIn);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-2 bg-primary-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium w-full justify-center"
+                  className="flex items-center space-x-2 bg-primary-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium w-full justify-center cursor-not-allowed opacity-75"
+                  disabled
                 >
                   <User className="w-4 h-4" />
-                  <span>{isLoggedIn ? 'Logout' : 'Login'}</span>
+                  <span>Login (em breve)</span>
                 </button>
               </div>
             </nav>
