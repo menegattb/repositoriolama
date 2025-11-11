@@ -53,7 +53,8 @@ try {
     
     // Definir estrutura de pastas: public/transcripts/{playlistId}/{videoId}.srt
     $playlistFolder = $playlistId ?: 'standalone';
-    $baseDir = __DIR__ . '/../../transcripts';
+    // __DIR__ está em public/api/transcripts/, então subir 2 níveis para chegar na raiz e entrar em public/transcripts/
+    $baseDir = dirname(dirname(__DIR__)) . '/public/transcripts';
     $transcriptDir = $baseDir . '/' . $playlistFolder;
     $transcriptFilePath = $transcriptDir . '/' . $videoId . '.srt';
     
