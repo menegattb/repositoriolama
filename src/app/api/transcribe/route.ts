@@ -13,8 +13,9 @@ async function uploadToHostinger(
   playlistId: string
 ): Promise<void> {
   // Usar domínio acaoparamita.com.br para acessar a Hostinger
+  // Usar PHP endpoint que funciona sem Node.js
   const hostingerApiUrl = process.env.HOSTINGER_API_URL || 'https://acaoparamita.com.br';
-  const uploadUrl = `${hostingerApiUrl}/repositorio/api/transcripts/upload`;
+  const uploadUrl = `${hostingerApiUrl}/repositorio/api/transcripts/upload.php`;
 
   try {
     const response = await fetch(uploadUrl, {
