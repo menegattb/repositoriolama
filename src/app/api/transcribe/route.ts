@@ -1,6 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
+/**
+ * Função para fazer upload do arquivo de transcrição para o Hostinger via SCP
+ */
+async function uploadToHostinger(
+  localFilePath: string,
+  playlistFolder: string,
+  videoId: string,
+  fileContent: string
+): Promise<void> {
+  const host = process.env.HOSTINGER_SSH_HOST;
+  const user = process.env.HOSTINGER_SSH_USER;
+  const port = process.env.HOSTINGER_SSH_PORT || '65002';
+  const remotePath = process.env.HOSTINGER_REMOTE_PATH || '/home/u670352471/domains/acaoparamita.com.br/public_html/repositorio';
+  
+  if (!host || !user) {
+    throw new Error('Credenciais SSH do Hostinger não configuradas');
+  }
+
+  const remoteDir = `${remotePath}/public/transcripts/${playlistFolder}`;
+  const remoteFilePath = `${remoteDir}/${videoId}.srt`;
+
+  // Criar diretório remoto se não existir
+  const mkdirCommand = `ssh -p ${port} -o StrictHostKeyChecking=no ${user}@${host} "mkdir -p ${remoteDir} && chmod 755 ${remoteDir}"`;
+  
+  try {
+    await execAsync(mkdirCommand);
+  } catch (error) {
+    console.error('[HOSTINGER] Erro ao criar diretório remoto:', error);
+    throw error;
+  }
+
+  // Criar arquivo temporário local e fazer upload
+  const tempFilePath = path.join(process.cwd(), 'tmp', `${videoId}.srt`);
+  const tempDir = path.dirname(tempFilePath);
+  
+  try {
+    await fs.mkdir(tempDir, { recursive: true });
+    await fs.writeFile(tempFilePath, fileContent, 'utf-8');
+    
+    // Fazer upload via SCP
+    const scpCommand = `scp -P ${port} -o StrictHostKeyChecking=no ${tempFilePath} ${user}@${host}:${remoteFilePath}`;
+    await execAsync(scpCommand);
+    
+    // Remover arquivo temporário
+    await fs.unlink(tempFilePath);
+  } catch (error) {
+    // Tentar remover arquivo temporário mesmo em caso de erro
+    try {
+      await fs.unlink(tempFilePath).catch(() => {});
+    } catch {}
+    throw error;
+  }
+}
 
 interface TranscriptItem {
   text?: string;
@@ -118,14 +176,38 @@ export async function POST(request: NextRequest) {
     const transcriptDir = path.join(process.cwd(), 'public', 'transcripts', playlistFolder);
     const transcriptFilePath = path.join(transcriptDir, `${finalVideoId}.srt`);
     
+    // Tentar buscar do cache local primeiro
+    let existingTranscript: string | null = null;
+    
     try {
-      const existingTranscript = await fs.readFile(transcriptFilePath, 'utf-8');
+      existingTranscript = await fs.readFile(transcriptFilePath, 'utf-8');
       
       // Log informativo em desenvolvimento
       if (process.env.NODE_ENV === 'development') {
-        console.log(`[CACHE HIT] Transcrição encontrada para videoId: ${finalVideoId}`);
+        console.log(`[CACHE HIT] Transcrição encontrada localmente para videoId: ${finalVideoId}`);
         console.log(`[CACHE] Arquivo: ${transcriptFilePath}`);
       }
+    } catch {
+      // Arquivo não existe localmente, tentar buscar do Hostinger
+      if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
+        try {
+          const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://repositorio.acaoparamita.com.br';
+          const transcriptUrl = `${hostingerUrl}/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+          
+          const response = await fetch(transcriptUrl);
+          if (response.ok) {
+            existingTranscript = await response.text();
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`[CACHE HIT] Transcrição encontrada no Hostinger para videoId: ${finalVideoId}`);
+            }
+          }
+        } catch (fetchError) {
+          // Ignorar erro - transcrição não existe
+        }
+      }
+    }
+    
+    if (existingTranscript) {
       
       // Criar versão formatada do cache também
       const plainTextCache = existingTranscript.split('\n')
@@ -143,10 +225,17 @@ export async function POST(request: NextRequest) {
           }).filter(Boolean).join('\n')
         : plainTextCache;
       
+      // Determinar a URL do transcript - usar Hostinger se disponível, senão local
+      let transcriptUrl = `/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+      if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
+        const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://repositorio.acaoparamita.com.br';
+        transcriptUrl = `${hostingerUrl}/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+      }
+      
       return NextResponse.json({
         success: true,
         videoId: finalVideoId,
-        transcriptUrl: `/transcripts/${playlistFolder}/${finalVideoId}.srt`,
+        transcriptUrl: transcriptUrl,
         content: plainTextCache,
         formattedContent: formattedContentFromCache,
         transcriptArray: transcriptArrayFromCache,
@@ -154,11 +243,11 @@ export async function POST(request: NextRequest) {
         cached: true,
         message: 'Transcrição encontrada em cache'
       });
-    } catch {
-      // Arquivo não existe, continuar para gerar nova transcrição
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[CACHE MISS] Transcrição não encontrada para videoId: ${finalVideoId}, gerando nova...`);
-      }
+    }
+    
+    // Arquivo não existe, continuar para gerar nova transcrição
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[CACHE MISS] Transcrição não encontrada para videoId: ${finalVideoId}, gerando nova...`);
     }
 
     // Verificar se a API key está configurada
@@ -429,13 +518,27 @@ export async function POST(request: NextRequest) {
         }).join('\n');
       }
       
-      // Salvar arquivo
+      // Salvar arquivo localmente primeiro
       await fs.writeFile(transcriptFilePath, srtContent, 'utf-8');
       fileSaved = true;
       
       if (process.env.NODE_ENV === 'development') {
         console.log(`[FS SUCCESS] Arquivo SRT salvo com sucesso: ${transcriptFilePath}`);
         console.log(`[FS] Tamanho do arquivo: ${srtContent.length} caracteres`);
+      }
+
+      // Fazer upload para Hostinger se as credenciais estiverem configuradas
+      if (process.env.HOSTINGER_SSH_HOST && process.env.HOSTINGER_SSH_USER && process.env.HOSTINGER_SSH_PORT) {
+        try {
+          await uploadToHostinger(transcriptFilePath, playlistFolder, finalVideoId, srtContent);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[HOSTINGER] Upload concluído com sucesso para Hostinger`);
+          }
+        } catch (uploadError) {
+          const errorMessage = uploadError instanceof Error ? uploadError.message : 'Erro desconhecido';
+          console.error('[HOSTINGER ERROR] Erro ao fazer upload para Hostinger:', errorMessage);
+          // Continuar mesmo se o upload falhar - o arquivo local foi salvo
+        }
       }
     } catch (fileError) {
       const errorMessage = fileError instanceof Error ? fileError.message : 'Erro desconhecido';
@@ -475,7 +578,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       videoId: finalVideoId,
-      transcriptUrl: fileSaved ? `/transcripts/${playlistFolder}/${finalVideoId}.srt` : undefined,
+      // URL do transcript - usar Hostinger se disponível
+      transcriptUrl: (() => {
+        if (!fileSaved) return undefined;
+        if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
+          const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://repositorio.acaoparamita.com.br';
+          return `${hostingerUrl}/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+        }
+        return `/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+      })(),
       content: plainText, // Texto simples para exibição
       formattedContent: formattedContent, // Texto formatado com timestamps [HH:MM:SS]
       transcriptArray: transcriptArray, // Array original para gerar DOCX
