@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
 import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -19,6 +19,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const [activeTab, setActiveTab] = useState<'playlist' | 'transcript' | 'audio'>('playlist');
   const [searchTerm, setSearchTerm] = useState('');
+  const [transcriptSearchTerm, setTranscriptSearchTerm] = useState('');
   const [playlistUrl, setPlaylistUrl] = useState('');
   
   // Estados para transcrição automática
@@ -188,11 +189,95 @@ export default function Sidebar({
       setTranscriptArray(null);
       setTranscriptError(null);
       setTranscriptLang(null);
+      setTranscriptSearchTerm('');
 
       // Verificar se o arquivo existe (opcional - pode fazer uma chamada leve)
       // Por enquanto, vamos deixar o usuário clicar no botão
     }
   }, [currentMediaItem]);
+
+  // Função para formatar tempo no formato HH:MM:SS
+  const formatTimeForDisplay = (milliseconds: number): string => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Função para agrupar segmentos de transcrição em intervalos maiores (a cada ~1-2 minutos)
+  const groupTranscriptSegments = (segments: Array<{ text: string; offset: number; duration?: number }>): Array<{ time: string; text: string }> => {
+    if (!segments || segments.length === 0) return [];
+    
+    const grouped: Array<{ time: string; text: string }> = [];
+    const INTERVAL_MS = 120000; // 120 segundos (2 minutos) - intervalo para agrupar
+    
+    let currentGroup: { startTime: number; texts: string[] } | null = null;
+    
+    for (const segment of segments) {
+      const segmentTime = segment.offset;
+      
+      if (!currentGroup || segmentTime - currentGroup.startTime >= INTERVAL_MS) {
+        // Iniciar novo grupo
+        if (currentGroup && currentGroup.texts.length > 0) {
+          grouped.push({
+            time: formatTimeForDisplay(currentGroup.startTime),
+            text: currentGroup.texts.join(' ')
+          });
+        }
+        currentGroup = {
+          startTime: segmentTime,
+          texts: [segment.text]
+        };
+      } else {
+        // Adicionar ao grupo atual
+        if (currentGroup) {
+          currentGroup.texts.push(segment.text);
+        }
+      }
+    }
+    
+    // Adicionar último grupo
+    if (currentGroup && currentGroup.texts.length > 0) {
+      grouped.push({
+        time: formatTimeForDisplay(currentGroup.startTime),
+        text: currentGroup.texts.join(' ')
+      });
+    }
+    
+    return grouped;
+  };
+
+  // Função para destacar termos de busca no texto
+  const highlightSearchTerm = (text: string, searchTerm: string): React.ReactNode => {
+    if (!searchTerm.trim()) return text;
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <mark key={index} className="bg-yellow-200 text-gray-900">{part}</mark>
+      ) : (
+        part
+      )
+    );
+  };
+
+  // Obter transcrição agrupada e filtrada
+  const getGroupedTranscript = () => {
+    if (!transcriptArray || transcriptArray.length === 0) return [];
+    
+    const grouped = groupTranscriptSegments(transcriptArray);
+    
+    if (!transcriptSearchTerm.trim()) return grouped;
+    
+    // Filtrar grupos que contêm o termo de busca
+    const searchLower = transcriptSearchTerm.toLowerCase();
+    return grouped.filter(group => 
+      group.text.toLowerCase().includes(searchLower)
+    );
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -404,9 +489,46 @@ export default function Sidebar({
                     </button>
                   )}
                 </div>
+
+                {/* Buscador de transcrição */}
+                <div className="relative">
+                  <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search inside this talk"
+                    value={transcriptSearchTerm}
+                    onChange={(e) => setTranscriptSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                </div>
                 
-                <div className="text-xs text-gray-600 max-h-96 overflow-y-auto bg-gray-50 p-3 rounded border whitespace-pre-wrap font-mono leading-relaxed">
-                  {formattedContent || transcriptContent || 'Transcrição disponível. Clique em "Baixar .srt" para visualizar.'}
+                {/* Transcrição formatada com timestamps agrupados */}
+                <div className="text-sm text-gray-900 max-h-96 overflow-y-auto bg-white p-4 rounded border leading-relaxed">
+                  {transcriptArray && transcriptArray.length > 0 ? (
+                    <div className="space-y-4">
+                      {getGroupedTranscript().map((group, index) => (
+                        <div key={index} className="flex gap-4">
+                          <div className="flex-shrink-0">
+                            <span className="font-bold text-gray-700">{group.time}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-gray-900">
+                              {highlightSearchTerm(group.text, transcriptSearchTerm)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {transcriptSearchTerm.trim() && getGroupedTranscript().length === 0 && (
+                        <p className="text-gray-500 text-center py-4">
+                          Nenhum resultado encontrado para "{transcriptSearchTerm}"
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">
+                      {formattedContent || transcriptContent || 'Transcrição disponível. Clique em "Baixar .srt" para visualizar.'}
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (
