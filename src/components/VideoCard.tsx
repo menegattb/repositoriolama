@@ -19,11 +19,10 @@ function formatDuration(seconds: number): string {
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
-export default function VideoCard({ video, index = 0 }: VideoCardProps) {
+export default function VideoCard({ video }: VideoCardProps) {
   const thumbnailUrl = video.thumbnail || `https://img.youtube.com/vi/${video.id}/maxresdefault.jpg`;
   const publishedDate = new Date(video.publishedAt);
   const year = publishedDate.getFullYear().toString();
-  const dateStr = publishedDate.toLocaleDateString('pt-BR');
 
   return (
     <div className="bg-primary-white rounded-lg shadow-base overflow-hidden hover:shadow-lg transition-shadow duration-300">

@@ -250,7 +250,7 @@ export default function Sidebar({
             setTranscriptArray(data.transcriptArray || null);
             setTranscriptLang(data.lang || null);
           }
-        } catch (error) {
+        } catch {
           // Silenciosamente ignorar erros - a transcrição simplesmente não existe ainda
           console.log('[Sidebar] Transcrição não encontrada, será necessário gerar');
         }
@@ -584,7 +584,7 @@ export default function Sidebar({
                       ))}
                       {transcriptSearchTerm.trim() && getGroupedTranscript().length === 0 && (
                         <p className="text-gray-500 text-center py-4">
-                          Nenhum resultado encontrado para "{transcriptSearchTerm}"
+                          Nenhum resultado encontrado para &quot;{transcriptSearchTerm}&quot;
                         </p>
                       )}
                     </div>
