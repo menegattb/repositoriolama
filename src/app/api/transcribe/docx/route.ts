@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { Document, Packer, Paragraph, TextRun, ExternalHyperlink } from 'docx';
 
 /**
  * API Route para gerar documento DOCX da transcrição
@@ -64,9 +64,14 @@ export async function POST(request: NextRequest) {
               text: 'Link: ',
               bold: true,
             }),
-            new TextRun({
-              text: videoUrl,
-              color: '0066CC',
+            new ExternalHyperlink({
+              children: [
+                new TextRun({
+                  text: videoUrl,
+                  color: '0066CC',
+                  style: 'Hyperlink',
+                }),
+              ],
               link: videoUrl,
             }),
           ],
