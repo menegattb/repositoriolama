@@ -134,14 +134,34 @@ export default function Sidebar({
     }
 
     try {
+      // Agrupar os segmentos da mesma forma que é exibido na tela
+      const grouped = groupTranscriptSegments(transcriptArray);
+      
+      // Converter grupos de volta para o formato esperado pela API
+      const groupedArray = grouped.map(group => {
+        // Encontrar o offset correspondente ao timestamp do grupo
+        const timeParts = group.time.split(':');
+        const hours = parseInt(timeParts[0]);
+        const minutes = parseInt(timeParts[1]);
+        const seconds = parseInt(timeParts[2]);
+        const offset = (hours * 3600 + minutes * 60 + seconds) * 1000;
+        
+        return {
+          text: group.text,
+          offset: offset,
+          duration: 0
+        };
+      });
+
       const response = await fetch('/api/transcribe/docx', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          transcriptArray: transcriptArray,
+          transcriptArray: groupedArray,
           videoTitle: currentMediaItem?.title || 'Transcrição',
+          videoUrl: currentMediaItem?.media_url || '',
           lang: transcriptLang || 'pt',
         }),
       });
@@ -205,12 +225,12 @@ export default function Sidebar({
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Função para agrupar segmentos de transcrição em intervalos maiores (a cada ~1-2 minutos)
+  // Função para agrupar segmentos de transcrição em intervalos maiores (a cada ~1 minuto)
   const groupTranscriptSegments = (segments: Array<{ text: string; offset: number; duration?: number }>): Array<{ time: string; text: string }> => {
     if (!segments || segments.length === 0) return [];
     
     const grouped: Array<{ time: string; text: string }> = [];
-    const INTERVAL_MS = 120000; // 120 segundos (2 minutos) - intervalo para agrupar
+    const INTERVAL_MS = 60000; // 60 segundos (1 minuto) - intervalo para agrupar
     
     let currentGroup: { startTime: number; texts: string[] } | null = null;
     
@@ -495,7 +515,7 @@ export default function Sidebar({
                   <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search inside this talk"
+                    placeholder="Busque na transcrição"
                     value={transcriptSearchTerm}
                     onChange={(e) => setTranscriptSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
@@ -503,7 +523,7 @@ export default function Sidebar({
                 </div>
                 
                 {/* Transcrição formatada com timestamps agrupados */}
-                <div className="text-sm text-gray-900 max-h-96 overflow-y-auto bg-white p-4 rounded border leading-relaxed">
+                <div className="text-sm text-gray-900 max-h-[800px] overflow-y-auto bg-white p-4 rounded border leading-relaxed">
                   {transcriptArray && transcriptArray.length > 0 ? (
                     <div className="space-y-4">
                       {getGroupedTranscript().map((group, index) => (

@@ -148,9 +148,9 @@ export default function PlaylistDetailClient({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {/* Media Player */}
             {loading ? (
               <div className="w-full bg-gray-900 rounded-lg p-8 flex items-center justify-center min-h-[400px]">
@@ -192,7 +192,7 @@ export default function PlaylistDetailClient({
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <Sidebar 
               playlist={{...playlist, items: playlistVideos}} 
               currentMediaItem={currentMediaItem} 

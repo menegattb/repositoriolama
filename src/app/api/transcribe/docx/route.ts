@@ -8,7 +8,7 @@ import { Document, Packer, Paragraph, TextRun } from 'docx';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { transcriptArray, videoTitle, lang } = body;
+    const { transcriptArray, videoTitle, videoUrl, lang } = body;
 
     // Validação de entrada
     if (!transcriptArray || !Array.isArray(transcriptArray)) {
@@ -50,7 +50,27 @@ export async function POST(request: NextRequest) {
         new Paragraph({
           text: videoTitle,
           heading: 'Heading1',
-          spacing: { after: 400 },
+          spacing: { after: 200 },
+        })
+      );
+    }
+
+    // Link do vídeo
+    if (videoUrl) {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: 'Link: ',
+              bold: true,
+            }),
+            new TextRun({
+              text: videoUrl,
+              color: '0066CC',
+              link: videoUrl,
+            }),
+          ],
+          spacing: { after: 200 },
         })
       );
     }
@@ -66,9 +86,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Linha em branco
-    paragraphs.push(new Paragraph({ text: '' }));
+    paragraphs.push(new Paragraph({ text: '', spacing: { after: 400 } }));
 
-    // Adicionar cada item da transcrição
+    // Adicionar cada item da transcrição (já agrupado)
     transcriptArray.forEach((item) => {
       const text = item.text || item.content || '';
       
@@ -79,15 +99,17 @@ export async function POST(request: NextRequest) {
           new Paragraph({
             children: [
               new TextRun({
-                text: `[${timeStr}] `,
+                text: `${timeStr} `,
                 bold: true,
-                color: '666666', // Cinza médio
+                color: '4B5563', // Cinza escuro (text-gray-700)
               }),
               new TextRun({
                 text: text.trim(),
+                color: '111827', // Cinza muito escuro (text-gray-900)
               }),
             ],
-            spacing: { after: 120 },
+            spacing: { after: 200 },
+            indent: { left: 0 },
           })
         );
       }
