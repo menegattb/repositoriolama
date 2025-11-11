@@ -1,62 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 
 /**
- * Função para fazer upload do arquivo de transcrição para o Hostinger via SCP
+ * Função para fazer upload do arquivo de transcrição para o Hostinger via API HTTP
  */
 async function uploadToHostinger(
   localFilePath: string,
   playlistFolder: string,
   videoId: string,
-  fileContent: string
+  fileContent: string,
+  playlistId: string
 ): Promise<void> {
-  const host = process.env.HOSTINGER_SSH_HOST;
-  const user = process.env.HOSTINGER_SSH_USER;
-  const port = process.env.HOSTINGER_SSH_PORT || '65002';
-  const remotePath = process.env.HOSTINGER_REMOTE_PATH || '/home/u670352471/domains/acaoparamita.com.br/public_html/repositorio';
-  
-  if (!host || !user) {
-    throw new Error('Credenciais SSH do Hostinger não configuradas');
-  }
+  const hostingerApiUrl = process.env.HOSTINGER_API_URL || 'https://repositorio.acaoparamita.com.br';
+  const uploadUrl = `${hostingerApiUrl}/api/transcripts/upload`;
 
-  const remoteDir = `${remotePath}/public/transcripts/${playlistFolder}`;
-  const remoteFilePath = `${remoteDir}/${videoId}.srt`;
-
-  // Criar diretório remoto se não existir
-  const mkdirCommand = `ssh -p ${port} -o StrictHostKeyChecking=no ${user}@${host} "mkdir -p ${remoteDir} && chmod 755 ${remoteDir}"`;
-  
   try {
-    await execAsync(mkdirCommand);
-  } catch (error) {
-    console.error('[HOSTINGER] Erro ao criar diretório remoto:', error);
-    throw error;
-  }
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        playlistId: playlistId || playlistFolder,
+        videoId: videoId,
+        content: fileContent,
+      }),
+    });
 
-  // Criar arquivo temporário local e fazer upload
-  const tempFilePath = path.join(process.cwd(), 'tmp', `${videoId}.srt`);
-  const tempDir = path.dirname(tempFilePath);
-  
-  try {
-    await fs.mkdir(tempDir, { recursive: true });
-    await fs.writeFile(tempFilePath, fileContent, 'utf-8');
-    
-    // Fazer upload via SCP
-    const scpCommand = `scp -P ${port} -o StrictHostKeyChecking=no ${tempFilePath} ${user}@${host}:${remoteFilePath}`;
-    await execAsync(scpCommand);
-    
-    // Remover arquivo temporário
-    await fs.unlink(tempFilePath);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[HOSTINGER] Upload concluído:', result);
+    }
   } catch (error) {
-    // Tentar remover arquivo temporário mesmo em caso de erro
-    try {
-      await fs.unlink(tempFilePath).catch(() => {});
-    } catch {}
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    throw new Error(`Falha ao fazer upload para Hostinger: ${errorMessage}`);
   }
 }
 
@@ -527,10 +510,10 @@ export async function POST(request: NextRequest) {
         console.log(`[FS] Tamanho do arquivo: ${srtContent.length} caracteres`);
       }
 
-      // Fazer upload para Hostinger se as credenciais estiverem configuradas
-      if (process.env.HOSTINGER_SSH_HOST && process.env.HOSTINGER_SSH_USER && process.env.HOSTINGER_SSH_PORT) {
+      // Fazer upload para Hostinger via API HTTP se a URL estiver configurada
+      if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
         try {
-          await uploadToHostinger(transcriptFilePath, playlistFolder, finalVideoId, srtContent);
+          await uploadToHostinger(transcriptFilePath, playlistFolder, finalVideoId, srtContent, playlistId || 'standalone');
           if (process.env.NODE_ENV === 'development') {
             console.log(`[HOSTINGER] Upload concluído com sucesso para Hostinger`);
           }
