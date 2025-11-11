@@ -95,6 +95,7 @@ export default function Sidebar({
         body: JSON.stringify({
           videoId: videoId,
           videoUrl: videoUrl,
+          playlistId: playlist.id,
         }),
       });
 
@@ -211,10 +212,53 @@ export default function Sidebar({
       setTranscriptLang(null);
       setTranscriptSearchTerm('');
 
-      // Verificar se o arquivo existe (opcional - pode fazer uma chamada leve)
-      // Por enquanto, vamos deixar o usuário clicar no botão
+      // Verificar automaticamente se a transcrição já existe
+      const checkExistingTranscript = async () => {
+        try {
+          // Extrair videoId do media_url ou usar o id diretamente
+          let videoId = currentMediaItem.id;
+          const videoUrl = currentMediaItem.media_url;
+
+          // Se o ID contém hífen (formato playlist-id), extrair o videoId real da URL
+          if (videoUrl && videoUrl.includes('youtube.com')) {
+            const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+            if (match && match[1]) {
+              videoId = match[1];
+            }
+          }
+
+          // Tentar buscar a transcrição existente (a API retorna do cache se existir)
+          const response = await fetch('/api/transcribe', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              videoId: videoId,
+              videoUrl: videoUrl,
+              playlistId: playlist.id,
+            }),
+          });
+
+          const data: TranscriptResponse = await response.json();
+
+          // Se a transcrição existe (cache hit), carregar automaticamente
+          if (response.ok && data.success && data.cached) {
+            setTranscriptUrl(data.transcriptUrl || null);
+            setTranscriptContent(data.content || null);
+            setFormattedContent(data.formattedContent || null);
+            setTranscriptArray(data.transcriptArray || null);
+            setTranscriptLang(data.lang || null);
+          }
+        } catch (error) {
+          // Silenciosamente ignorar erros - a transcrição simplesmente não existe ainda
+          console.log('[Sidebar] Transcrição não encontrada, será necessário gerar');
+        }
+      };
+
+      checkExistingTranscript();
     }
-  }, [currentMediaItem]);
+  }, [currentMediaItem, playlist.id]);
 
   // Função para formatar tempo no formato HH:MM:SS
   const formatTimeForDisplay = (milliseconds: number): string => {

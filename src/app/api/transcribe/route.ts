@@ -75,7 +75,7 @@ const parseSRTToArray = (srtContent: string): TranscriptItem[] => {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { videoId, videoUrl } = body;
+    const { videoId, videoUrl, playlistId } = body;
 
     // Validação de entrada
     if (!videoId && !videoUrl) {
@@ -112,8 +112,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar se a transcrição já existe (cache)
-    const transcriptDir = path.join(process.cwd(), 'public', 'transcripts');
+    // Definir estrutura de pastas: public/transcripts/{playlistId}/{videoId}.srt
+    // Se não tiver playlistId, usar 'standalone' como padrão
+    const playlistFolder = playlistId || 'standalone';
+    const transcriptDir = path.join(process.cwd(), 'public', 'transcripts', playlistFolder);
     const transcriptFilePath = path.join(transcriptDir, `${finalVideoId}.srt`);
     
     try {
@@ -144,7 +146,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         videoId: finalVideoId,
-        transcriptUrl: `/transcripts/${finalVideoId}.srt`,
+        transcriptUrl: `/transcripts/${playlistFolder}/${finalVideoId}.srt`,
         content: plainTextCache,
         formattedContent: formattedContentFromCache,
         transcriptArray: transcriptArrayFromCache,
@@ -473,7 +475,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       videoId: finalVideoId,
-      transcriptUrl: fileSaved ? `/transcripts/${finalVideoId}.srt` : undefined,
+      transcriptUrl: fileSaved ? `/transcripts/${playlistFolder}/${finalVideoId}.srt` : undefined,
       content: plainText, // Texto simples para exibição
       formattedContent: formattedContent, // Texto formatado com timestamps [HH:MM:SS]
       transcriptArray: transcriptArray, // Array original para gerar DOCX
