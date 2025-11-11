@@ -12,7 +12,10 @@ async function uploadToHostinger(
   fileContent: string,
   playlistId: string
 ): Promise<void> {
-  const hostingerApiUrl = process.env.HOSTINGER_API_URL || 'https://repositorio.acaoparamita.com.br';
+  // Usar IP direto ou subdomínio alternativo da Hostinger
+  // Se o DNS aponta para Vercel, precisamos acessar Hostinger via IP ou outro domínio
+  // Nota: Pode precisar usar HTTP ao invés de HTTPS se o certificado SSL não estiver configurado para o IP
+  const hostingerApiUrl = process.env.HOSTINGER_API_URL || 'http://45.14.88.221';
   const uploadUrl = `${hostingerApiUrl}/api/transcripts/upload`;
 
   try {
@@ -174,7 +177,7 @@ export async function POST(request: NextRequest) {
       // Arquivo não existe localmente, tentar buscar do Hostinger
       if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
         try {
-          const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://repositorio.acaoparamita.com.br';
+          const hostingerUrl = process.env.HOSTINGER_API_URL || 'http://45.14.88.221';
           const transcriptUrl = `${hostingerUrl}/transcripts/${playlistFolder}/${finalVideoId}.srt`;
           
           const response = await fetch(transcriptUrl);
@@ -211,7 +214,7 @@ export async function POST(request: NextRequest) {
       // Determinar a URL do transcript - usar Hostinger se disponível, senão local
       let transcriptUrl = `/transcripts/${playlistFolder}/${finalVideoId}.srt`;
       if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
-        const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://repositorio.acaoparamita.com.br';
+        const hostingerUrl = process.env.HOSTINGER_API_URL || 'http://45.14.88.221';
         transcriptUrl = `${hostingerUrl}/transcripts/${playlistFolder}/${finalVideoId}.srt`;
       }
       
@@ -565,7 +568,7 @@ export async function POST(request: NextRequest) {
       transcriptUrl: (() => {
         if (!fileSaved) return undefined;
         if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
-          const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://repositorio.acaoparamita.com.br';
+          const hostingerUrl = process.env.HOSTINGER_API_URL || 'http://45.14.88.221';
           return `${hostingerUrl}/transcripts/${playlistFolder}/${finalVideoId}.srt`;
         }
         return `/transcripts/${playlistFolder}/${finalVideoId}.srt`;
