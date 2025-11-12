@@ -454,23 +454,6 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Verificar se a resposta contém erro mesmo com status OK
-    if (result.error || result.message) {
-      const errorMsg = (result.error || result.message || '').toString().toLowerCase();
-      if (errorMsg.includes('no available server') || 
-          errorMsg.includes('server unavailable') ||
-          errorMsg.includes('service unavailable')) {
-        return NextResponse.json(
-          { 
-            success: false,
-            error: 'O serviço de transcrição está temporariamente indisponível. Isso pode ocorrer devido a: (1) alta demanda no momento, (2) manutenção do serviço, ou (3) limite de requisições atingido. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
-            details: result
-          },
-          { status: 503 }
-        );
-      }
-    }
-    
     // Log para debug (apenas em desenvolvimento)
     if (process.env.NODE_ENV === 'development') {
       console.log('Supadata API Response Status:', supadataResponse.status);
