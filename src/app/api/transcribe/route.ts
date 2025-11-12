@@ -259,26 +259,75 @@ export async function POST(request: NextRequest) {
     const supadataUrl = `https://api.supadata.ai/v1/transcript?url=${encodeURIComponent(finalVideoUrl)}&mode=auto`;
     
     // Log da URL de chamada (para debug)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Chamando Supadata API:', supadataUrl);
-      console.log('Video ID:', finalVideoId);
-      console.log('Video URL:', finalVideoUrl);
-    }
+    console.log('[Supadata API] Chamando API:', {
+      url: supadataUrl,
+      videoId: finalVideoId,
+      videoUrl: finalVideoUrl,
+      hasApiKey: !!apiKey
+    });
+    
+    // Função para fazer requisição com retry
+    const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 2): Promise<Response> => {
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          // Criar AbortController para timeout de 60 segundos
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 60000);
+          
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+          });
+          
+          clearTimeout(timeoutId);
+          return response;
+        } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Timeout: A requisição demorou mais de 60 segundos. O vídeo pode ser muito longo ou o serviço está lento.');
+          }
+          
+          if (attempt === maxRetries) {
+            throw error;
+          }
+          
+          // Esperar antes de tentar novamente (backoff exponencial)
+          const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+          console.log(`[Supadata API] Tentativa ${attempt + 1} falhou, tentando novamente em ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+      throw new Error('Todas as tentativas falharam');
+    };
     
     let supadataResponse: Response;
     try {
-      supadataResponse = await fetch(supadataUrl, {
+      supadataResponse = await fetchWithRetry(supadataUrl, {
         method: 'GET',
         headers: {
           'x-api-key': apiKey,
           'Content-Type': 'application/json',
         },
       });
-    } catch {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('[Supadata API] Erro na requisição:', errorMessage);
+      
+      if (errorMessage.includes('Timeout')) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: errorMessage + ' Tente novamente mais tarde ou use a opção via WhatsApp.',
+            details: { videoId: finalVideoId, videoUrl: finalVideoUrl }
+          },
+          { status: 504 }
+        );
+      }
+      
       return NextResponse.json(
         { 
           success: false,
-          error: 'Erro de conexão com a API Supadata. Verifique sua conexão de internet.' 
+          error: `Erro de conexão com a API Supadata: ${errorMessage}. Verifique sua conexão de internet e tente novamente.`,
+          details: { videoId: finalVideoId, videoUrl: finalVideoUrl }
         },
         { status: 503 }
       );
@@ -357,18 +406,55 @@ export async function POST(request: NextRequest) {
 
       // Tratar erro específico "no available server"
       const errorMessage = errorData.message || errorData.error || '';
-      if (errorMessage.toLowerCase().includes('no available server') || 
-          errorMessage.toLowerCase().includes('server unavailable') ||
-          errorMessage.toLowerCase().includes('service unavailable')) {
+      const errorMessageLower = errorMessage.toLowerCase();
+      
+      if (errorMessageLower.includes('no available server') || 
+          errorMessageLower.includes('server unavailable') ||
+          errorMessageLower.includes('service unavailable')) {
+        
+        // Log detalhado para debug
+        console.error('[Supadata API] Erro "no available server":', {
+          status: supadataResponse.status,
+          statusText: supadataResponse.statusText,
+          errorData,
+          videoId: finalVideoId,
+          videoUrl: finalVideoUrl,
+          timestamp: new Date().toISOString()
+        });
+        
         return NextResponse.json(
           { 
             success: false,
-            error: 'O serviço de transcrição está temporariamente indisponível. Isso pode ocorrer devido a: (1) alta demanda no momento, (2) manutenção do serviço, ou (3) limite de requisições atingido. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
+            error: 'O serviço de transcrição está temporariamente indisponível. Possíveis causas: (1) alta demanda no momento, (2) manutenção do serviço, (3) vídeo muito longo ou sem legendas disponíveis, ou (4) problemas temporários na infraestrutura. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
             details: {
               ...errorData,
               status: supadataResponse.status,
               statusText: supadataResponse.statusText,
+              videoId: finalVideoId,
               suggestion: 'Tente novamente em alguns minutos ou use a opção via WhatsApp'
+            }
+          },
+          { status: 503 }
+        );
+      }
+      
+      // Tratar erro 503 (Service Unavailable) mesmo sem mensagem específica
+      if (supadataResponse.status === 503) {
+        console.error('[Supadata API] Status 503 (Service Unavailable):', {
+          errorData,
+          videoId: finalVideoId,
+          videoUrl: finalVideoUrl,
+          timestamp: new Date().toISOString()
+        });
+        
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'O serviço de transcrição está temporariamente indisponível (503). Isso geralmente indica: (1) servidores sobrecarregados, (2) manutenção em andamento, ou (3) problemas temporários. Tente novamente em alguns minutos.',
+            details: {
+              ...errorData,
+              status: 503,
+              videoId: finalVideoId
             }
           },
           { status: 503 }
@@ -406,7 +492,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             { 
               success: false,
-              error: 'O serviço de transcrição está temporariamente indisponível. Isso pode ocorrer devido a: (1) alta demanda no momento, (2) manutenção do serviço, ou (3) limite de requisições atingido. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
+              error: 'O serviço de transcrição está temporariamente indisponível. Possíveis causas: (1) alta demanda no momento, (2) manutenção do serviço, (3) vídeo muito longo ou sem legendas disponíveis, ou (4) problemas temporários na infraestrutura. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
               details: result
             },
             { status: 503 }
@@ -426,7 +512,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             { 
               success: false,
-              error: 'O serviço de transcrição está temporariamente indisponível. Isso pode ocorrer devido a: (1) alta demanda no momento, (2) manutenção do serviço, ou (3) limite de requisições atingido. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
+              error: 'O serviço de transcrição está temporariamente indisponível. Possíveis causas: (1) alta demanda no momento, (2) manutenção do serviço, (3) vídeo muito longo ou sem legendas disponíveis, ou (4) problemas temporários na infraestrutura. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
               details: { rawResponse: errorText.substring(0, 500) }
             },
             { status: 503 }
