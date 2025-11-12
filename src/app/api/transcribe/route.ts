@@ -355,12 +355,32 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Tratar erro específico "no available server"
+      const errorMessage = errorData.message || errorData.error || '';
+      if (errorMessage.toLowerCase().includes('no available server') || 
+          errorMessage.toLowerCase().includes('server unavailable') ||
+          errorMessage.toLowerCase().includes('service unavailable')) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'O serviço de transcrição está temporariamente indisponível. Isso pode ocorrer devido a: (1) alta demanda no momento, (2) manutenção do serviço, ou (3) limite de requisições atingido. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
+            details: {
+              ...errorData,
+              status: supadataResponse.status,
+              statusText: supadataResponse.statusText,
+              suggestion: 'Tente novamente em alguns minutos ou use a opção via WhatsApp'
+            }
+          },
+          { status: 503 }
+        );
+      }
+
       // Outros erros
-      const errorMessage = errorData.message || errorData.error || `Erro ao obter transcrição da API Supadata (Status: ${supadataResponse.status})`;
+      const finalErrorMessage = errorMessage || `Erro ao obter transcrição da API Supadata (Status: ${supadataResponse.status})`;
       return NextResponse.json(
         { 
           success: false,
-          error: errorMessage,
+          error: finalErrorMessage,
           details: {
             ...errorData,
             status: supadataResponse.status,
@@ -371,7 +391,85 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await supadataResponse.json();
+    let result: any;
+    try {
+      // Clonar a resposta antes de ler para evitar problemas se precisarmos ler novamente
+      const responseClone = supadataResponse.clone();
+      result = await supadataResponse.json();
+      
+      // Verificar se a resposta contém erro mesmo com status OK
+      if (result.error || result.message) {
+        const errorMsg = (result.error || result.message || '').toString().toLowerCase();
+        if (errorMsg.includes('no available server') || 
+            errorMsg.includes('server unavailable') ||
+            errorMsg.includes('service unavailable')) {
+          return NextResponse.json(
+            { 
+              success: false,
+              error: 'O serviço de transcrição está temporariamente indisponível. Isso pode ocorrer devido a: (1) alta demanda no momento, (2) manutenção do serviço, ou (3) limite de requisições atingido. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
+              details: result
+            },
+            { status: 503 }
+          );
+        }
+      }
+    } catch (parseError) {
+      // Tentar ler como texto se JSON falhar
+      try {
+        const responseClone = supadataResponse.clone();
+        const errorText = await responseClone.text();
+        console.error('[Supadata API] Erro ao parsear JSON:', errorText);
+        
+        // Verificar se o texto contém o erro "no available server"
+        if (errorText.toLowerCase().includes('no available server') || 
+            errorText.toLowerCase().includes('server unavailable')) {
+          return NextResponse.json(
+            { 
+              success: false,
+              error: 'O serviço de transcrição está temporariamente indisponível. Isso pode ocorrer devido a: (1) alta demanda no momento, (2) manutenção do serviço, ou (3) limite de requisições atingido. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
+              details: { rawResponse: errorText.substring(0, 500) }
+            },
+            { status: 503 }
+          );
+        }
+        
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Erro ao processar resposta da API de transcrição. A resposta não está em formato JSON válido.',
+            details: { rawResponse: errorText.substring(0, 500) }
+          },
+          { status: 500 }
+        );
+      } catch (textError) {
+        console.error('[Supadata API] Erro ao ler resposta como texto:', textError);
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Erro ao processar resposta da API de transcrição.',
+            details: { parseError: parseError instanceof Error ? parseError.message : 'Erro desconhecido' }
+          },
+          { status: 500 }
+        );
+      }
+    }
+    
+    // Verificar se a resposta contém erro mesmo com status OK
+    if (result.error || result.message) {
+      const errorMsg = (result.error || result.message || '').toString().toLowerCase();
+      if (errorMsg.includes('no available server') || 
+          errorMsg.includes('server unavailable') ||
+          errorMsg.includes('service unavailable')) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'O serviço de transcrição está temporariamente indisponível. Isso pode ocorrer devido a: (1) alta demanda no momento, (2) manutenção do serviço, ou (3) limite de requisições atingido. Por favor, tente novamente em alguns minutos ou use a opção via WhatsApp para solicitar a transcrição manualmente.',
+            details: result
+          },
+          { status: 503 }
+        );
+      }
+    }
     
     // Log para debug (apenas em desenvolvimento)
     if (process.env.NODE_ENV === 'development') {
