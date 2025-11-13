@@ -107,17 +107,17 @@ export default function Sidebar({
       }
 
       // Sucesso
-      // Verificar se vem do Drive
-      const dataWithDrive = data as TranscriptResponse & { fromDrive?: boolean; transcriptUrl?: string };
-      if (dataWithDrive.fromDrive && dataWithDrive.transcriptUrl) {
-        setTranscriptUrl(dataWithDrive.transcriptUrl);
-        // Se for do Drive, não temos conteúdo formatado, apenas link
-      } else {
-        setTranscriptUrl(data.transcriptUrl || null);
-        setTranscriptContent(data.content || null);
-        setFormattedContent(data.formattedContent || null);
-        setTranscriptArray(data.transcriptArray || null);
-        setTranscriptLang(data.lang || null);
+      // Sempre definir conteúdo formatado e array, mesmo se vier do Drive
+      setTranscriptUrl(data.transcriptUrl || null);
+      setTranscriptContent(data.content || null);
+      setFormattedContent(data.formattedContent || null);
+      setTranscriptArray(data.transcriptArray || null);
+      setTranscriptLang(data.lang || null);
+      
+      // Se vier do Drive e tiver URL do Drive, usar ela como transcriptUrl principal
+      const dataWithDrive = data as TranscriptResponse & { fromDrive?: boolean; driveDocxUrl?: string };
+      if (dataWithDrive.fromDrive && dataWithDrive.driveDocxUrl) {
+        setTranscriptUrl(dataWithDrive.driveDocxUrl);
       }
     } catch (error) {
       let errorMessage = 'Erro desconhecido ao transcrever';
@@ -549,7 +549,8 @@ export default function Sidebar({
                 </div>
                 
                 <div className="flex gap-2 flex-wrap">
-                  {transcriptUrl && (transcriptUrl.includes('drive.google.com') ? (
+                  {/* Botão para ver no Drive se tiver URL do Drive */}
+                  {transcriptUrl && transcriptUrl.includes('drive.google.com') && (
                     <a
                       href={transcriptUrl}
                       target="_blank"
@@ -559,27 +560,28 @@ export default function Sidebar({
                       <Download className="w-3 h-3" />
                       Ver no Google Drive
                     </a>
-                  ) : (
-                    <>
-                      <a
-                        href={transcriptUrl}
-                        download
-                        className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
-                      >
-                        <Download className="w-3 h-3" />
-                        Baixar .srt
-                      </a>
-                      {transcriptArray && transcriptArray.length > 0 && (
-                        <button
-                          onClick={handleDownloadDocx}
-                          className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 transition-colors"
-                        >
-                          <Download className="w-3 h-3" />
-                          Baixar .docx
-                        </button>
-                      )}
-                    </>
-                  ))}
+                  )}
+                  {/* Botão para baixar .srt se tiver URL e não for do Drive */}
+                  {transcriptUrl && !transcriptUrl.includes('drive.google.com') && (
+                    <a
+                      href={transcriptUrl}
+                      download
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      <Download className="w-3 h-3" />
+                      Baixar .srt
+                    </a>
+                  )}
+                  {/* Botão para baixar .docx sempre que tiver conteúdo */}
+                  {transcriptArray && transcriptArray.length > 0 && (
+                    <button
+                      onClick={handleDownloadDocx}
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 transition-colors"
+                    >
+                      <Download className="w-3 h-3" />
+                      Baixar .docx
+                    </button>
+                  )}
                 </div>
 
                 {/* Buscador de transcrição - apenas se não for do Drive */}
