@@ -478,7 +478,7 @@ export async function POST(request: NextRequest) {
     }
 
     let result: {
-      content?: Array<{ text?: string; content?: string; offset: number; duration?: number; lang?: string }>;
+      content?: Array<{ text?: string; content?: string; offset: number; duration?: number; lang?: string }> | string;
       transcript?: string;
       lang?: string;
       language?: string;
