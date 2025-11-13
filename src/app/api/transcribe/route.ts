@@ -180,17 +180,22 @@ async function createAndUploadDocx(
 
     if (!response.ok) {
       const errorText = await response.text();
-      let errorData: { error?: { message?: string }; message?: string; raw?: string; [key: string]: unknown } = {};
+      let errorData: { error?: { message?: string; errors?: Array<{ message?: string; domain?: string; reason?: string }> }; message?: string; raw?: string; [key: string]: unknown } = {};
       try {
-        errorData = JSON.parse(errorText) as { error?: { message?: string }; message?: string; [key: string]: unknown };
+        errorData = JSON.parse(errorText) as { error?: { message?: string; errors?: Array<{ message?: string; domain?: string; reason?: string }> }; message?: string; [key: string]: unknown };
       } catch {
         errorData = { raw: errorText };
       }
+      
+      const errorMessage = errorData.error?.message || errorData.message || errorText;
+      const errorReason = errorData.error?.errors?.[0]?.reason || '';
       
       console.error('[DRIVE UPLOAD ERROR]', {
         status: response.status,
         statusText: response.statusText,
         error: errorData,
+        errorMessage,
+        errorReason,
         fileName,
         folderId: DRIVE_FOLDER_ID
       });
@@ -199,8 +204,14 @@ async function createAndUploadDocx(
       console.error('[DRIVE UPLOAD ERROR] Detalhes:', JSON.stringify({
         status: response.status,
         error: errorData,
-        message: errorData.error?.message || errorData.message || errorText
+        message: errorMessage,
+        reason: errorReason
       }, null, 2));
+      
+      // Se for erro 401 ou 403, provavelmente é problema de autenticação
+      if (response.status === 401 || response.status === 403) {
+        console.error('[DRIVE UPLOAD ERROR] Autenticação falhou. A API do Google Drive requer OAuth2 ou Service Account para uploads. API key sozinha não permite uploads.');
+      }
       
       return null;
     }
@@ -959,6 +970,7 @@ export async function POST(request: NextRequest) {
     
     // Criar DOCX e fazer upload para o Drive
     let driveDocxUrl: string | null = null;
+    let driveUploadError: string | null = null;
     if (transcriptArray.length > 0) {
       try {
         console.log('[DRIVE] Iniciando criação e upload do DOCX...');
@@ -972,11 +984,13 @@ export async function POST(request: NextRequest) {
         if (driveDocxUrl) {
           console.log(`[DRIVE SUCCESS] DOCX salvo no Drive: ${driveDocxUrl}`);
         } else {
+          driveUploadError = 'Upload para o Drive falhou (verifique logs do servidor). O arquivo foi gerado localmente.';
           console.warn('[DRIVE WARNING] Upload do DOCX retornou null - verifique logs acima para detalhes');
         }
       } catch (docxError) {
         const errorMessage = docxError instanceof Error ? docxError.message : 'Erro desconhecido';
         const errorStack = docxError instanceof Error ? docxError.stack : undefined;
+        driveUploadError = `Erro ao fazer upload para o Drive: ${errorMessage}`;
         console.error('[DRIVE ERROR] Erro ao criar/fazer upload do DOCX:', {
           message: errorMessage,
           stack: errorStack,
@@ -1002,6 +1016,7 @@ export async function POST(request: NextRequest) {
       })(),
       driveDocxUrl: driveDocxUrl || undefined,
       fromDrive: !!driveDocxUrl,
+      driveUploadError: driveUploadError || undefined,
       content: plainText, // Texto simples para exibição
       formattedContent: formattedContent, // Texto formatado com timestamps [HH:MM:SS]
       transcriptArray: transcriptArray, // Array original para gerar DOCX
