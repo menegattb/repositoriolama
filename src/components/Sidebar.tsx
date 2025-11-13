@@ -621,7 +621,9 @@ export default function Sidebar({
                       {formattedContent || transcriptContent || 'Transcrição disponível. Clique em "Baixar .srt" para visualizar.'}
                     </p>
                   )}
-                </div>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               /* Nenhuma transcrição - mostrar opções */
