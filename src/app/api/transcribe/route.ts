@@ -597,9 +597,12 @@ export async function POST(request: NextRequest) {
       if (process.env.NODE_ENV === 'development') {
         console.log(`Convertido ${transcriptArray.length} itens para SRT, tamanho: ${transcriptContent.length} caracteres`);
       }
-    } else if (typeof result.content === 'string' && result.content.trim().length > 0) {
-      // Formato: content é uma string
-      transcriptContent = result.content;
+    } else if (result.content && typeof result.content === 'string') {
+      const contentStr = result.content;
+      if (contentStr.trim().length > 0) {
+        // Formato: content é uma string
+        transcriptContent = contentStr;
+      }
     } else if (typeof result.transcript === 'string' && result.transcript.trim().length > 0) {
       transcriptContent = result.transcript;
     } else if (typeof result.text === 'string' && result.text.trim().length > 0) {
