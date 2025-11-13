@@ -286,7 +286,7 @@ const parseSRTToArray = (srtContent: string): TranscriptItem[] => {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { videoId, videoUrl, playlistId } = body;
+    const { videoId, videoUrl, playlistId, videoTitle } = body;
 
     // Validação de entrada
     if (!videoId && !videoUrl) {
