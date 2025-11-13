@@ -580,21 +580,23 @@ export default function Sidebar({
                   ))}
                 </div>
 
-                {/* Buscador de transcrição */}
-                <div className="relative">
-                  <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Busque na transcrição"
-                    value={transcriptSearchTerm}
-                    onChange={(e) => setTranscriptSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-                
-                {/* Transcrição formatada com timestamps agrupados */}
-                <div className="text-sm text-gray-900 max-h-[800px] overflow-y-auto bg-white p-4 rounded border leading-relaxed">
-                  {transcriptArray && transcriptArray.length > 0 ? (
+                {/* Buscador de transcrição - apenas se não for do Drive */}
+                {!transcriptUrl?.includes('drive.google.com') && (
+                  <>
+                    <div className="relative">
+                      <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Busque na transcrição"
+                        value={transcriptSearchTerm}
+                        onChange={(e) => setTranscriptSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                    
+                    {/* Transcrição formatada com timestamps agrupados */}
+                    <div className="text-sm text-gray-900 max-h-[800px] overflow-y-auto bg-white p-4 rounded border leading-relaxed">
+                      {transcriptArray && transcriptArray.length > 0 ? (
                     <div className="space-y-4">
                       {getGroupedTranscript().map((group, index) => (
                         <div key={index} className="flex gap-4">
