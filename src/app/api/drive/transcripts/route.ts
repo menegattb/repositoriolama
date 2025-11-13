@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { Transcript } from '@/data/transcriptsData';
 import { generateSlug } from '@/lib/driveUtils';
 
+// Forçar modo dinâmico para sempre buscar dados atualizados do Google Drive
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * API Route para buscar transcrições corrigidas do Google Drive
  * Endpoint: GET /api/drive/transcripts
@@ -189,7 +193,9 @@ export async function GET() {
       categories: categoryCounts,
     }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
     });
 
@@ -210,7 +216,14 @@ export async function GET() {
         },
         categories: {},
       },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
     );
   }
 }
