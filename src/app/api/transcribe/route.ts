@@ -155,6 +155,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // PRIMEIRO: Verificar se existe transcrição corrigida no Google Drive
+    try {
+      // Importar e chamar diretamente a função da API route
+      const { GET: getAutoTranscripts } = await import('../drive/auto-transcripts/route');
+      const driveRequest = new NextRequest(
+        new URL(`/api/drive/auto-transcripts?videoId=${finalVideoId}`, 'http://localhost:3000')
+      );
+      const driveResponse = await getAutoTranscripts(driveRequest);
+      
+      if (driveResponse.ok) {
+        const driveData = await driveResponse.json();
+        
+        if (driveData.success && driveData.found && driveData.transcript) {
+          // Transcrição encontrada no Drive - retornar link do Drive
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[DRIVE HIT] Transcrição encontrada no Google Drive para videoId: ${finalVideoId}`);
+          }
+          
+          return NextResponse.json({
+            success: true,
+            videoId: finalVideoId,
+            transcriptUrl: driveData.transcript.webViewLink,
+            driveFileId: driveData.transcript.driveFileId,
+            fromDrive: true,
+            cached: true,
+            message: 'Transcrição encontrada no Google Drive'
+          });
+        }
+      }
+    } catch (driveError) {
+      // Ignorar erro - continuar para verificar cache local/Hostinger ou gerar nova
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[DRIVE CHECK] Erro ao verificar Drive, continuando...', driveError);
+      }
+    }
+    
     // Definir estrutura de pastas: public/transcripts/{playlistId}/{videoId}.srt
     // Se não tiver playlistId, usar 'standalone' como padrão
     const playlistFolder = playlistId || 'standalone';
