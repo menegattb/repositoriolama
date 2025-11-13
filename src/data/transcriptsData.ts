@@ -9,6 +9,7 @@ export interface Transcript {
   categories: string[];
   createdAt: string;
   updatedAt: string;
+  driveFileId?: string; // ID do arquivo no Google Drive para visualização inline
 }
 
 export interface TranscriptCategory {

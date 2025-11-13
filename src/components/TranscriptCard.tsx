@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from 'react';
 import { FileText, ExternalLink } from 'lucide-react';
 import { Transcript } from '@/data/transcriptsData';
+import DriveViewer from './DriveViewer';
 
 interface TranscriptCardProps {
   transcript: Transcript;
 }
 
 export default function TranscriptCard({ transcript }: TranscriptCardProps) {
+  const [showViewer, setShowViewer] = useState(false);
 
   // Cores para diferentes categorias
   const getCategoryColor = (category: string) => {
@@ -31,63 +34,104 @@ export default function TranscriptCard({ transcript }: TranscriptCardProps) {
     return colors[category] || 'bg-gray-100 text-gray-700';
   };
 
+  const handleViewClick = (e: React.MouseEvent) => {
+    // Se tiver driveFileId, abrir visualização inline
+    if (transcript.driveFileId) {
+      e.preventDefault();
+      setShowViewer(true);
+    }
+    // Caso contrário, deixar o link padrão funcionar
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
-      {/* Header com ícone */}
-      <div className="p-4 pb-2">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-            <FileText className="w-5 h-5 text-red-600" />
+    <>
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+        {/* Header com ícone */}
+        <div className="p-4 pb-2">
+          <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 bg-sky-100 rounded-lg flex items-center justify-center">
+            <FileText className="w-5 h-5 text-sky-600" />
           </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 leading-tight">
-              {transcript.title}
-            </h3>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 leading-tight">
+                {transcript.title}
+              </h3>
+            </div>
           </div>
+        </div>
+
+        {/* Preview do conteúdo */}
+        <div className="px-4 pb-3">
+          <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+            {transcript.preview}
+          </p>
+        </div>
+
+        {/* Categorias */}
+        <div className="px-4 pb-3">
+          <div className="flex flex-wrap gap-1">
+            {transcript.categories.map((category, index) => {
+              const categoryName = category
+                .split('-')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+              
+              return (
+                <span 
+                  key={index}
+                  className={`px-2 py-1 text-xs rounded-full font-medium ${getCategoryColor(category)}`}
+                >
+                  {categoryName}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer com botão */}
+        <div className="px-4 pb-4">
+          {transcript.driveFileId ? (
+            <button
+              onClick={handleViewClick}
+              className="w-full inline-flex items-center justify-center gap-2 bg-white border border-sky-500 text-sky-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+            >
+              <FileText className="w-4 h-4" />
+              Ver Transcrição
+            </button>
+          ) : (
+            <a
+              href={transcript.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 bg-white border border-sky-500 text-sky-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+            >
+              <FileText className="w-4 h-4" />
+              Ver Transcrição
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
         </div>
       </div>
 
-      {/* Preview do conteúdo */}
-      <div className="px-4 pb-3">
-        <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
-          {transcript.preview}
-        </p>
-      </div>
-
-      {/* Categorias */}
-      <div className="px-4 pb-3">
-        <div className="flex flex-wrap gap-1">
-          {transcript.categories.map((category, index) => {
-            const categoryName = category
-              .split('-')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ');
-            
-            return (
-              <span 
-                key={index}
-                className={`px-2 py-1 text-xs rounded-full font-medium ${getCategoryColor(category)}`}
-              >
-                {categoryName}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Footer com botão */}
-      <div className="px-4 pb-4">
-        <a
-          href={transcript.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+      {/* Modal com DriveViewer */}
+      {showViewer && transcript.driveFileId && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+          onClick={() => setShowViewer(false)}
         >
-          <FileText className="w-4 h-4" />
-          Ver Transcrição
-          <ExternalLink className="w-3 h-3" />
-        </a>
-      </div>
-    </div>
+          <div 
+            className="relative w-full max-w-6xl h-full max-h-[90vh] bg-white rounded-lg shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <DriveViewer
+              fileId={transcript.driveFileId}
+              title={transcript.title}
+              onClose={() => setShowViewer(false)}
+              showCloseButton={true}
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }

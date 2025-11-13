@@ -1,7 +1,6 @@
 import React from "react";
-import { transcripts } from "@/data/transcriptsData";
-import TranscricoesClient from "./TranscricoesClient";
 import Link from "next/link";
+import TranscricoesPageClient from "./TranscricoesPageClient";
 
 export const metadata = {
   title: "Roteiros e transcrições editadas pela sanga",
@@ -42,17 +41,7 @@ export default function TranscricoesPage() {
         <p className="mt-2 text-gray-600">Acesso reservado via link. Esta página não aparece em menus nem em buscadores.</p>
       </div>
 
-      {transcripts.length > 0 ? (
-        <TranscricoesClient transcripts={transcripts} />
-      ) : (
-        <div className="text-center py-12">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Nenhuma transcrição disponível
-          </h3>
-          <p className="text-gray-600">Tente novamente mais tarde.</p>
-        </div>
-      )}
+      <TranscricoesPageClient />
     </main>
   );
 }
