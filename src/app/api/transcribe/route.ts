@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
               console.log(`[CACHE HIT] Transcrição encontrada no Hostinger para videoId: ${finalVideoId}`);
             }
           }
-        } catch (fetchError) {
+        } catch {
           // Ignorar erro - transcrição não existe
         }
       }
@@ -477,10 +477,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let result: any;
+    let result: {
+      content?: Array<{ text?: string; content?: string; offset: number; duration?: number; lang?: string }>;
+      transcript?: string;
+      lang?: string;
+      language?: string;
+      error?: string;
+      message?: string;
+      [key: string]: unknown;
+    };
     try {
-      // Clonar a resposta antes de ler para evitar problemas se precisarmos ler novamente
-      const responseClone = supadataResponse.clone();
       result = await supadataResponse.json();
       
       // Verificar se a resposta contém erro mesmo com status OK

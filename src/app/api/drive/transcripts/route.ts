@@ -150,7 +150,7 @@ function mapDriveFileToTranscript(file: DriveFile): Transcript {
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const apiKey = process.env.GOOGLE_DRIVE_API_KEY;
     
