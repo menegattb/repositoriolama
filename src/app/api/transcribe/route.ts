@@ -177,7 +177,28 @@ async function createAndUploadDocx(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[DRIVE UPLOAD ERROR]', response.status, errorText);
+      let errorData: any = {};
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { raw: errorText };
+      }
+      
+      console.error('[DRIVE UPLOAD ERROR]', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+        fileName,
+        folderId: DRIVE_FOLDER_ID
+      });
+      
+      // Log mais detalhado em produção também para debug
+      console.error('[DRIVE UPLOAD ERROR] Detalhes:', JSON.stringify({
+        status: response.status,
+        error: errorData,
+        message: errorData.error?.message || errorData.message || errorText
+      }, null, 2));
+      
       return null;
     }
 
@@ -185,9 +206,8 @@ async function createAndUploadDocx(
     const fileId = result.id;
     const webViewLink = `https://drive.google.com/file/d/${fileId}/view`;
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[DRIVE UPLOAD] DOCX enviado com sucesso: ${fileName} (ID: ${fileId})`);
-    }
+    console.log(`[DRIVE UPLOAD SUCCESS] DOCX enviado com sucesso: ${fileName} (ID: ${fileId})`);
+    console.log(`[DRIVE UPLOAD SUCCESS] Link: ${webViewLink}`);
 
     return webViewLink;
   } catch (error) {
@@ -574,11 +594,30 @@ export async function POST(request: NextRequest) {
 
       // Bad Request (400)
       if (supadataResponse.status === 400) {
+        const errorMsg = errorData.message || errorData.error || 'Invalid Request';
+        console.error('[Supadata API] Bad Request (400):', {
+          errorMsg,
+          errorData,
+          videoUrl: finalVideoUrl,
+          videoId: finalVideoId,
+          supadataUrl
+        });
+        
+        // Mensagens mais específicas baseadas no erro
+        let userFriendlyError = errorMsg;
+        if (errorMsg.toLowerCase().includes('invalid') || errorMsg.toLowerCase().includes('invalid request')) {
+          userFriendlyError = `URL do vídeo inválida ou formato não suportado. Verifique se a URL do YouTube está correta. URL enviada: ${finalVideoUrl}`;
+        }
+        
         return NextResponse.json(
           { 
             success: false,
-            error: errorData.message || errorData.error || 'URL do vídeo inválida ou formato não suportado.',
-            details: errorData
+            error: userFriendlyError,
+            details: process.env.NODE_ENV === 'development' ? {
+              ...errorData,
+              videoUrl: finalVideoUrl,
+              videoId: finalVideoId
+            } : undefined
           },
           { status: 400 }
         );
@@ -919,6 +958,7 @@ export async function POST(request: NextRequest) {
     let driveDocxUrl: string | null = null;
     if (transcriptArray.length > 0) {
       try {
+        console.log('[DRIVE] Iniciando criação e upload do DOCX...');
         driveDocxUrl = await createAndUploadDocx(
           transcriptArray,
           finalVideoId,
@@ -926,12 +966,20 @@ export async function POST(request: NextRequest) {
           finalVideoUrl,
           result.lang || result.language || 'pt'
         );
-        if (driveDocxUrl && process.env.NODE_ENV === 'development') {
-          console.log(`[DRIVE] DOCX salvo no Drive: ${driveDocxUrl}`);
+        if (driveDocxUrl) {
+          console.log(`[DRIVE SUCCESS] DOCX salvo no Drive: ${driveDocxUrl}`);
+        } else {
+          console.warn('[DRIVE WARNING] Upload do DOCX retornou null - verifique logs acima para detalhes');
         }
       } catch (docxError) {
         const errorMessage = docxError instanceof Error ? docxError.message : 'Erro desconhecido';
-        console.error('[DRIVE ERROR] Erro ao criar/fazer upload do DOCX:', errorMessage);
+        const errorStack = docxError instanceof Error ? docxError.stack : undefined;
+        console.error('[DRIVE ERROR] Erro ao criar/fazer upload do DOCX:', {
+          message: errorMessage,
+          stack: errorStack,
+          videoId: finalVideoId,
+          videoTitle
+        });
         // Continuar mesmo se falhar - não é crítico
       }
     }
