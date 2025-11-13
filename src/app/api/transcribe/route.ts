@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { Document, Packer, Paragraph, TextRun, ExternalHyperlink } from 'docx';
 
 /**
  * Função para fazer upload do arquivo de transcrição para o Hostinger via API HTTP
@@ -50,6 +51,150 @@ interface TranscriptItem {
   content?: string;
   offset: number;
   duration?: number;
+}
+
+/**
+ * Função para criar DOCX e fazer upload para o Google Drive
+ */
+async function createAndUploadDocx(
+  transcriptArray: TranscriptItem[],
+  videoId: string,
+  videoTitle?: string,
+  videoUrl?: string,
+  lang?: string
+): Promise<string | null> {
+  try {
+    // Função auxiliar para formatar tempo
+    const formatTimeForDisplay = (milliseconds: number): string => {
+      const totalSeconds = Math.floor(milliseconds / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const paragraphs: Paragraph[] = [];
+
+    // Cabeçalho: Título do vídeo
+    if (videoTitle) {
+      paragraphs.push(
+        new Paragraph({
+          text: videoTitle,
+          heading: 'Heading1',
+          spacing: { after: 400 },
+        })
+      );
+    }
+
+    // Link do vídeo
+    if (videoUrl) {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Link: ', bold: true }),
+            new ExternalHyperlink({
+              children: [new TextRun({ text: videoUrl, color: '0066CC', style: 'Hyperlink' })],
+              link: videoUrl,
+            }),
+          ],
+          spacing: { after: 200 },
+        })
+      );
+    }
+
+    // Idioma
+    if (lang) {
+      paragraphs.push(
+        new Paragraph({
+          text: `Idioma: ${lang.toUpperCase()}`,
+          spacing: { after: 200 },
+        })
+      );
+    }
+
+    paragraphs.push(new Paragraph({ text: '', spacing: { after: 400 } }));
+
+    // Adicionar transcrição
+    transcriptArray.forEach((item) => {
+      const text = item.text || item.content || '';
+      if (text && text.trim().length > 0) {
+        const timeStr = formatTimeForDisplay(item.offset || 0);
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ text: `${timeStr} `, bold: true, color: '4B5563' }),
+              new TextRun({ text: text.trim(), color: '111827' }),
+            ],
+            spacing: { after: 200 },
+          })
+        );
+      }
+    });
+
+    // Criar documento
+    const doc = new Document({
+      sections: [{ children: paragraphs }],
+    });
+
+    // Gerar buffer
+    const buffer = await Packer.toBuffer(doc);
+
+    // Criar nome do arquivo
+    const safeTitle = (videoTitle || videoId || 'transcricao')
+      .replace(/[^a-z0-9\s-]/gi, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50);
+    const fileName = `${safeTitle}-${videoId}.docx`;
+
+    // Fazer upload para Drive
+    const DRIVE_FOLDER_ID = '1-VPWLcqeAx7hVN_zpzqpt0qmzmp7iruw';
+    const GOOGLE_DRIVE_API_BASE = 'https://www.googleapis.com/upload/drive/v3';
+    const apiKey = process.env.GOOGLE_DRIVE_API_KEY;
+
+    if (!apiKey) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[DRIVE UPLOAD] GOOGLE_DRIVE_API_KEY não configurada, pulando upload');
+      }
+      return null;
+    }
+
+    // Criar FormData para upload multipart
+    const metadata = {
+      name: fileName,
+      parents: [DRIVE_FOLDER_ID],
+    };
+
+    const formData = new FormData();
+    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    formData.append('file', new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+
+    const uploadUrl = `${GOOGLE_DRIVE_API_BASE}/files?uploadType=multipart&key=${apiKey}`;
+
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[DRIVE UPLOAD ERROR]', response.status, errorText);
+      return null;
+    }
+
+    const result = await response.json();
+    const fileId = result.id;
+    const webViewLink = `https://drive.google.com/file/d/${fileId}/view`;
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DRIVE UPLOAD] DOCX enviado com sucesso: ${fileName} (ID: ${fileId})`);
+    }
+
+    return webViewLink;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error('[DRIVE UPLOAD ERROR] Erro ao criar/fazer upload do DOCX:', errorMessage);
+    return null;
+  }
 }
 
 /**
@@ -155,9 +300,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // PRIMEIRO: Verificar se existe transcrição corrigida no Google Drive
+    // PRIMEIRO: Verificar se existe DOCX no Google Drive
     try {
-      // Importar e chamar diretamente a função da API route
       const { GET: getAutoTranscripts } = await import('../drive/auto-transcripts/route');
       const driveRequest = new NextRequest(
         new URL(`/api/drive/auto-transcripts?videoId=${finalVideoId}`, 'http://localhost:3000')
@@ -168,9 +312,9 @@ export async function POST(request: NextRequest) {
         const driveData = await driveResponse.json();
         
         if (driveData.success && driveData.found && driveData.transcript) {
-          // Transcrição encontrada no Drive - retornar link do Drive
+          // DOCX encontrado no Drive - retornar link do Drive
           if (process.env.NODE_ENV === 'development') {
-            console.log(`[DRIVE HIT] Transcrição encontrada no Google Drive para videoId: ${finalVideoId}`);
+            console.log(`[DRIVE HIT] DOCX encontrado no Google Drive para videoId: ${finalVideoId}`);
           }
           
           return NextResponse.json({
@@ -771,12 +915,33 @@ export async function POST(request: NextRequest) {
         }).filter(Boolean).join('\n')
       : plainText; // Fallback se não tiver array
     
+    // Criar DOCX e fazer upload para o Drive
+    let driveDocxUrl: string | null = null;
+    if (transcriptArray.length > 0) {
+      try {
+        driveDocxUrl = await createAndUploadDocx(
+          transcriptArray,
+          finalVideoId,
+          videoTitle,
+          finalVideoUrl,
+          result.lang || result.language || 'pt'
+        );
+        if (driveDocxUrl && process.env.NODE_ENV === 'development') {
+          console.log(`[DRIVE] DOCX salvo no Drive: ${driveDocxUrl}`);
+        }
+      } catch (docxError) {
+        const errorMessage = docxError instanceof Error ? docxError.message : 'Erro desconhecido';
+        console.error('[DRIVE ERROR] Erro ao criar/fazer upload do DOCX:', errorMessage);
+        // Continuar mesmo se falhar - não é crítico
+      }
+    }
+    
     // Retornar sucesso
     return NextResponse.json({
       success: true,
       videoId: finalVideoId,
-      // URL do transcript - usar Hostinger se disponível
-      transcriptUrl: (() => {
+      // URL do transcript - usar Drive DOCX se disponível, senão Hostinger SRT
+      transcriptUrl: driveDocxUrl || (() => {
         if (!fileSaved) return undefined;
         if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
           const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://acaoparamita.com.br';
@@ -784,12 +949,16 @@ export async function POST(request: NextRequest) {
         }
         return `/transcripts/${playlistFolder}/${finalVideoId}.srt`;
       })(),
+      driveDocxUrl: driveDocxUrl || undefined,
+      fromDrive: !!driveDocxUrl,
       content: plainText, // Texto simples para exibição
       formattedContent: formattedContent, // Texto formatado com timestamps [HH:MM:SS]
       transcriptArray: transcriptArray, // Array original para gerar DOCX
       srtContent: transcriptContent, // Formato SRT completo para download
       lang: result.lang || result.language || 'pt',
-      message: fileSaved 
+      message: driveDocxUrl 
+        ? 'Transcrição gerada e salva no Google Drive!' 
+        : fileSaved 
         ? 'Transcrição gerada e salva com sucesso!' 
         : 'Transcrição gerada com sucesso! (Nota: arquivo não pôde ser salvo, mas o conteúdo está disponível)',
       fileSaved: fileSaved

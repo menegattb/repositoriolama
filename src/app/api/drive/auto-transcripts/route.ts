@@ -25,7 +25,8 @@ interface DriveApiResponse {
  * Busca arquivos do Google Drive usando a API v3
  */
 async function fetchDriveFiles(folderId: string, apiKey?: string): Promise<DriveFile[]> {
-  const query = `'${folderId}' in parents and mimeType='application/pdf' and trashed=false`;
+  // Buscar arquivos DOCX (transcrições automáticas)
+  const query = `'${folderId}' in parents and (mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document' or mimeType='application/msword') and trashed=false`;
   const fields = 'files(id,name,createdTime,modifiedTime,webViewLink,webContentLink)';
   
   let url = `${GOOGLE_DRIVE_API_BASE}/files?q=${encodeURIComponent(query)}&fields=${fields}&orderBy=name&pageSize=1000`;

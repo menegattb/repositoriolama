@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
 import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
-import DriveViewer from './DriveViewer';
 
 interface SidebarProps {
   playlist: Playlist;
@@ -97,6 +96,7 @@ export default function Sidebar({
           videoId: videoId,
           videoUrl: videoUrl,
           playlistId: playlist.id,
+          videoTitle: currentMediaItem?.title,
         }),
       });
 
@@ -107,11 +107,17 @@ export default function Sidebar({
       }
 
       // Sucesso
-      setTranscriptUrl(data.transcriptUrl || null);
-      setTranscriptContent(data.content || null);
-      setFormattedContent(data.formattedContent || null);
-      setTranscriptArray(data.transcriptArray || null);
-      setTranscriptLang(data.lang || null);
+      // Verificar se vem do Drive
+      if ((data as any).fromDrive && (data as any).transcriptUrl) {
+        setTranscriptUrl((data as any).transcriptUrl);
+        // Se for do Drive, não temos conteúdo formatado, apenas link
+      } else {
+        setTranscriptUrl(data.transcriptUrl || null);
+        setTranscriptContent(data.content || null);
+        setFormattedContent(data.formattedContent || null);
+        setTranscriptArray(data.transcriptArray || null);
+        setTranscriptLang(data.lang || null);
+      }
     } catch (error) {
       let errorMessage = 'Erro desconhecido ao transcrever';
       
@@ -238,6 +244,7 @@ export default function Sidebar({
               videoId: videoId,
               videoUrl: videoUrl,
               playlistId: playlist.id,
+              videoTitle: currentMediaItem?.title,
             }),
           });
 
@@ -245,11 +252,17 @@ export default function Sidebar({
 
           // Se a transcrição existe (cache hit), carregar automaticamente
           if (response.ok && data.success && data.cached) {
-            setTranscriptUrl(data.transcriptUrl || null);
-            setTranscriptContent(data.content || null);
-            setFormattedContent(data.formattedContent || null);
-            setTranscriptArray(data.transcriptArray || null);
-            setTranscriptLang(data.lang || null);
+            // Verificar se vem do Drive
+            if ((data as any).fromDrive && (data as any).transcriptUrl) {
+              setTranscriptUrl((data as any).transcriptUrl);
+              // Se for do Drive, não temos conteúdo formatado, apenas link
+            } else {
+              setTranscriptUrl(data.transcriptUrl || null);
+              setTranscriptContent(data.content || null);
+              setFormattedContent(data.formattedContent || null);
+              setTranscriptArray(data.transcriptArray || null);
+              setTranscriptLang(data.lang || null);
+            }
           }
         } catch {
           // Silenciosamente ignorar erros - a transcrição simplesmente não existe ainda
@@ -534,25 +547,37 @@ export default function Sidebar({
                 </div>
                 
                 <div className="flex gap-2 flex-wrap">
-                  {transcriptUrl && (
+                  {transcriptUrl && (transcriptUrl.includes('drive.google.com') ? (
                     <a
                       href={transcriptUrl}
-                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
                     >
                       <Download className="w-3 h-3" />
-                      Baixar .srt
+                      Ver no Google Drive
                     </a>
-                  )}
-                  {transcriptArray && transcriptArray.length > 0 && (
-                    <button
-                      onClick={handleDownloadDocx}
-                      className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 transition-colors"
-                    >
-                      <Download className="w-3 h-3" />
-                      Baixar .docx
-                    </button>
-                  )}
+                  ) : (
+                    <>
+                      <a
+                        href={transcriptUrl}
+                        download
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
+                      >
+                        <Download className="w-3 h-3" />
+                        Baixar .srt
+                      </a>
+                      {transcriptArray && transcriptArray.length > 0 && (
+                        <button
+                          onClick={handleDownloadDocx}
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 transition-colors"
+                        >
+                          <Download className="w-3 h-3" />
+                          Baixar .docx
+                        </button>
+                      )}
+                    </>
+                  ))}
                 </div>
 
                 {/* Buscador de transcrição */}
