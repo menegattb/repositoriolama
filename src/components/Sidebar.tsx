@@ -250,6 +250,19 @@ export default function Sidebar({
         throw new Error(data.error || 'Erro ao transcrever vídeo');
       }
 
+      // Verificar se houve erro no upload do Drive
+      const dataWithDrive = data as TranscriptResponse & { 
+        fromDrive?: boolean; 
+        driveDocxUrl?: string; 
+        driveUploadError?: string;
+      };
+      
+      if (dataWithDrive.driveUploadError) {
+        console.warn('[Sidebar] ⚠️ Erro no upload do Drive:', dataWithDrive.driveUploadError);
+        // Mostrar aviso mas continuar - a transcrição foi gerada mesmo assim
+        setTranscriptError(`⚠️ Transcrição gerada, mas erro ao salvar no Drive: ${dataWithDrive.driveUploadError}`);
+      }
+
       // Sucesso
       // Sempre definir conteúdo formatado e array, mesmo se vier do Drive
       setTranscriptUrl(data.transcriptUrl || null);
@@ -259,9 +272,11 @@ export default function Sidebar({
       setTranscriptLang(data.lang || null);
       
       // Se vier do Drive e tiver URL do Drive, usar ela como transcriptUrl principal
-      const dataWithDrive = data as TranscriptResponse & { fromDrive?: boolean; driveDocxUrl?: string };
       if (dataWithDrive.fromDrive && dataWithDrive.driveDocxUrl) {
         setTranscriptUrl(dataWithDrive.driveDocxUrl);
+        console.log('[Sidebar] ✅ Transcrição salva no Drive:', dataWithDrive.driveDocxUrl);
+      } else if (!dataWithDrive.driveDocxUrl && dataWithDrive.driveUploadError) {
+        console.warn('[Sidebar] ⚠️ Drive upload falhou, usando URL alternativa');
       }
     } catch (error) {
       let errorMessage = 'Erro desconhecido ao transcrever';

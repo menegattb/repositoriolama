@@ -168,27 +168,42 @@ async function createAndUploadDocx(
     try {
       // Tentar ler do arquivo JSON local primeiro (desenvolvimento)
       const credentialsPath = path.join(process.cwd(), 'nth-record-478117-d1-f0cb80ff1823.json');
+      console.log('[DRIVE UPLOAD] Tentando carregar credenciais de:', credentialsPath);
       try {
         const credentialsFile = await fs.readFile(credentialsPath, 'utf-8');
         serviceAccountCredentials = JSON.parse(credentialsFile);
-        console.log('[DRIVE UPLOAD] Credenciais carregadas do arquivo local');
-      } catch {
+        console.log('[DRIVE UPLOAD] ✅ Credenciais carregadas do arquivo local');
+        console.log('[DRIVE UPLOAD] Email da Service Account:', serviceAccountCredentials.client_email);
+      } catch (fileError) {
+        console.log('[DRIVE UPLOAD] Arquivo local não encontrado, tentando variável de ambiente...');
         // Se não encontrar arquivo local, tentar variável de ambiente (produção)
         const envCredentials = process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS;
         if (!envCredentials) {
-          console.warn('[DRIVE UPLOAD] Credenciais da Service Account não encontradas. Verifique GOOGLE_SERVICE_ACCOUNT_CREDENTIALS ou arquivo JSON.');
+          console.error('[DRIVE UPLOAD ERROR] ❌ Credenciais da Service Account não encontradas!');
+          console.error('[DRIVE UPLOAD ERROR] Verifique:');
+          console.error('[DRIVE UPLOAD ERROR] 1. Arquivo JSON em:', credentialsPath);
+          console.error('[DRIVE UPLOAD ERROR] 2. Variável de ambiente GOOGLE_SERVICE_ACCOUNT_CREDENTIALS');
           return null;
         }
         serviceAccountCredentials = JSON.parse(envCredentials);
-        console.log('[DRIVE UPLOAD] Credenciais carregadas da variável de ambiente');
+        console.log('[DRIVE UPLOAD] ✅ Credenciais carregadas da variável de ambiente');
+        console.log('[DRIVE UPLOAD] Email da Service Account:', serviceAccountCredentials.client_email);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      console.error('[DRIVE UPLOAD ERROR] Erro ao carregar credenciais:', errorMessage);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('[DRIVE UPLOAD ERROR] ❌ Erro ao carregar credenciais:', errorMessage);
+      if (errorStack) {
+        console.error('[DRIVE UPLOAD ERROR] Stack:', errorStack);
+      }
       return null;
     }
 
     try {
+      console.log('[DRIVE UPLOAD] Iniciando autenticação com Service Account...');
+      console.log('[DRIVE UPLOAD] Email da Service Account:', serviceAccountCredentials.client_email);
+      console.log('[DRIVE UPLOAD] Pasta de destino:', DRIVE_FOLDER_ID);
+      
       // Autenticar com Service Account
       const auth = new google.auth.JWT({
         email: serviceAccountCredentials.client_email,
@@ -196,8 +211,13 @@ async function createAndUploadDocx(
         scopes: ['https://www.googleapis.com/auth/drive.file'],
       });
 
+      console.log('[DRIVE UPLOAD] Autenticação criada, criando cliente do Drive...');
+
       // Criar cliente do Drive
       const drive = google.drive({ version: 'v3', auth });
+
+      console.log('[DRIVE UPLOAD] Fazendo upload do arquivo:', fileName);
+      console.log('[DRIVE UPLOAD] Tamanho do buffer:', buffer.length, 'bytes');
 
       // Fazer upload do arquivo
       const response = await drive.files.create({
@@ -209,33 +229,56 @@ async function createAndUploadDocx(
           mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
           body: Buffer.from(buffer),
         },
-        fields: 'id, webViewLink',
+        fields: 'id, webViewLink, name',
+      });
+
+      console.log('[DRIVE UPLOAD] Resposta recebida:', {
+        id: response.data.id,
+        name: response.data.name,
+        webViewLink: response.data.webViewLink
       });
 
       if (response.data.id) {
         const fileId = response.data.id;
         const webViewLink = response.data.webViewLink || `https://drive.google.com/file/d/${fileId}/view`;
 
-        console.log(`[DRIVE UPLOAD SUCCESS] DOCX enviado com sucesso: ${fileName} (ID: ${fileId})`);
-        console.log(`[DRIVE UPLOAD SUCCESS] Link: ${webViewLink}`);
+        console.log(`[DRIVE UPLOAD SUCCESS] ✅ DOCX enviado com sucesso: ${fileName}`);
+        console.log(`[DRIVE UPLOAD SUCCESS] ✅ File ID: ${fileId}`);
+        console.log(`[DRIVE UPLOAD SUCCESS] ✅ Link: ${webViewLink}`);
 
         return webViewLink;
       } else {
-        console.error('[DRIVE UPLOAD ERROR] Upload concluído mas sem ID de arquivo');
+        console.error('[DRIVE UPLOAD ERROR] ❌ Upload concluído mas sem ID de arquivo');
+        console.error('[DRIVE UPLOAD ERROR] Resposta completa:', JSON.stringify(response.data, null, 2));
         return null;
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      const errorDetails = error instanceof Error && 'response' in error 
-        ? (error as { response?: { data?: unknown; status?: number } }).response?.data 
-        : undefined;
+      const errorStack = error instanceof Error ? error.stack : undefined;
       
-      console.error('[DRIVE UPLOAD ERROR] Erro ao fazer upload:', {
+      let errorDetails: unknown = undefined;
+      if (error instanceof Error && 'response' in error) {
+        const errorWithResponse = error as { response?: { data?: unknown; status?: number; statusText?: string } };
+        errorDetails = {
+          status: errorWithResponse.response?.status,
+          statusText: errorWithResponse.response?.statusText,
+          data: errorWithResponse.response?.data
+        };
+      }
+      
+      console.error('[DRIVE UPLOAD ERROR] ❌ Erro ao fazer upload:', {
         message: errorMessage,
+        stack: errorStack,
         details: errorDetails,
         fileName,
-        folderId: DRIVE_FOLDER_ID
+        folderId: DRIVE_FOLDER_ID,
+        serviceAccountEmail: serviceAccountCredentials.client_email
       });
+      
+      // Log detalhado do erro
+      if (errorDetails) {
+        console.error('[DRIVE UPLOAD ERROR] Detalhes completos:', JSON.stringify(errorDetails, null, 2));
+      }
       
       return null;
     }
@@ -329,21 +372,50 @@ export async function POST(request: NextRequest) {
     let finalVideoId = videoId;
     let finalVideoUrl = videoUrl;
 
+    // Se o videoId contém hífen (formato playlist-id), extrair o videoId real
+    if (finalVideoId && finalVideoId.includes('-')) {
+      const parts = finalVideoId.split('-');
+      finalVideoId = parts[parts.length - 1]; // Pegar a última parte que é o videoId
+    }
+
+    // Se não tiver videoId mas tiver URL, tentar extrair da URL
     if (!finalVideoId && finalVideoUrl) {
-      // Extrair ID da URL do YouTube
-      const match = finalVideoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-      if (match && match[1]) {
-        finalVideoId = match[1];
+      // Extrair ID da URL do YouTube (apenas se for URL de vídeo, não playlist)
+      if (finalVideoUrl.includes('watch?v=') || finalVideoUrl.includes('youtu.be/')) {
+        const match = finalVideoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+        if (match && match[1]) {
+          finalVideoId = match[1];
+        }
+      }
+    }
+
+    // Se tiver videoId mas URL for de playlist ou inválida, construir URL do vídeo
+    if (finalVideoId) {
+      if (!finalVideoUrl || finalVideoUrl.includes('/playlist') || !finalVideoUrl.includes('watch?v=')) {
+        finalVideoUrl = `https://www.youtube.com/watch?v=${finalVideoId}`;
       }
     } else if (finalVideoId && !finalVideoUrl) {
       finalVideoUrl = `https://www.youtube.com/watch?v=${finalVideoId}`;
     }
 
-    if (!finalVideoId) {
+    // Validar que temos um videoId válido
+    if (!finalVideoId || finalVideoId.length < 10) {
       return NextResponse.json(
         { 
           success: false,
-          error: 'Não foi possível extrair o ID do vídeo da URL fornecida' 
+          error: 'URL do vídeo inválida ou formato não suportado. Verifique se a URL do YouTube está correta.',
+          details: { receivedVideoId: videoId, receivedVideoUrl: videoUrl }
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validar que a URL final não é de playlist
+    if (finalVideoUrl && finalVideoUrl.includes('/playlist') && !finalVideoUrl.includes('watch?v=')) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'URL do vídeo inválida ou formato não suportado. Verifique se a URL do YouTube está correta. URL enviada: ' + finalVideoUrl
         },
         { status: 400 }
       );
