@@ -123,9 +123,26 @@ export default function Sidebar({
             // Procurar pelo vídeo correto usando o índice ou tentando encontrar pelo título
             let realVideo = null;
             
+            console.log('[Sidebar] 🔍 Buscando vídeo real:', {
+              videoIndex,
+              totalItems: playlist.items?.length || 0,
+              currentMediaItemId: currentMediaItem.id,
+              currentMediaItemTitle: currentMediaItem.title
+            });
+            
             // Tentar encontrar pelo índice primeiro
             if (playlist.items && playlist.items.length > videoIndex) {
               const candidateVideo = playlist.items[videoIndex];
+              console.log('[Sidebar] 📹 Vídeo candidato no índice:', {
+                index: videoIndex,
+                id: candidateVideo.id,
+                title: candidateVideo.title,
+                isValid: candidateVideo.id && 
+                  candidateVideo.id.length === 11 && 
+                  !candidateVideo.id.includes('-') && 
+                  /^[a-zA-Z0-9_-]{11}$/.test(candidateVideo.id)
+              });
+              
               // Verificar se é um videoId válido
               if (candidateVideo.id && 
                   candidateVideo.id.length === 11 && 
@@ -144,8 +161,30 @@ export default function Sidebar({
                 /^[a-zA-Z0-9_-]{11}$/.test(v.id)
               );
               
+              console.log('[Sidebar] 📹 Vídeos reais encontrados na playlist:', {
+                total: realVideosInPlaylist.length,
+                ids: realVideosInPlaylist.map(v => v.id).slice(0, 5)
+              });
+              
               if (realVideosInPlaylist.length > videoIndex && realVideosInPlaylist[videoIndex]) {
                 realVideo = realVideosInPlaylist[videoIndex];
+              }
+            }
+            
+            // ÚLTIMA TENTATIVA: Tentar encontrar pelo título do currentMediaItem
+            if (!realVideo && playlist.items && currentMediaItem.title) {
+              console.log('[Sidebar] 🔍 Tentando encontrar pelo título:', currentMediaItem.title);
+              const videoByTitle = playlist.items.find(v => 
+                v.title === currentMediaItem.title &&
+                v.id && 
+                v.id.length === 11 && 
+                !v.id.includes('-') && 
+                /^[a-zA-Z0-9_-]{11}$/.test(v.id)
+              );
+              
+              if (videoByTitle) {
+                realVideo = videoByTitle;
+                console.log('[Sidebar] ✅ Vídeo encontrado pelo título!');
               }
             }
             
@@ -157,7 +196,11 @@ export default function Sidebar({
             } else {
               // Não encontrou nos vídeos carregados
               // Se ainda estamos usando formato mock, significa que os vídeos reais ainda não foram carregados
-              console.log('[Sidebar] ⚠️ Vídeo real ainda não foi carregado. Aguardando carregamento automático...');
+              console.log('[Sidebar] ⚠️ Vídeo real ainda não foi carregado. Detalhes:', {
+                videoIndex,
+                totalItems: playlist.items?.length || 0,
+                itemsIds: playlist.items?.map(v => ({ id: v.id, title: v.title })).slice(0, 3) || []
+              });
               throw new Error('O vídeo ainda não foi carregado da API do YouTube. Aguarde alguns segundos e tente novamente.');
             }
           } else {
