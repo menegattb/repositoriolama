@@ -77,15 +77,114 @@ export default function Sidebar({
     try {
       // Extrair videoId do media_url ou usar o id diretamente
       let videoId = currentMediaItem.id;
-      const videoUrl = currentMediaItem.media_url;
+      let videoUrl = currentMediaItem.media_url;
 
-      // Se o ID contém hífen (formato playlist-id), extrair o videoId real da URL
-      if (videoUrl && videoUrl.includes('youtube.com')) {
-        const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-        if (match && match[1]) {
-          videoId = match[1];
+      console.log('[Sidebar] 🔍 Iniciando transcrição:', {
+        originalId: currentMediaItem.id,
+        originalUrl: currentMediaItem.media_url,
+        title: currentMediaItem.title
+      });
+
+      // Verificar se o ID já é um videoId válido do YouTube (11 caracteres, sem hífen/underscore)
+      const isValidYouTubeVideoId = videoId && 
+        videoId.length === 11 && 
+        !videoId.includes('-') && 
+        !videoId.includes('_') &&
+        /^[a-zA-Z0-9_-]{11}$/.test(videoId);
+
+      if (isValidYouTubeVideoId) {
+        console.log('[Sidebar] ✅ ID já é um videoId válido do YouTube:', videoId);
+        // Se não tiver URL ou URL for de playlist, construir URL do vídeo
+        if (!videoUrl || videoUrl.includes('/playlist') || !videoUrl.includes('watch?v=')) {
+          videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        }
+      } else {
+        // Tentar extrair videoId da URL primeiro
+        if (videoUrl && (videoUrl.includes('watch?v=') || videoUrl.includes('youtu.be/'))) {
+          const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+          if (match && match[1]) {
+            videoId = match[1];
+            console.log('[Sidebar] ✅ VideoId extraído da URL:', videoId);
+          }
+        }
+
+        // Se ainda não tiver videoId válido e o ID contém hífen (formato playlist-id-numero)
+        if (!isValidYouTubeVideoId && videoId.includes('-')) {
+          const parts = videoId.split('-');
+          const lastPart = parts[parts.length - 1];
+          
+          // Se a última parte for um número (1, 2, 3...), não é um videoId válido
+          // Nesse caso, precisamos buscar o videoId real da playlist
+          if (/^\d+$/.test(lastPart)) {
+            console.log('[Sidebar] ⚠️ ID é formato mock (playlist-numero), tentando encontrar videoId real...');
+            const videoIndex = parseInt(lastPart, 10) - 1; // Converter para índice (0-based)
+            
+            // PRIMEIRO: Verificar se já temos vídeos reais carregados na playlist
+            // Procurar pelo vídeo correto usando o índice ou tentando encontrar pelo título
+            let realVideo = null;
+            
+            // Tentar encontrar pelo índice primeiro
+            if (playlist.items && playlist.items.length > videoIndex) {
+              const candidateVideo = playlist.items[videoIndex];
+              // Verificar se é um videoId válido
+              if (candidateVideo.id && 
+                  candidateVideo.id.length === 11 && 
+                  !candidateVideo.id.includes('-') && 
+                  /^[a-zA-Z0-9_-]{11}$/.test(candidateVideo.id)) {
+                realVideo = candidateVideo;
+              }
+            }
+            
+            // Se não encontrou pelo índice, procurar em todos os vídeos reais
+            if (!realVideo && playlist.items) {
+              const realVideosInPlaylist = playlist.items.filter(v => 
+                v.id && 
+                v.id.length === 11 && 
+                !v.id.includes('-') && 
+                /^[a-zA-Z0-9_-]{11}$/.test(v.id)
+              );
+              
+              if (realVideosInPlaylist.length > videoIndex && realVideosInPlaylist[videoIndex]) {
+                realVideo = realVideosInPlaylist[videoIndex];
+              }
+            }
+            
+            if (realVideo) {
+              // Encontrou vídeo real já carregado!
+              videoId = realVideo.id;
+              videoUrl = realVideo.media_url || `https://www.youtube.com/watch?v=${videoId}`;
+              console.log('[Sidebar] ✅ VideoId real encontrado nos vídeos já carregados:', videoId);
+            } else {
+              // Não encontrou nos vídeos carregados
+              // Se ainda estamos usando formato mock, significa que os vídeos reais ainda não foram carregados
+              console.log('[Sidebar] ⚠️ Vídeo real ainda não foi carregado. Aguardando carregamento automático...');
+              throw new Error('O vídeo ainda não foi carregado da API do YouTube. Aguarde alguns segundos e tente novamente.');
+            }
+          } else {
+            // Última parte pode ser um videoId válido
+            videoId = lastPart;
+            console.log('[Sidebar] ✅ Usando última parte do ID como videoId:', videoId);
+          }
         }
       }
+
+      // Validar que temos um videoId válido (11 caracteres)
+      if (!videoId || videoId.length !== 11 || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+        console.error('[Sidebar] ❌ VideoId inválido:', {
+          videoId,
+          length: videoId?.length,
+          originalId: currentMediaItem.id,
+          originalUrl: currentMediaItem.media_url
+        });
+        throw new Error('Não foi possível identificar o ID do vídeo. Verifique se o vídeo está selecionado corretamente.');
+      }
+
+      // Garantir que temos uma URL válida
+      if (!videoUrl || videoUrl.includes('/playlist') || !videoUrl.includes('watch?v=')) {
+        videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+      }
+
+      console.log('[Sidebar] ✅ Enviando para API:', { videoId, videoUrl, playlistId: playlist.id });
 
       const response = await fetch('/api/transcribe', {
         method: 'POST',
@@ -225,14 +324,56 @@ export default function Sidebar({
         try {
           // Extrair videoId do media_url ou usar o id diretamente
           let videoId = currentMediaItem.id;
-          const videoUrl = currentMediaItem.media_url;
+          let videoUrl = currentMediaItem.media_url;
 
-          // Se o ID contém hífen (formato playlist-id), extrair o videoId real da URL
-          if (videoUrl && videoUrl.includes('youtube.com')) {
-            const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-            if (match && match[1]) {
-              videoId = match[1];
+          // Verificar se o ID já é um videoId válido do YouTube (11 caracteres)
+          const isValidYouTubeVideoId = videoId && 
+            videoId.length === 11 && 
+            !videoId.includes('-') && 
+            /^[a-zA-Z0-9_-]{11}$/.test(videoId);
+
+          if (isValidYouTubeVideoId) {
+            // Se não tiver URL ou URL for de playlist, construir URL do vídeo
+            if (!videoUrl || videoUrl.includes('/playlist') || !videoUrl.includes('watch?v=')) {
+              videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
             }
+          } else {
+            // Tentar extrair videoId da URL primeiro
+            if (videoUrl && (videoUrl.includes('watch?v=') || videoUrl.includes('youtu.be/'))) {
+              const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+              if (match && match[1]) {
+                videoId = match[1];
+              }
+            }
+
+            // Se ainda não tiver videoId válido e o ID contém hífen (formato playlist-id-numero)
+            if (!isValidYouTubeVideoId && videoId.includes('-')) {
+              const parts = videoId.split('-');
+              const lastPart = parts[parts.length - 1];
+              
+              // Se a última parte for um número (1, 2, 3...), não é um videoId válido
+              if (/^\d+$/.test(lastPart)) {
+                // Se a URL for de playlist, não podemos buscar sem a API
+                if (videoUrl && videoUrl.includes('/playlist')) {
+                  // Não fazer nada - aguardar que os vídeos reais sejam carregados
+                  return;
+                }
+              } else {
+                // Última parte pode ser um videoId válido
+                videoId = lastPart;
+              }
+            }
+          }
+
+          // Validar que temos um videoId válido (11 caracteres)
+          if (!videoId || videoId.length !== 11 || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+            // Não fazer nada se não tiver videoId válido - aguardar carregamento dos vídeos reais
+            return;
+          }
+
+          // Garantir que temos uma URL válida
+          if (!videoUrl || videoUrl.includes('/playlist') || !videoUrl.includes('watch?v=')) {
+            videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
           }
 
           // Tentar buscar a transcrição existente (a API retorna do cache se existir)
