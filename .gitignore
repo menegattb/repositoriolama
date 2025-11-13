@@ -50,3 +50,9 @@ transcript_files.txt
 
 # transcrições geradas automaticamente (mantém .gitkeep)
 public/transcripts/*.srt
+
+# Google Service Account credentials
+*.json
+!package*.json
+!tsconfig*.json
+!eslint*.json

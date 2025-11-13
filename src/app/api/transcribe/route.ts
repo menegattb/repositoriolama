@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Document, Packer, Paragraph, TextRun, ExternalHyperlink } from 'docx';
+import { google } from 'googleapis';
 
 /**
  * Função para fazer upload do arquivo de transcrição para o Hostinger via API HTTP
@@ -146,84 +147,98 @@ async function createAndUploadDocx(
       .substring(0, 50);
     const fileName = `${safeTitle}-${videoId}.docx`;
 
-    // Fazer upload para Drive
+    // Fazer upload para Drive usando Service Account
     const DRIVE_FOLDER_ID = '1-VPWLcqeAx7hVN_zpzqpt0qmzmp7iruw';
-    const GOOGLE_DRIVE_API_BASE = 'https://www.googleapis.com/upload/drive/v3';
-    const apiKey = process.env.GOOGLE_DRIVE_API_KEY;
+    
+    // Carregar credenciais da Service Account
+    let serviceAccountCredentials: {
+      type: string;
+      project_id: string;
+      private_key_id: string;
+      private_key: string;
+      client_email: string;
+      client_id: string;
+      auth_uri: string;
+      token_uri: string;
+      auth_provider_x509_cert_url: string;
+      client_x509_cert_url: string;
+      universe_domain: string;
+    };
 
-    if (!apiKey) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[DRIVE UPLOAD] GOOGLE_DRIVE_API_KEY não configurada, pulando upload');
+    try {
+      // Tentar ler do arquivo JSON local primeiro (desenvolvimento)
+      const credentialsPath = path.join(process.cwd(), 'nth-record-478117-d1-f0cb80ff1823.json');
+      try {
+        const credentialsFile = await fs.readFile(credentialsPath, 'utf-8');
+        serviceAccountCredentials = JSON.parse(credentialsFile);
+        console.log('[DRIVE UPLOAD] Credenciais carregadas do arquivo local');
+      } catch {
+        // Se não encontrar arquivo local, tentar variável de ambiente (produção)
+        const envCredentials = process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS;
+        if (!envCredentials) {
+          console.warn('[DRIVE UPLOAD] Credenciais da Service Account não encontradas. Verifique GOOGLE_SERVICE_ACCOUNT_CREDENTIALS ou arquivo JSON.');
+          return null;
+        }
+        serviceAccountCredentials = JSON.parse(envCredentials);
+        console.log('[DRIVE UPLOAD] Credenciais carregadas da variável de ambiente');
       }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('[DRIVE UPLOAD ERROR] Erro ao carregar credenciais:', errorMessage);
       return null;
     }
 
-    // Converter Buffer para Uint8Array para compatibilidade com Blob
-    const uint8Array = new Uint8Array(buffer);
+    try {
+      // Autenticar com Service Account
+      const auth = new google.auth.JWT({
+        email: serviceAccountCredentials.client_email,
+        key: serviceAccountCredentials.private_key,
+        scopes: ['https://www.googleapis.com/auth/drive.file'],
+      });
 
-    // Criar FormData para upload multipart
-    const metadata = {
-      name: fileName,
-      parents: [DRIVE_FOLDER_ID],
-    };
+      // Criar cliente do Drive
+      const drive = google.drive({ version: 'v3', auth });
 
-    const formData = new FormData();
-    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    formData.append('file', new Blob([uint8Array], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+      // Fazer upload do arquivo
+      const response = await drive.files.create({
+        requestBody: {
+          name: fileName,
+          parents: [DRIVE_FOLDER_ID],
+        },
+        media: {
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          body: Buffer.from(buffer),
+        },
+        fields: 'id, webViewLink',
+      });
 
-    const uploadUrl = `${GOOGLE_DRIVE_API_BASE}/files?uploadType=multipart&key=${apiKey}`;
+      if (response.data.id) {
+        const fileId = response.data.id;
+        const webViewLink = response.data.webViewLink || `https://drive.google.com/file/d/${fileId}/view`;
 
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      body: formData,
-    });
+        console.log(`[DRIVE UPLOAD SUCCESS] DOCX enviado com sucesso: ${fileName} (ID: ${fileId})`);
+        console.log(`[DRIVE UPLOAD SUCCESS] Link: ${webViewLink}`);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorData: { error?: { message?: string; errors?: Array<{ message?: string; domain?: string; reason?: string }> }; message?: string; raw?: string; [key: string]: unknown } = {};
-      try {
-        errorData = JSON.parse(errorText) as { error?: { message?: string; errors?: Array<{ message?: string; domain?: string; reason?: string }> }; message?: string; [key: string]: unknown };
-      } catch {
-        errorData = { raw: errorText };
+        return webViewLink;
+      } else {
+        console.error('[DRIVE UPLOAD ERROR] Upload concluído mas sem ID de arquivo');
+        return null;
       }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      const errorDetails = error instanceof Error && 'response' in error 
+        ? (error as { response?: { data?: unknown; status?: number } }).response?.data 
+        : undefined;
       
-      const errorMessage = errorData.error?.message || errorData.message || errorText;
-      const errorReason = errorData.error?.errors?.[0]?.reason || '';
-      
-      console.error('[DRIVE UPLOAD ERROR]', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData,
-        errorMessage,
-        errorReason,
+      console.error('[DRIVE UPLOAD ERROR] Erro ao fazer upload:', {
+        message: errorMessage,
+        details: errorDetails,
         fileName,
         folderId: DRIVE_FOLDER_ID
       });
       
-      // Log mais detalhado em produção também para debug
-      console.error('[DRIVE UPLOAD ERROR] Detalhes:', JSON.stringify({
-        status: response.status,
-        error: errorData,
-        message: errorMessage,
-        reason: errorReason
-      }, null, 2));
-      
-      // Se for erro 401 ou 403, provavelmente é problema de autenticação
-      if (response.status === 401 || response.status === 403) {
-        console.error('[DRIVE UPLOAD ERROR] Autenticação falhou. A API do Google Drive requer OAuth2 ou Service Account para uploads. API key sozinha não permite uploads.');
-      }
-      
       return null;
     }
-
-    const result = await response.json();
-    const fileId = result.id;
-    const webViewLink = `https://drive.google.com/file/d/${fileId}/view`;
-
-    console.log(`[DRIVE UPLOAD SUCCESS] DOCX enviado com sucesso: ${fileName} (ID: ${fileId})`);
-    console.log(`[DRIVE UPLOAD SUCCESS] Link: ${webViewLink}`);
-
-    return webViewLink;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error('[DRIVE UPLOAD ERROR] Erro ao criar/fazer upload do DOCX:', errorMessage);
