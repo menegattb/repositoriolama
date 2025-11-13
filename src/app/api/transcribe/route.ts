@@ -177,9 +177,9 @@ async function createAndUploadDocx(
 
     if (!response.ok) {
       const errorText = await response.text();
-      let errorData: any = {};
+      let errorData: { error?: { message?: string }; message?: string; raw?: string; [key: string]: unknown } = {};
       try {
-        errorData = JSON.parse(errorText);
+        errorData = JSON.parse(errorText) as { error?: { message?: string }; message?: string; [key: string]: unknown };
       } catch {
         errorData = { raw: errorText };
       }

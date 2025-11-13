@@ -108,8 +108,9 @@ export default function Sidebar({
 
       // Sucesso
       // Verificar se vem do Drive
-      if ((data as any).fromDrive && (data as any).transcriptUrl) {
-        setTranscriptUrl((data as any).transcriptUrl);
+      const dataWithDrive = data as TranscriptResponse & { fromDrive?: boolean; transcriptUrl?: string };
+      if (dataWithDrive.fromDrive && dataWithDrive.transcriptUrl) {
+        setTranscriptUrl(dataWithDrive.transcriptUrl);
         // Se for do Drive, não temos conteúdo formatado, apenas link
       } else {
         setTranscriptUrl(data.transcriptUrl || null);
@@ -253,8 +254,9 @@ export default function Sidebar({
           // Se a transcrição existe (cache hit), carregar automaticamente
           if (response.ok && data.success && data.cached) {
             // Verificar se vem do Drive
-            if ((data as any).fromDrive && (data as any).transcriptUrl) {
-              setTranscriptUrl((data as any).transcriptUrl);
+            const dataWithDrive = data as TranscriptResponse & { fromDrive?: boolean; transcriptUrl?: string };
+            if (dataWithDrive.fromDrive && dataWithDrive.transcriptUrl) {
+              setTranscriptUrl(dataWithDrive.transcriptUrl);
               // Se for do Drive, não temos conteúdo formatado, apenas link
             } else {
               setTranscriptUrl(data.transcriptUrl || null);
