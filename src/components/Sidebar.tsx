@@ -85,6 +85,16 @@ export default function Sidebar({
         title: currentMediaItem.title
       });
 
+      // PRIMEIRO: Sempre tentar extrair videoId da URL (como funcionava antes)
+      if (videoUrl && (videoUrl.includes('watch?v=') || videoUrl.includes('youtu.be/'))) {
+        const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+        if (match && match[1]) {
+          videoId = match[1];
+          videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+          console.log('[Sidebar] ✅ VideoId extraído da URL:', videoId);
+        }
+      }
+
       // Verificar se o ID já é um videoId válido do YouTube (11 caracteres, sem hífen/underscore)
       const isValidYouTubeVideoId = videoId && 
         videoId.length === 11 && 
@@ -94,19 +104,11 @@ export default function Sidebar({
 
       if (isValidYouTubeVideoId) {
         console.log('[Sidebar] ✅ ID já é um videoId válido do YouTube:', videoId);
-        // Se não tiver URL ou URL for de playlist, construir URL do vídeo
+        // Garantir que temos uma URL válida
         if (!videoUrl || videoUrl.includes('/playlist') || !videoUrl.includes('watch?v=')) {
           videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
         }
       } else {
-        // Tentar extrair videoId da URL primeiro
-        if (videoUrl && (videoUrl.includes('watch?v=') || videoUrl.includes('youtu.be/'))) {
-          const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-          if (match && match[1]) {
-            videoId = match[1];
-            console.log('[Sidebar] ✅ VideoId extraído da URL:', videoId);
-          }
-        }
 
         // Se ainda não tiver videoId válido e o ID contém hífen (formato playlist-id-numero)
         if (!isValidYouTubeVideoId && videoId.includes('-')) {
