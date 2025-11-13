@@ -158,6 +158,9 @@ async function createAndUploadDocx(
       return null;
     }
 
+    // Converter Buffer para Uint8Array para compatibilidade com Blob
+    const uint8Array = new Uint8Array(buffer);
+
     // Criar FormData para upload multipart
     const metadata = {
       name: fileName,
@@ -166,7 +169,7 @@ async function createAndUploadDocx(
 
     const formData = new FormData();
     formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    formData.append('file', new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+    formData.append('file', new Blob([uint8Array], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
 
     const uploadUrl = `${GOOGLE_DRIVE_API_BASE}/files?uploadType=multipart&key=${apiKey}`;
 
