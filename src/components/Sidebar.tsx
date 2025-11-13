@@ -31,9 +31,6 @@ export default function Sidebar({
   const [transcriptArray, setTranscriptArray] = useState<Array<{ text: string; offset: number; duration?: number }> | null>(null);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
   const [transcriptLang, setTranscriptLang] = useState<string | null>(null);
-  const [fromDrive, setFromDrive] = useState(false);
-  const [driveFileId, setDriveFileId] = useState<string | null>(null);
-  const [showDriveViewer, setShowDriveViewer] = useState(false);
 
   useEffect(() => {
     setPlaylistUrl(window.location.href);
@@ -110,22 +107,11 @@ export default function Sidebar({
       }
 
       // Sucesso
-      // Verificar se vem do Drive
-      if ((data as any).fromDrive && (data as any).driveFileId) {
-        setFromDrive(true);
-        setDriveFileId((data as any).driveFileId);
-        setTranscriptUrl((data as any).transcriptUrl || null);
-        setShowDriveViewer(true);
-      } else {
-        // Transcrição normal (SRT)
-        setFromDrive(false);
-        setDriveFileId(null);
-        setTranscriptUrl(data.transcriptUrl || null);
-        setTranscriptContent(data.content || null);
-        setFormattedContent(data.formattedContent || null);
-        setTranscriptArray(data.transcriptArray || null);
-        setTranscriptLang(data.lang || null);
-      }
+      setTranscriptUrl(data.transcriptUrl || null);
+      setTranscriptContent(data.content || null);
+      setFormattedContent(data.formattedContent || null);
+      setTranscriptArray(data.transcriptArray || null);
+      setTranscriptLang(data.lang || null);
     } catch (error) {
       let errorMessage = 'Erro desconhecido ao transcrever';
       
@@ -226,9 +212,6 @@ export default function Sidebar({
       setTranscriptError(null);
       setTranscriptLang(null);
       setTranscriptSearchTerm('');
-      setFromDrive(false);
-      setDriveFileId(null);
-      setShowDriveViewer(false);
 
       // Verificar automaticamente se a transcrição já existe
       const checkExistingTranscript = async () => {
@@ -262,23 +245,11 @@ export default function Sidebar({
 
           // Se a transcrição existe (cache hit), carregar automaticamente
           if (response.ok && data.success && data.cached) {
-            // Verificar se vem do Drive
-            if ((data as any).fromDrive && (data as any).driveFileId) {
-              setFromDrive(true);
-              setDriveFileId((data as any).driveFileId);
-              setTranscriptUrl((data as any).transcriptUrl || null);
-              // Abrir viewer automaticamente se for do Drive
-              setShowDriveViewer(true);
-            } else {
-              // Transcrição normal (SRT)
-              setFromDrive(false);
-              setDriveFileId(null);
-              setTranscriptUrl(data.transcriptUrl || null);
-              setTranscriptContent(data.content || null);
-              setFormattedContent(data.formattedContent || null);
-              setTranscriptArray(data.transcriptArray || null);
-              setTranscriptLang(data.lang || null);
-            }
+            setTranscriptUrl(data.transcriptUrl || null);
+            setTranscriptContent(data.content || null);
+            setFormattedContent(data.formattedContent || null);
+            setTranscriptArray(data.transcriptArray || null);
+            setTranscriptLang(data.lang || null);
           }
         } catch {
           // Silenciosamente ignorar erros - a transcrição simplesmente não existe ainda
@@ -547,66 +518,20 @@ export default function Sidebar({
                   {transcript.content}
                 </div>
               </div>
-            ) : transcriptUrl || transcriptContent || fromDrive ? (
+            ) : transcriptUrl || transcriptContent ? (
               /* Transcrição gerada automaticamente */
               <div className="space-y-3">
-                {fromDrive && driveFileId ? (
-                  /* Transcrição do Google Drive */
-                  <>
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        Transcrição Corrigida: {currentMediaItem?.title}
-                      </h3>
-                    </div>
-                    
-                    {showDriveViewer && (
-                      <div className="border rounded-lg overflow-hidden">
-                        <DriveViewer
-                          fileId={driveFileId}
-                          title={currentMediaItem?.title || 'Transcrição'}
-                          onClose={() => setShowDriveViewer(false)}
-                          showCloseButton={true}
-                        />
-                      </div>
-                    )}
-                    
-                    {!showDriveViewer && (
-                      <button
-                        onClick={() => setShowDriveViewer(true)}
-                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                      >
-                        <FileText className="w-4 h-4" />
-                        Ver Transcrição Corrigida
-                      </button>
-                    )}
-                    
-                    {transcriptUrl && (
-                      <a
-                        href={transcriptUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-xs font-medium hover:bg-gray-200 transition-colors"
-                      >
-                        <Download className="w-3 h-3" />
-                        Abrir no Google Drive
-                      </a>
-                    )}
-                  </>
-                ) : (
-                  /* Transcrição normal (SRT) */
-                  <>
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        Transcrição: {currentMediaItem?.title}
-                      </h3>
-                      {transcriptLang && (
-                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                          {transcriptLang.toUpperCase()}
-                        </span>
-                      )}
-                    </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    Transcrição: {currentMediaItem?.title}
+                  </h3>
+                  {transcriptLang && (
+                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                      {transcriptLang.toUpperCase()}
+                    </span>
+                  )}
+                </div>
                 
                 <div className="flex gap-2 flex-wrap">
                   {transcriptUrl && (
@@ -670,8 +595,6 @@ export default function Sidebar({
                     </p>
                   )}
                 </div>
-                  </>
-                )}
               </div>
             ) : (
               /* Nenhuma transcrição - mostrar opções */
