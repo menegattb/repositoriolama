@@ -48,7 +48,7 @@ Os vídeos devem ter:
 **Solução**:
 1. Verifique se `.env.local` contém:
    ```bash
-   YOUTUBE_API_KEY=AIzaSyDl_8EPAngkktSNXRrMMIrD7CSAF4RXXkY
+   YOUTUBE_API_KEY=sua_chave_youtube_api_aqui
    ```
 2. Reinicie o servidor completamente (pare e inicie novamente)
 
