@@ -213,26 +213,40 @@ export async function GET(request: NextRequest) {
     
     // Se videoId fornecido, buscar transcrição específica
     if (videoId) {
-      const { docxFile, jsonData } = await findTranscriptByVideoId(videoId, apiKey);
-      
-      if (docxFile) {
+      try {
+        const { docxFile, jsonData } = await findTranscriptByVideoId(videoId, apiKey);
+        
+        if (docxFile) {
+          return NextResponse.json({
+            success: true,
+            found: true,
+            transcript: {
+              id: docxFile.id,
+              name: docxFile.name,
+              driveFileId: docxFile.id,
+              webViewLink: docxFile.webViewLink || `https://drive.google.com/file/d/${docxFile.id}/view`,
+              webContentLink: docxFile.webContentLink,
+              createdTime: docxFile.createdTime,
+              modifiedTime: docxFile.modifiedTime,
+              // Incluir transcriptArray se JSON foi encontrado
+              transcriptArray: jsonData?.transcriptArray || undefined,
+              videoTitle: jsonData?.videoTitle || undefined,
+              videoUrl: jsonData?.videoUrl || undefined,
+              lang: jsonData?.lang || undefined,
+            },
+          }, {
+            headers: {
+              'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0',
+            },
+          });
+        }
+        
         return NextResponse.json({
           success: true,
-          found: true,
-          transcript: {
-            id: docxFile.id,
-            name: docxFile.name,
-            driveFileId: docxFile.id,
-            webViewLink: docxFile.webViewLink || `https://drive.google.com/file/d/${docxFile.id}/view`,
-            webContentLink: docxFile.webContentLink,
-            createdTime: docxFile.createdTime,
-            modifiedTime: docxFile.modifiedTime,
-            // Incluir transcriptArray se JSON foi encontrado
-            transcriptArray: jsonData?.transcriptArray || undefined,
-            videoTitle: jsonData?.videoTitle || undefined,
-            videoUrl: jsonData?.videoUrl || undefined,
-            lang: jsonData?.lang || undefined,
-          },
+          found: false,
+          transcript: null,
         }, {
           headers: {
             'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -240,19 +254,24 @@ export async function GET(request: NextRequest) {
             'Expires': '0',
           },
         });
+      } catch (findError) {
+        const findErrorMsg = findError instanceof Error ? findError.message : 'Erro desconhecido';
+        console.error('[Drive Auto-Transcripts API] Erro ao buscar transcrição específica:', findErrorMsg);
+        // Retornar erro específico mas não quebrar a requisição
+        return NextResponse.json({
+          success: false,
+          found: false,
+          error: findErrorMsg,
+          transcript: null,
+        }, {
+          status: 500,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        });
       }
-      
-      return NextResponse.json({
-        success: true,
-        found: false,
-        transcript: null,
-      }, {
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-        },
-      });
     }
     
     // Buscar todos os arquivos
