@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
+import { existsSync } from 'fs';
 import path from 'path';
+import { Readable } from 'stream';
 import { Document, Packer, Paragraph, TextRun, ExternalHyperlink } from 'docx';
 import { google } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
 
 /**
  * Função para fazer upload do arquivo de transcrição para o Hostinger via API HTTP
@@ -147,79 +150,92 @@ async function createAndUploadDocx(
       .substring(0, 50);
     const fileName = `${safeTitle}-${videoId}.docx`;
 
-    // Fazer upload para Drive usando Service Account
-    const DRIVE_FOLDER_ID = '1-VPWLcqeAx7hVN_zpzqpt0qmzmp7iruw';
+    // Fazer upload para Drive usando OAuth 2.0
+    const DRIVE_FOLDER_ID = '1SKEAfJ8oC0dOq0LGxUt6UtxQXjuvykwg';
     
-    // Carregar credenciais da Service Account
-    let serviceAccountCredentials: {
-      type: string;
-      project_id: string;
-      private_key_id: string;
-      private_key: string;
-      client_email: string;
-      client_id: string;
-      auth_uri: string;
-      token_uri: string;
-      auth_provider_x509_cert_url: string;
-      client_x509_cert_url: string;
-      universe_domain: string;
-    };
+    // Carregar credenciais OAuth 2.0
+    const oauthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+    const oauthClientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+    const oauthRefreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
 
-    try {
-      // Tentar ler do arquivo JSON local primeiro (desenvolvimento)
-      const credentialsPath = path.join(process.cwd(), 'nth-record-478117-d1-f0cb80ff1823.json');
-      console.log('[DRIVE UPLOAD] Tentando carregar credenciais de:', credentialsPath);
-      try {
-        const credentialsFile = await fs.readFile(credentialsPath, 'utf-8');
-        serviceAccountCredentials = JSON.parse(credentialsFile);
-        console.log('[DRIVE UPLOAD] ✅ Credenciais carregadas do arquivo local');
-        console.log('[DRIVE UPLOAD] Email da Service Account:', serviceAccountCredentials.client_email);
-      } catch (fileError) {
-        console.log('[DRIVE UPLOAD] Arquivo local não encontrado, tentando variável de ambiente...');
-        // Se não encontrar arquivo local, tentar variável de ambiente (produção)
-        const envCredentials = process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS;
-        if (!envCredentials) {
-          console.error('[DRIVE UPLOAD ERROR] ❌ Credenciais da Service Account não encontradas!');
-          console.error('[DRIVE UPLOAD ERROR] Verifique:');
-          console.error('[DRIVE UPLOAD ERROR] 1. Arquivo JSON em:', credentialsPath);
-          console.error('[DRIVE UPLOAD ERROR] 2. Variável de ambiente GOOGLE_SERVICE_ACCOUNT_CREDENTIALS');
-          return null;
-        }
-        serviceAccountCredentials = JSON.parse(envCredentials);
-        console.log('[DRIVE UPLOAD] ✅ Credenciais carregadas da variável de ambiente');
-        console.log('[DRIVE UPLOAD] Email da Service Account:', serviceAccountCredentials.client_email);
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      const errorStack = error instanceof Error ? error.stack : undefined;
-      console.error('[DRIVE UPLOAD ERROR] ❌ Erro ao carregar credenciais:', errorMessage);
-      if (errorStack) {
-        console.error('[DRIVE UPLOAD ERROR] Stack:', errorStack);
-      }
+    if (!oauthClientId || !oauthClientSecret) {
+      console.error('[DRIVE UPLOAD ERROR] ❌ Credenciais OAuth não configuradas!');
+      console.error('[DRIVE UPLOAD ERROR] Configure as variáveis de ambiente:');
+      console.error('[DRIVE UPLOAD ERROR] - GOOGLE_OAUTH_CLIENT_ID');
+      console.error('[DRIVE UPLOAD ERROR] - GOOGLE_OAUTH_CLIENT_SECRET');
+      console.error('[DRIVE UPLOAD ERROR] - GOOGLE_OAUTH_REFRESH_TOKEN');
+      return null;
+    }
+
+    if (!oauthRefreshToken) {
+      console.error('[DRIVE UPLOAD ERROR] ❌ Refresh Token não configurado!');
+      console.error('[DRIVE UPLOAD ERROR] Para obter o refresh token:');
+      console.error('[DRIVE UPLOAD ERROR] 1. Acesse: /api/auth/google');
+      console.error('[DRIVE UPLOAD ERROR] 2. Autorize o acesso');
+      console.error('[DRIVE UPLOAD ERROR] 3. Copie o refresh_token retornado');
+      console.error('[DRIVE UPLOAD ERROR] 4. Configure GOOGLE_OAUTH_REFRESH_TOKEN no .env.local ou Vercel');
       return null;
     }
 
     try {
-      console.log('[DRIVE UPLOAD] Iniciando autenticação com Service Account...');
-      console.log('[DRIVE UPLOAD] Email da Service Account:', serviceAccountCredentials.client_email);
+      console.log('[DRIVE UPLOAD] Iniciando autenticação com OAuth 2.0...');
+      console.log('[DRIVE UPLOAD] Client ID:', oauthClientId.substring(0, 20) + '...');
       console.log('[DRIVE UPLOAD] Pasta de destino:', DRIVE_FOLDER_ID);
       
-      // Autenticar com Service Account
-      const auth = new google.auth.JWT({
-        email: serviceAccountCredentials.client_email,
-        key: serviceAccountCredentials.private_key,
-        scopes: ['https://www.googleapis.com/auth/drive.file'],
+      // Criar cliente OAuth 2.0
+      const oauth2Client = new OAuth2Client(
+        oauthClientId,
+        oauthClientSecret,
+        process.env.NODE_ENV === 'production' 
+          ? 'https://repositorio.acaoparamita.com.br/api/auth/google/callback'
+          : 'http://localhost:3000/api/auth/google/callback'
+      );
+
+      // Configurar refresh token
+      oauth2Client.setCredentials({
+        refresh_token: oauthRefreshToken,
       });
 
-      console.log('[DRIVE UPLOAD] Autenticação criada, criando cliente do Drive...');
+      // Obter access token (será renovado automaticamente se necessário)
+      const { credentials } = await oauth2Client.refreshAccessToken();
+      oauth2Client.setCredentials(credentials);
 
-      // Criar cliente do Drive
-      const drive = google.drive({ version: 'v3', auth });
+      console.log('[DRIVE UPLOAD] ✅ Autenticação OAuth concluída');
+      console.log('[DRIVE UPLOAD] Criando cliente do Drive...');
+
+      // Criar cliente do Drive com OAuth
+      const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+      // Verificar acesso à pasta ANTES de tentar upload
+      console.log('[DRIVE UPLOAD] Verificando acesso à pasta:', DRIVE_FOLDER_ID);
+      try {
+        const folderInfo = await drive.files.get({
+          fileId: DRIVE_FOLDER_ID,
+          fields: 'id, name, owners, permissions, shared, mimeType',
+          supportsAllDrives: true,
+          supportsTeamDrives: true,
+        });
+        
+        console.log('[DRIVE UPLOAD] ✅ Pasta encontrada:', folderInfo.data.name);
+        console.log('[DRIVE UPLOAD] Proprietários:', folderInfo.data.owners?.map(o => o.emailAddress).join(', ') || 'N/A');
+        console.log('[DRIVE UPLOAD] Compartilhada:', folderInfo.data.shared || false);
+        console.log('[DRIVE UPLOAD] ✅ Pasta configurada corretamente (OAuth usa quota do usuário real)');
+      } catch (folderError: unknown) {
+        const folderErrorMsg = folderError instanceof Error ? folderError.message : 'Erro desconhecido';
+        console.error('[DRIVE UPLOAD ERROR] ⚠️ Não foi possível verificar a pasta:', folderErrorMsg);
+        console.error('[DRIVE UPLOAD ERROR] Continuando tentativa de upload...');
+      }
 
       console.log('[DRIVE UPLOAD] Fazendo upload do arquivo:', fileName);
       console.log('[DRIVE UPLOAD] Tamanho do buffer:', buffer.length, 'bytes');
 
+      // Converter Buffer para Stream (googleapis requer stream para uploads)
+      const bufferStream = Readable.from(Buffer.from(buffer));
+      
       // Fazer upload do arquivo
+      // IMPORTANTE: Service Accounts não têm quota própria
+      // A pasta deve pertencer a um usuário real e estar compartilhada com a Service Account
+      // Usar supportsAllDrives: true para suportar Shared Drives (se aplicável)
       const response = await drive.files.create({
         requestBody: {
           name: fileName,
@@ -227,9 +243,11 @@ async function createAndUploadDocx(
         },
         media: {
           mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          body: Buffer.from(buffer),
+          body: bufferStream,
         },
-        fields: 'id, webViewLink, name',
+        fields: 'id, webViewLink, name, permissions',
+        supportsAllDrives: true, // Suportar Shared Drives
+        supportsTeamDrives: true, // Compatibilidade com Team Drives antigos
       });
 
       console.log('[DRIVE UPLOAD] Resposta recebida:', {
@@ -240,11 +258,86 @@ async function createAndUploadDocx(
 
       if (response.data.id) {
         const fileId = response.data.id;
+        
+        // Tornar arquivo público para visualização (opcional, mas útil)
+        try {
+          await drive.permissions.create({
+            fileId: fileId,
+            requestBody: {
+              role: 'reader',
+              type: 'anyone',
+            },
+            supportsAllDrives: true,
+            supportsTeamDrives: true,
+          });
+          console.log('[DRIVE UPLOAD] ✅ Arquivo compartilhado publicamente');
+        } catch (shareError) {
+          // Não é crítico se falhar - o arquivo ainda foi criado
+          console.warn('[DRIVE UPLOAD] ⚠️ Não foi possível tornar arquivo público:', shareError);
+        }
+        
         const webViewLink = response.data.webViewLink || `https://drive.google.com/file/d/${fileId}/view`;
 
         console.log(`[DRIVE UPLOAD SUCCESS] ✅ DOCX enviado com sucesso: ${fileName}`);
         console.log(`[DRIVE UPLOAD SUCCESS] ✅ File ID: ${fileId}`);
         console.log(`[DRIVE UPLOAD SUCCESS] ✅ Link: ${webViewLink}`);
+
+        // Salvar transcriptArray como JSON no Drive para edição futura
+        try {
+          const jsonFileName = `${safeTitle}-${videoId}.json`;
+          const jsonContent = JSON.stringify({
+            videoId,
+            videoTitle,
+            videoUrl,
+            lang,
+            transcriptArray,
+            createdAt: new Date().toISOString(),
+            version: '1.0'
+          }, null, 2);
+          
+          const jsonBuffer = Buffer.from(jsonContent, 'utf-8');
+          const jsonStream = Readable.from(jsonBuffer);
+          
+          const jsonResponse = await drive.files.create({
+            requestBody: {
+              name: jsonFileName,
+              parents: [DRIVE_FOLDER_ID],
+            },
+            media: {
+              mimeType: 'application/json',
+              body: jsonStream,
+            },
+            fields: 'id, webViewLink',
+            supportsAllDrives: true,
+            supportsTeamDrives: true,
+          });
+
+          if (jsonResponse.data.id) {
+            // Tornar JSON público também
+            try {
+              await drive.permissions.create({
+                fileId: jsonResponse.data.id,
+                requestBody: {
+                  role: 'reader',
+                  type: 'anyone',
+                },
+                supportsAllDrives: true,
+                supportsTeamDrives: true,
+              });
+            } catch (shareError) {
+              // Não crítico
+              console.warn('[DRIVE UPLOAD] ⚠️ Não foi possível tornar JSON público:', shareError);
+            }
+            
+            console.log(`[DRIVE UPLOAD SUCCESS] ✅ JSON com transcriptArray salvo: ${jsonFileName}`);
+            console.log(`[DRIVE UPLOAD SUCCESS] ✅ JSON File ID: ${jsonResponse.data.id}`);
+          }
+        } catch (jsonError) {
+          // Não crítico - o DOCX foi salvo com sucesso
+          const jsonErrorMsg = jsonError instanceof Error ? jsonError.message : 'Erro desconhecido';
+          console.warn('[DRIVE UPLOAD] ⚠️ Erro ao salvar JSON (não crítico):', jsonErrorMsg);
+          console.warn('[DRIVE UPLOAD] O DOCX foi salvo com sucesso, mas o JSON não pôde ser salvo.');
+        }
 
         return webViewLink;
       } else {
@@ -272,12 +365,38 @@ async function createAndUploadDocx(
         details: errorDetails,
         fileName,
         folderId: DRIVE_FOLDER_ID,
-        serviceAccountEmail: serviceAccountCredentials.client_email
       });
       
       // Log detalhado do erro
       if (errorDetails) {
         console.error('[DRIVE UPLOAD ERROR] Detalhes completos:', JSON.stringify(errorDetails, null, 2));
+        
+        // Mensagens específicas para erros comuns
+        const status = (errorDetails as { status?: number })?.status;
+        const errorData = (errorDetails as { 
+          data?: { 
+            error?: { 
+              message?: string; 
+              code?: number;
+              errors?: Array<{ reason?: string; message?: string }>;
+            } 
+          } 
+        })?.data;
+        
+        if (status === 403) {
+          const errorMessage = errorData?.error?.message || '';
+          const errorReason = errorData?.error?.errors?.[0]?.reason || '';
+          
+          if (errorReason === 'storageQuotaExceeded' || errorMessage.includes('storage quota')) {
+            console.error('[DRIVE UPLOAD ERROR] ⚠️ QUOTA DE ARMAZENAMENTO EXCEDIDA:');
+            console.error('[DRIVE UPLOAD ERROR] A conta do Google Drive atingiu o limite de armazenamento.');
+            console.error('[DRIVE UPLOAD ERROR] SOLUÇÃO: Libere espaço no Google Drive ou faça upgrade do plano.');
+          } else if (errorMessage.includes('insufficientFilePermissions') || errorMessage.includes('insufficient permissions')) {
+            console.error('[DRIVE UPLOAD ERROR] ⚠️ PERMISSÃO INSUFICIENTE:');
+            console.error('[DRIVE UPLOAD ERROR] A conta OAuth precisa ter acesso à pasta do Drive.');
+            console.error('[DRIVE UPLOAD ERROR] SOLUÇÃO: Verifique se a pasta existe e se você tem permissão de escrita.');
+          }
+        }
       }
       
       return null;
@@ -433,9 +552,14 @@ export async function POST(request: NextRequest) {
         const driveData = await driveResponse.json();
         
         if (driveData.success && driveData.found && driveData.transcript) {
-          // DOCX encontrado no Drive - retornar link do Drive
+          // DOCX encontrado no Drive - retornar link do Drive e transcriptArray se disponível
           if (process.env.NODE_ENV === 'development') {
             console.log(`[DRIVE HIT] DOCX encontrado no Google Drive para videoId: ${finalVideoId}`);
+            if (driveData.transcript.transcriptArray) {
+              console.log(`[DRIVE HIT] ✅ transcriptArray encontrado no JSON (${driveData.transcript.transcriptArray.length} itens)`);
+            } else {
+              console.log(`[DRIVE HIT] ⚠️ transcriptArray não encontrado no JSON`);
+            }
           }
           
           return NextResponse.json({
@@ -445,7 +569,14 @@ export async function POST(request: NextRequest) {
             driveFileId: driveData.transcript.driveFileId,
             fromDrive: true,
             cached: true,
-            message: 'Transcrição encontrada no Google Drive'
+            // Incluir transcriptArray se disponível no JSON
+            transcriptArray: driveData.transcript.transcriptArray || undefined,
+            formattedContent: driveData.transcript.transcriptArray ? undefined : undefined, // Será gerado do array
+            content: driveData.transcript.transcriptArray ? undefined : undefined,
+            lang: driveData.transcript.lang || undefined,
+            message: driveData.transcript.transcriptArray 
+              ? 'Transcrição encontrada no Google Drive com dados completos'
+              : 'Transcrição encontrada no Google Drive'
           });
         }
       }
@@ -494,6 +625,7 @@ export async function POST(request: NextRequest) {
     }
     
     if (existingTranscript) {
+      console.log('[CACHE] Transcrição encontrada localmente, verificando se precisa fazer upload para o Drive...');
       
       // Criar versão formatada do cache também
       const plainTextCache = existingTranscript.split('\n')
@@ -511,23 +643,89 @@ export async function POST(request: NextRequest) {
           }).filter(Boolean).join('\n')
         : plainTextCache;
       
-      // Determinar a URL do transcript - usar Hostinger se disponível, senão local
-      let transcriptUrl = `/transcripts/${playlistFolder}/${finalVideoId}.srt`;
-      if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
-        const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://acaoparamita.com.br';
-        transcriptUrl = `${hostingerUrl}/repositorio/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+      // Verificar se já existe no Drive antes de fazer upload
+      let driveDocxUrl: string | null = null;
+      let driveUploadError: string | null = null;
+      
+      try {
+        const { GET: getAutoTranscripts } = await import('../drive/auto-transcripts/route');
+        const driveCheckRequest = new NextRequest(
+          new URL(`/api/drive/auto-transcripts?videoId=${finalVideoId}`, 'http://localhost:3000')
+        );
+        const driveCheckResponse = await getAutoTranscripts(driveCheckRequest);
+        
+        if (driveCheckResponse.ok) {
+          const driveCheckData = await driveCheckResponse.json();
+          
+          if (driveCheckData.success && driveCheckData.found && driveCheckData.transcript) {
+            // Já existe no Drive
+            console.log('[CACHE] ✅ DOCX já existe no Google Drive');
+            driveDocxUrl = driveCheckData.transcript.webViewLink;
+          } else {
+            // Não existe no Drive - fazer upload
+            console.log('[CACHE] 📤 DOCX não encontrado no Drive, fazendo upload...');
+            
+            if (transcriptArrayFromCache.length > 0) {
+              console.log(`[CACHE] 📝 Gerando DOCX a partir do cache (${transcriptArrayFromCache.length} itens)...`);
+              try {
+                driveDocxUrl = await createAndUploadDocx(
+                  transcriptArrayFromCache,
+                  finalVideoId,
+                  videoTitle,
+                  finalVideoUrl,
+                  'pt' // Idioma padrão
+                );
+                
+                if (driveDocxUrl) {
+                  console.log(`[CACHE] ✅ DOCX enviado para o Drive com sucesso: ${driveDocxUrl}`);
+                } else {
+                  driveUploadError = 'Upload para o Drive falhou (verifique logs do servidor)';
+                  console.error('[CACHE] ❌ Upload do DOCX retornou null - verifique logs acima para detalhes');
+                }
+              } catch (docxError) {
+                const errorMessage = docxError instanceof Error ? docxError.message : 'Erro desconhecido';
+                const errorStack = docxError instanceof Error ? docxError.stack : undefined;
+                driveUploadError = `Erro ao fazer upload para o Drive: ${errorMessage}`;
+                console.error('[CACHE] ❌ Erro ao criar/fazer upload do DOCX:', {
+                  message: errorMessage,
+                  stack: errorStack,
+                  videoId: finalVideoId
+                });
+              }
+            } else {
+              console.warn('[CACHE] ⚠️ transcriptArrayFromCache está vazio, não foi possível gerar DOCX');
+              console.warn('[CACHE] Tamanho do SRT:', existingTranscript.length, 'caracteres');
+            }
+          }
+        }
+      } catch (driveCheckError) {
+        console.warn('[CACHE] ⚠️ Erro ao verificar Drive, continuando sem upload:', driveCheckError);
       }
+      
+      // Determinar a URL do transcript - usar Drive se disponível, senão Hostinger/local
+      let transcriptUrl = driveDocxUrl || (() => {
+        if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
+          const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://acaoparamita.com.br';
+          return `${hostingerUrl}/repositorio/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+        }
+        return `/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+      })();
       
       return NextResponse.json({
         success: true,
         videoId: finalVideoId,
         transcriptUrl: transcriptUrl,
+        driveDocxUrl: driveDocxUrl || undefined,
+        fromDrive: !!driveDocxUrl,
+        driveUploadError: driveUploadError || undefined,
         content: plainTextCache,
         formattedContent: formattedContentFromCache,
         transcriptArray: transcriptArrayFromCache,
         srtContent: existingTranscript,
         cached: true,
-        message: 'Transcrição encontrada em cache'
+        message: driveDocxUrl 
+          ? 'Transcrição encontrada em cache e salva no Google Drive!' 
+          : 'Transcrição encontrada em cache'
       });
     }
     
@@ -922,19 +1120,88 @@ export async function POST(request: NextRequest) {
       if (contentStr.trim().length > 0) {
         // Formato: content é uma string
         transcriptContent = contentStr;
+        // Converter string para array básico para permitir upload do Drive
+        // Dividir por linhas e criar objetos com offset aproximado
+        const lines = contentStr.split('\n').filter(line => line.trim().length > 0);
+        transcriptArray = lines.map((line, index) => {
+          // Tentar extrair timestamp se existir (formato [HH:MM:SS] ou similar)
+          const timestampMatch = line.match(/\[(\d{2}):(\d{2}):(\d{2})\]/);
+          let offset = index * 1000; // Aproximação: 1 segundo por linha
+          
+          if (timestampMatch) {
+            const hours = parseInt(timestampMatch[1], 10);
+            const minutes = parseInt(timestampMatch[2], 10);
+            const seconds = parseInt(timestampMatch[3], 10);
+            offset = (hours * 3600 + minutes * 60 + seconds) * 1000;
+            // Remover timestamp do texto
+            line = line.replace(/\[\d{2}:\d{2}:\d{2}\]\s*/, '').trim();
+          }
+          
+          return {
+            text: line,
+            offset: offset,
+            duration: 1000 // Aproximação: 1 segundo por linha
+          };
+        });
       }
     } else if (typeof result.transcript === 'string' && result.transcript.trim().length > 0) {
       transcriptContent = result.transcript;
+      // Converter string para array básico
+      const lines = result.transcript.split('\n').filter(line => line.trim().length > 0);
+      transcriptArray = lines.map((line, index) => ({
+        text: line,
+        offset: index * 1000,
+        duration: 1000
+      }));
     } else if (typeof result.text === 'string' && result.text.trim().length > 0) {
       transcriptContent = result.text;
+      // Converter string para array básico
+      const lines = result.text.split('\n').filter(line => line.trim().length > 0);
+      transcriptArray = lines.map((line, index) => ({
+        text: line,
+        offset: index * 1000,
+        duration: 1000
+      }));
     } else if (typeof result.srt === 'string' && result.srt.trim().length > 0) {
       transcriptContent = result.srt;
+      // Converter SRT para array básico (parsing simples)
+      const srtLines = result.srt.split('\n');
+      let currentOffset = 0;
+      transcriptArray = srtLines
+        .filter(line => line.trim().length > 0 && !line.match(/^\d+$/) && !line.includes('-->'))
+        .map((line, index) => {
+          currentOffset = index * 1000;
+          return {
+            text: line.trim(),
+            offset: currentOffset,
+            duration: 1000
+          };
+        });
     } else if (result.data && typeof result.data === 'string' && result.data.trim().length > 0) {
       transcriptContent = result.data;
+      // Converter string para array básico
+      const lines = result.data.split('\n').filter(line => line.trim().length > 0);
+      transcriptArray = lines.map((line, index) => ({
+        text: line,
+        offset: index * 1000,
+        duration: 1000
+      }));
     } else if (Array.isArray(result) && result.length > 0) {
       // Se result é um array diretamente
       transcriptArray = result;
       transcriptContent = convertToSRT(transcriptArray);
+    }
+    
+    // Garantir que transcriptArray tenha conteúdo se transcriptContent existir mas array estiver vazio
+    if (transcriptContent && transcriptContent.trim().length > 0 && transcriptArray.length === 0) {
+      console.log('[TRANSCRIBE] Convertendo transcriptContent para transcriptArray...');
+      const lines = transcriptContent.split('\n').filter(line => line.trim().length > 0);
+      transcriptArray = lines.map((line, index) => ({
+        text: line.trim(),
+        offset: index * 1000,
+        duration: 1000
+      }));
+      console.log(`[TRANSCRIBE] Criado transcriptArray com ${transcriptArray.length} itens`);
     }
     
     if (!transcriptContent || transcriptContent.trim().length === 0) {
@@ -1058,9 +1325,24 @@ export async function POST(request: NextRequest) {
     // Criar DOCX e fazer upload para o Drive
     let driveDocxUrl: string | null = null;
     let driveUploadError: string | null = null;
+    
+    console.log('[DRIVE] Verificando se deve fazer upload...', {
+      transcriptArrayLength: transcriptArray.length,
+      transcriptContentLength: transcriptContent?.length || 0,
+      hasContent: transcriptContent && transcriptContent.trim().length > 0,
+      videoId: finalVideoId,
+      videoTitle: videoTitle
+    });
+    
     if (transcriptArray.length > 0) {
       try {
-        console.log('[DRIVE] Iniciando criação e upload do DOCX...');
+        console.log('[DRIVE] ✅ Iniciando criação e upload do DOCX...');
+        console.log('[DRIVE] transcriptArray tem', transcriptArray.length, 'itens');
+        console.log('[DRIVE] Primeiros itens do transcriptArray:', transcriptArray.slice(0, 3).map(item => ({
+          text: (item.text || item.content || '').substring(0, 50),
+          offset: item.offset
+        })));
+        
         driveDocxUrl = await createAndUploadDocx(
           transcriptArray,
           finalVideoId,
@@ -1068,17 +1350,19 @@ export async function POST(request: NextRequest) {
           finalVideoUrl,
           result.lang || result.language || 'pt'
         );
+        
         if (driveDocxUrl) {
-          console.log(`[DRIVE SUCCESS] DOCX salvo no Drive: ${driveDocxUrl}`);
+          console.log(`[DRIVE SUCCESS] ✅ DOCX salvo no Drive: ${driveDocxUrl}`);
         } else {
           driveUploadError = 'Upload para o Drive falhou (verifique logs do servidor). O arquivo foi gerado localmente.';
-          console.warn('[DRIVE WARNING] Upload do DOCX retornou null - verifique logs acima para detalhes');
+          console.error('[DRIVE ERROR] ❌ Upload do DOCX retornou null');
+          console.error('[DRIVE ERROR] Verifique os logs acima para detalhes sobre o erro');
         }
       } catch (docxError) {
         const errorMessage = docxError instanceof Error ? docxError.message : 'Erro desconhecido';
         const errorStack = docxError instanceof Error ? docxError.stack : undefined;
         driveUploadError = `Erro ao fazer upload para o Drive: ${errorMessage}`;
-        console.error('[DRIVE ERROR] Erro ao criar/fazer upload do DOCX:', {
+        console.error('[DRIVE ERROR] ❌ Erro ao criar/fazer upload do DOCX:', {
           message: errorMessage,
           stack: errorStack,
           videoId: finalVideoId,
@@ -1086,6 +1370,10 @@ export async function POST(request: NextRequest) {
         });
         // Continuar mesmo se falhar - não é crítico
       }
+    } else {
+      console.warn('[DRIVE WARNING] ⚠️ transcriptArray está vazio, não será feito upload para o Drive');
+      console.warn('[DRIVE WARNING] transcriptContent length:', transcriptContent?.length || 0);
+      driveUploadError = 'transcriptArray está vazio - não foi possível gerar DOCX';
     }
     
     // Retornar sucesso

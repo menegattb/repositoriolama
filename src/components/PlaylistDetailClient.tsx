@@ -65,10 +65,30 @@ export default function PlaylistDetailClient({
         if (realVideos.length > 0) {
           console.log('[PlaylistDetailClient] ✅ Usando vídeos reais da API do YouTube');
           setPlaylistVideos(realVideos);
-          // Se não há item atual ou o item atual não existe nos novos dados, usar o primeiro
-          if (!currentMediaItem || !realVideos.find(v => v.id === currentMediaItem.id)) {
-            console.log('[PlaylistDetailClient] 🎬 Definindo primeiro vídeo como atual:', realVideos[0].title);
-            setCurrentMediaItem(realVideos[0] || null);
+          
+          // Sempre atualizar o currentMediaItem se ele tem ID mock ou não existe nos novos dados
+          const currentItemHasMockId = currentMediaItem?.id.includes('-') && /^\d+$/.test(currentMediaItem.id.split('-').pop() || '');
+          const currentItemExistsInRealVideos = currentMediaItem && realVideos.find(v => v.id === currentMediaItem.id);
+          
+          if (!currentMediaItem || currentItemHasMockId || !currentItemExistsInRealVideos) {
+            // Tentar encontrar pelo título primeiro
+            let matchingVideo = currentMediaItem?.title 
+              ? realVideos.find(v => v.title === currentMediaItem.title)
+              : null;
+            
+            // Se não encontrar pelo título, usar o primeiro vídeo
+            if (!matchingVideo && realVideos[0]) {
+              matchingVideo = realVideos[0];
+            }
+            
+            if (matchingVideo) {
+              console.log('[PlaylistDetailClient] 🎬 Atualizando vídeo atual:', {
+                oldId: currentMediaItem?.id,
+                newId: matchingVideo.id,
+                title: matchingVideo.title
+              });
+              setCurrentMediaItem(matchingVideo);
+            }
           }
         } else {
           // Se não encontrou vídeos reais, usar os itens da playlist original (mock ou playlist completa)

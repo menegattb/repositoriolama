@@ -60,14 +60,16 @@ export async function GET(
     const apiKey = process.env.YOUTUBE_API_KEY;
     
     if (!apiKey) {
-      console.warn('[API /api/youtube/playlist/[id]/videos] YouTube API key not configured');
+      console.error('[API /api/youtube/playlist/[id]/videos] ❌ YouTube API key not configured');
+      console.error('[API /api/youtube/playlist/[id]/videos] Verifique se YOUTUBE_API_KEY está no .env.local e reinicie o servidor');
       return NextResponse.json(
         { error: 'YouTube API key not configured', videos: [] },
         { status: 503 }
       );
     }
 
-    console.log('[API /api/youtube/playlist/[id]/videos] Buscando vídeos da playlist:', playlistId);
+    console.log('[API /api/youtube/playlist/[id]/videos] ✅ YouTube API key encontrada');
+    console.log('[API /api/youtube/playlist/[id]/videos] 🔍 Buscando vídeos da playlist:', playlistId);
 
     const videos: MediaItem[] = [];
     let nextPageToken = '';
@@ -80,7 +82,14 @@ export async function GET(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[API /api/youtube/playlist/[id]/videos] YouTube API error: ${response.status}`, errorText);
+        console.error(`[API /api/youtube/playlist/[id]/videos] ❌ YouTube API error: ${response.status}`);
+        console.error(`[API /api/youtube/playlist/[id]/videos] Resposta:`, errorText.substring(0, 500));
+        
+        // Se for erro 403, pode ser API key inválida
+        if (response.status === 403) {
+          console.error('[API /api/youtube/playlist/[id]/videos] ⚠️ Erro 403: Verifique se a API key é válida e tem permissões corretas');
+        }
+        
         return NextResponse.json(
           { error: `YouTube API error: ${response.status}`, videos: [] },
           { status: response.status }
@@ -137,6 +146,13 @@ export async function GET(
     }
 
     console.log(`[API /api/youtube/playlist/[id]/videos] ✅ Retornando ${videos.length} vídeos`);
+    if (videos.length > 0) {
+      console.log(`[API /api/youtube/playlist/[id]/videos] 📹 Primeiro vídeo:`, {
+        id: videos[0].id,
+        title: videos[0].title.substring(0, 50),
+        media_url: videos[0].media_url
+      });
+    }
 
     return NextResponse.json({ videos }, {
       headers: {

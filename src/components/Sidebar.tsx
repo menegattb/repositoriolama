@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
 import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
+import DriveViewer from './DriveViewer';
+import { extractFileIdFromUrl } from '@/lib/driveUtils';
 
 interface SidebarProps {
   playlist: Playlist;
@@ -30,10 +32,32 @@ export default function Sidebar({
   const [transcriptArray, setTranscriptArray] = useState<Array<{ text: string; offset: number; duration?: number }> | null>(null);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
   const [transcriptLang, setTranscriptLang] = useState<string | null>(null);
+  const [transcriptionLogs, setTranscriptionLogs] = useState<Array<{ type: 'info' | 'success' | 'error' | 'warning'; message: string; timestamp: Date }>>([]);
+  const [driveFileId, setDriveFileId] = useState<string | null>(null);
 
   useEffect(() => {
     setPlaylistUrl(window.location.href);
   }, []);
+
+  // Log quando os vídeos são atualizados (para debug)
+  useEffect(() => {
+    const realVideos = playlist.items?.filter(v => 
+      v.id && 
+      v.id.length === 11 && 
+      !v.id.includes('-') && 
+      /^[a-zA-Z0-9_-]{11}$/.test(v.id)
+    ) || [];
+    
+    if (realVideos.length > 0 && !isTranscribing) {
+      const canTranscribeNow = canTranscribe();
+      console.log('[Sidebar] 📹 Vídeos reais detectados:', {
+        total: realVideos.length,
+        firstVideoId: realVideos[0]?.id,
+        currentMediaItemId: currentMediaItem?.id,
+        canTranscribe: canTranscribeNow
+      });
+    }
+  }, [playlist.items, currentMediaItem?.id, isTranscribing]);
 
   const matchesSearch = (item: MediaItem) =>
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,6 +83,132 @@ export default function Sidebar({
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Verificar se está tudo ok para transcrever
+  const canTranscribe = (): boolean => {
+    // Não pode transcrever se não tiver vídeo selecionado
+    if (!currentMediaItem) {
+      return false;
+    }
+
+    // Verificar se o ID é um videoId válido do YouTube (11 caracteres, sem hífen/underscore)
+    const isValidYouTubeVideoId = currentMediaItem.id && 
+      currentMediaItem.id.length === 11 && 
+      !currentMediaItem.id.includes('-') && 
+      !currentMediaItem.id.includes('_') &&
+      /^[a-zA-Z0-9_-]{11}$/.test(currentMediaItem.id);
+
+    // Se já tem ID válido, pode transcrever
+    if (isValidYouTubeVideoId) {
+      return true;
+    }
+
+    // Se tem ID mock (formato playlist-id-numero), verificar se há vídeos reais carregados
+    const hasMockId = currentMediaItem.id.includes('-') && /^\d+$/.test(currentMediaItem.id.split('-').pop() || '');
+    
+    if (hasMockId) {
+      // Verificar se há vídeos reais carregados na playlist
+      const hasRealVideos = playlist.items?.some(v => 
+        v.id && 
+        v.id.length === 11 && 
+        !v.id.includes('-') && 
+        !v.id.includes('_') &&
+        /^[a-zA-Z0-9_-]{11}$/.test(v.id)
+      ) || false;
+
+      return hasRealVideos;
+    }
+
+    // Se não é mock nem válido, não pode transcrever
+    return false;
+  };
+
+  const getTranscribeButtonMessage = (): string => {
+    if (!currentMediaItem) {
+      return 'Selecione um vídeo para gerar a transcrição';
+    }
+
+    const isValidYouTubeVideoId = currentMediaItem.id && 
+      currentMediaItem.id.length === 11 && 
+      !currentMediaItem.id.includes('-') && 
+      !currentMediaItem.id.includes('_') &&
+      /^[a-zA-Z0-9_-]{11}$/.test(currentMediaItem.id);
+
+    if (isValidYouTubeVideoId) {
+      return `Gerar transcrição automática para: "${currentMediaItem.title}"`;
+    }
+
+    const hasMockId = currentMediaItem.id.includes('-') && /^\d+$/.test(currentMediaItem.id.split('-').pop() || '');
+    
+    if (hasMockId) {
+      const hasRealVideos = playlist.items?.some(v => 
+        v.id && 
+        v.id.length === 11 && 
+        !v.id.includes('-') && 
+        !v.id.includes('_') &&
+        /^[a-zA-Z0-9_-]{11}$/.test(v.id)
+      ) || false;
+
+      if (!hasRealVideos) {
+        return 'Aguardando vídeos serem carregados da API do YouTube...';
+      }
+    }
+
+    return `Gerar transcrição automática para: "${currentMediaItem.title}"`;
+  };
+
+  // Função auxiliar para aguardar vídeos serem carregados
+  const waitForVideosToLoad = async (maxWaitTime = 10000, checkInterval = 500): Promise<boolean> => {
+    const startTime = Date.now();
+    let attempt = 0;
+    
+    console.log('[Sidebar] ⏳ Iniciando espera por vídeos (max:', maxWaitTime, 'ms)...');
+    
+    while (Date.now() - startTime < maxWaitTime) {
+      attempt++;
+      
+      // Verificar se há vídeos reais carregados (com videoIds válidos)
+      const realVideos = playlist.items?.filter(v => 
+        v.id && 
+        v.id.length === 11 && 
+        !v.id.includes('-') && 
+        !v.id.includes('_') &&
+        /^[a-zA-Z0-9_-]{11}$/.test(v.id)
+      ) || [];
+      
+      const hasRealVideos = realVideos.length > 0;
+      
+      if (hasRealVideos) {
+        console.log(`[Sidebar] ✅ Vídeos reais detectados após ${attempt * checkInterval}ms (${realVideos.length} vídeos)`);
+        return true;
+      }
+      
+      // Log a cada 2 segundos
+      if (attempt % 4 === 0) {
+        console.log(`[Sidebar] ⏳ Aguardando... (${Math.floor((Date.now() - startTime) / 1000)}s) - Total de itens: ${playlist.items?.length || 0}`);
+        if (playlist.items && playlist.items.length > 0) {
+          console.log('[Sidebar] 📹 Primeiros IDs:', playlist.items.slice(0, 3).map(v => ({ id: v.id, title: v.title?.substring(0, 30) })));
+        }
+      }
+      
+      // Aguardar antes de verificar novamente
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
+    }
+    
+    console.log('[Sidebar] ⚠️ Timeout aguardando vídeos serem carregados após', maxWaitTime, 'ms');
+    console.log('[Sidebar] 📊 Estado final:', {
+      totalItems: playlist.items?.length || 0,
+      itemsIds: playlist.items?.slice(0, 5).map(v => v.id) || [],
+      currentMediaItemId: currentMediaItem?.id
+    });
+    return false;
+  };
+
+  // Função auxiliar para adicionar log
+  const addLog = (type: 'info' | 'success' | 'error' | 'warning', message: string) => {
+    setTranscriptionLogs(prev => [...prev, { type, message, timestamp: new Date() }]);
+    console.log(`[TRANSCRIBE ${type.toUpperCase()}] ${message}`);
+  };
+
   // Função para transcrever vídeo usando Supadata API
   const handleTranscribe = async () => {
     if (!currentMediaItem) {
@@ -73,25 +223,107 @@ export default function Sidebar({
     setFormattedContent(null);
     setTranscriptArray(null);
     setTranscriptLang(null);
+    setTranscriptionLogs([]); // Limpar logs anteriores
+
+    addLog('info', `Iniciando transcrição para: "${currentMediaItem.title}"`);
 
     try {
       // Extrair videoId do media_url ou usar o id diretamente
       let videoId = currentMediaItem.id;
       let videoUrl = currentMediaItem.media_url;
 
+      // Se o vídeo atual tem ID mock (formato playlist-id-numero), aguardar vídeos serem carregados
+      const hasMockId = videoId.includes('-') && /^\d+$/.test(videoId.split('-').pop() || '');
+      
+      if (hasMockId) {
+        addLog('info', 'Aguardando vídeos serem carregados da API do YouTube...');
+        console.log('[Sidebar] ⏳ Vídeo tem ID mock, aguardando vídeos serem carregados da API do YouTube...');
+        console.log('[Sidebar] 📊 Estado inicial:', {
+          currentMediaItemId: currentMediaItem.id,
+          currentMediaItemTitle: currentMediaItem.title,
+          playlistItemsCount: playlist.items?.length || 0,
+          playlistItemsIds: playlist.items?.slice(0, 3).map(v => ({ id: v.id, title: v.title?.substring(0, 30) })) || []
+        });
+        
+        const videosLoaded = await waitForVideosToLoad(10000); // Aguardar até 10 segundos
+        
+        if (videosLoaded) {
+          addLog('success', 'Vídeos carregados com sucesso!');
+          // Se os vídeos foram carregados, tentar atualizar o currentMediaItem
+          // Procurar pelo vídeo correto usando o título ou índice
+          const realVideos = playlist.items?.filter(v => 
+            v.id && 
+            v.id.length === 11 && 
+            !v.id.includes('-') && 
+            /^[a-zA-Z0-9_-]{11}$/.test(v.id)
+          ) || [];
+          
+          if (realVideos.length > 0) {
+            // Tentar encontrar pelo título primeiro
+            let matchingVideo = realVideos.find(v => v.title === currentMediaItem.title);
+            
+            // Se não encontrar pelo título, usar o primeiro vídeo (assumindo que é o mesmo índice)
+            if (!matchingVideo && realVideos[0]) {
+              matchingVideo = realVideos[0];
+              console.log('[Sidebar] 📹 Usando primeiro vídeo real encontrado:', matchingVideo.id);
+            }
+            
+            if (matchingVideo) {
+              addLog('success', `Vídeo identificado: ${matchingVideo.id}`);
+              console.log('[Sidebar] ✅ Vídeo real encontrado após carregamento:', {
+                oldId: currentMediaItem.id,
+                newId: matchingVideo.id,
+                title: matchingVideo.title
+              });
+              // Atualizar o currentMediaItem através do callback
+              if (onMediaItemSelect) {
+                onMediaItemSelect(matchingVideo);
+              }
+              // Usar o vídeo encontrado para transcrição
+              videoId = matchingVideo.id;
+              videoUrl = matchingVideo.media_url || `https://www.youtube.com/watch?v=${matchingVideo.id}`;
+              console.log('[Sidebar] ✅ Usando vídeo real atualizado:', videoId);
+            }
+          }
+        } else {
+          addLog('warning', 'Vídeos ainda não foram carregados. Tentando continuar...');
+          console.warn('[Sidebar] ⚠️ Vídeos ainda não foram carregados após espera de 10 segundos');
+          console.warn('[Sidebar] 💡 Possíveis causas:');
+          console.warn('[Sidebar]   1. YOUTUBE_API_KEY não configurada ou servidor não reiniciado');
+          console.warn('[Sidebar]   2. API do YouTube está lenta ou com problemas');
+          console.warn('[Sidebar]   3. Playlist não existe ou está privada');
+          // Continuar mesmo assim - tentar encontrar o vídeo correto
+        }
+      }
+
+      addLog('info', 'Extraindo informações do vídeo...');
       console.log('[Sidebar] 🔍 Iniciando transcrição:', {
         originalId: currentMediaItem.id,
         originalUrl: currentMediaItem.media_url,
-        title: currentMediaItem.title
+        title: currentMediaItem.title,
+        isPlaylistUrl: currentMediaItem.media_url?.includes('/playlist'),
+        hasWatchUrl: currentMediaItem.media_url?.includes('watch?v=')
       });
 
       // PRIMEIRO: Sempre tentar extrair videoId da URL (como funcionava antes)
-      if (videoUrl && (videoUrl.includes('watch?v=') || videoUrl.includes('youtu.be/'))) {
-        const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+      // Tentar extrair de qualquer formato de URL do YouTube
+      if (videoUrl) {
+        // Formato 1: watch?v=VIDEO_ID
+        let match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
         if (match && match[1]) {
           videoId = match[1];
           videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-          console.log('[Sidebar] ✅ VideoId extraído da URL:', videoId);
+          addLog('success', `ID do vídeo identificado: ${videoId}`);
+          console.log('[Sidebar] ✅ VideoId extraído da URL (formato watch):', videoId);
+        } else {
+          // Formato 2: playlist com ?v=VIDEO_ID
+          match = videoUrl.match(/[?&]v=([^&\n?#]+)/);
+          if (match && match[1] && match[1].length === 11) {
+            videoId = match[1];
+            videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            addLog('success', `ID do vídeo identificado: ${videoId}`);
+            console.log('[Sidebar] ✅ VideoId extraído da URL de playlist:', videoId);
+          }
         }
       }
 
@@ -192,18 +424,64 @@ export default function Sidebar({
             
             if (realVideo) {
               // Encontrou vídeo real já carregado!
+              addLog('success', `Vídeo identificado: ${realVideo.id}`);
               videoId = realVideo.id;
               videoUrl = realVideo.media_url || `https://www.youtube.com/watch?v=${videoId}`;
               console.log('[Sidebar] ✅ VideoId real encontrado nos vídeos já carregados:', videoId);
             } else {
               // Não encontrou nos vídeos carregados
-              // Se ainda estamos usando formato mock, significa que os vídeos reais ainda não foram carregados
-              console.log('[Sidebar] ⚠️ Vídeo real ainda não foi carregado. Detalhes:', {
-                videoIndex,
-                totalItems: playlist.items?.length || 0,
-                itemsIds: playlist.items?.map(v => ({ id: v.id, title: v.title })).slice(0, 3) || []
-              });
-              throw new Error('O vídeo ainda não foi carregado da API do YouTube. Aguarde alguns segundos e tente novamente.');
+              // ÚLTIMA TENTATIVA: Se a URL do media_url for de playlist com parâmetro ?v=, tentar extrair
+              if (videoUrl && videoUrl.includes('playlist') && videoUrl.includes('?v=')) {
+                const videoMatch = videoUrl.match(/[?&]v=([^&\n?#]+)/);
+                if (videoMatch && videoMatch[1]) {
+                  videoId = videoMatch[1];
+                  videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                  console.log('[Sidebar] ✅ VideoId extraído da URL de playlist:', videoId);
+                }
+              }
+              
+              // Se ainda não tiver videoId válido, tentar uma última vez aguardar
+              if (!videoId || videoId.length !== 11 || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+                console.log('[Sidebar] ⚠️ Vídeo real ainda não foi carregado. Detalhes:', {
+                  videoIndex,
+                  totalItems: playlist.items?.length || 0,
+                  itemsIds: playlist.items?.map(v => ({ id: v.id, title: v.title, media_url: v.media_url })).slice(0, 3) || [],
+                  mediaUrl: currentMediaItem.media_url,
+                  isPlaylistUrl: currentMediaItem.media_url?.includes('/playlist')
+                });
+                
+                // Tentar aguardar mais um pouco (última tentativa)
+                console.log('[Sidebar] ⏳ Última tentativa: aguardando mais 3 segundos...');
+                const videosLoaded = await waitForVideosToLoad(3000, 300);
+                
+                if (videosLoaded) {
+                  // Tentar encontrar novamente após aguardar
+                  const realVideosAfterWait = playlist.items?.filter(v => 
+                    v.id && 
+                    v.id.length === 11 && 
+                    !v.id.includes('-') && 
+                    /^[a-zA-Z0-9_-]{11}$/.test(v.id)
+                  ) || [];
+                  
+                  if (realVideosAfterWait.length > videoIndex && realVideosAfterWait[videoIndex]) {
+                    videoId = realVideosAfterWait[videoIndex].id;
+                    videoUrl = realVideosAfterWait[videoIndex].media_url || `https://www.youtube.com/watch?v=${videoId}`;
+                    addLog('success', `Vídeo identificado após espera: ${videoId}`);
+                    console.log('[Sidebar] ✅ VideoId encontrado após espera adicional:', videoId);
+                  }
+                }
+                
+                // Se ainda não encontrou, mostrar erro
+                if (!videoId || videoId.length !== 11 || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+                  addLog('error', 'Não foi possível identificar o vídeo');
+                  const isPlaylistUrl = currentMediaItem.media_url?.includes('/playlist') && !currentMediaItem.media_url?.includes('watch?v=');
+                  if (isPlaylistUrl) {
+                    throw new Error('Não foi possível identificar o vídeo. Os vídeos da playlist ainda não foram carregados da API do YouTube. Verifique se YOUTUBE_API_KEY está configurada no servidor e aguarde alguns segundos antes de tentar novamente.');
+                  } else {
+                    throw new Error('O vídeo ainda não foi carregado da API do YouTube. Aguarde alguns segundos e tente novamente.');
+                  }
+                }
+              }
             }
           } else {
             // Última parte pode ser um videoId válido
@@ -215,6 +493,7 @@ export default function Sidebar({
 
       // Validar que temos um videoId válido (11 caracteres)
       if (!videoId || videoId.length !== 11 || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+        addLog('error', 'Não foi possível identificar o ID do vídeo');
         console.error('[Sidebar] ❌ VideoId inválido:', {
           videoId,
           length: videoId?.length,
@@ -229,6 +508,8 @@ export default function Sidebar({
         videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
       }
 
+      addLog('info', `Enviando requisição para API de transcrição...`);
+      addLog('info', `URL do vídeo: ${videoUrl}`);
       console.log('[Sidebar] ✅ Enviando para API:', { videoId, videoUrl, playlistId: playlist.id });
 
       const response = await fetch('/api/transcribe', {
@@ -244,23 +525,40 @@ export default function Sidebar({
         }),
       });
 
+      addLog('info', 'Aguardando resposta da API...');
       const data: TranscriptResponse = await response.json();
 
       if (!response.ok || !data.success) {
+        addLog('error', data.error || 'Erro ao transcrever vídeo');
         throw new Error(data.error || 'Erro ao transcrever vídeo');
       }
 
+      addLog('success', 'Transcrição recebida com sucesso!');
+      
       // Verificar se houve erro no upload do Drive
       const dataWithDrive = data as TranscriptResponse & { 
         fromDrive?: boolean; 
-        driveDocxUrl?: string; 
+        driveDocxUrl?: string;
+        driveFileId?: string;
         driveUploadError?: string;
+        cached?: boolean;
       };
       
+      // Se veio do cache, verificar se está fazendo upload para o Drive
+      if (dataWithDrive.cached && !dataWithDrive.fromDrive) {
+        addLog('info', 'Verificando se precisa fazer upload para o Google Drive...');
+      }
+      
       if (dataWithDrive.driveUploadError) {
+        addLog('warning', `Transcrição gerada, mas erro ao salvar no Drive: ${dataWithDrive.driveUploadError}`);
         console.warn('[Sidebar] ⚠️ Erro no upload do Drive:', dataWithDrive.driveUploadError);
         // Mostrar aviso mas continuar - a transcrição foi gerada mesmo assim
         setTranscriptError(`⚠️ Transcrição gerada, mas erro ao salvar no Drive: ${dataWithDrive.driveUploadError}`);
+      } else if (dataWithDrive.fromDrive && dataWithDrive.driveDocxUrl) {
+        addLog('success', `Transcrição salva no Google Drive!`);
+        addLog('info', `Link: ${dataWithDrive.driveDocxUrl}`);
+      } else if (dataWithDrive.driveDocxUrl) {
+        addLog('success', 'Transcrição salva no Google Drive!');
       }
 
       // Sucesso
@@ -274,10 +572,25 @@ export default function Sidebar({
       // Se vier do Drive e tiver URL do Drive, usar ela como transcriptUrl principal
       if (dataWithDrive.fromDrive && dataWithDrive.driveDocxUrl) {
         setTranscriptUrl(dataWithDrive.driveDocxUrl);
+        // Extrair fileId da URL ou usar o driveFileId se disponível
+        const fileId = dataWithDrive.driveFileId || extractFileIdFromUrl(dataWithDrive.driveDocxUrl);
+        if (fileId) {
+          setDriveFileId(fileId);
+        }
         console.log('[Sidebar] ✅ Transcrição salva no Drive:', dataWithDrive.driveDocxUrl);
+      } else if (dataWithDrive.driveDocxUrl) {
+        // Upload bem-sucedido mas não veio do cache do Drive
+        setTranscriptUrl(dataWithDrive.driveDocxUrl);
+        const fileId = dataWithDrive.driveFileId || extractFileIdFromUrl(dataWithDrive.driveDocxUrl);
+        if (fileId) {
+          setDriveFileId(fileId);
+        }
       } else if (!dataWithDrive.driveDocxUrl && dataWithDrive.driveUploadError) {
         console.warn('[Sidebar] ⚠️ Drive upload falhou, usando URL alternativa');
+        setDriveFileId(null);
       }
+      
+      addLog('success', 'Processo concluído com sucesso!');
     } catch (error) {
       let errorMessage = 'Erro desconhecido ao transcrever';
       
@@ -287,6 +600,7 @@ export default function Sidebar({
         errorMessage = error;
       }
       
+      addLog('error', errorMessage);
       console.error('[Sidebar] Erro ao transcrever:', error);
       setTranscriptError(errorMessage);
     } finally {
@@ -455,16 +769,30 @@ export default function Sidebar({
           // Se a transcrição existe (cache hit), carregar automaticamente
           if (response.ok && data.success && data.cached) {
             // Verificar se vem do Drive
-            const dataWithDrive = data as TranscriptResponse & { fromDrive?: boolean; transcriptUrl?: string };
+            const dataWithDrive = data as TranscriptResponse & { 
+              fromDrive?: boolean; 
+              transcriptUrl?: string;
+              driveFileId?: string;
+            };
             if (dataWithDrive.fromDrive && dataWithDrive.transcriptUrl) {
               setTranscriptUrl(dataWithDrive.transcriptUrl);
-              // Se for do Drive, não temos conteúdo formatado, apenas link
+              const fileId = dataWithDrive.driveFileId || extractFileIdFromUrl(dataWithDrive.transcriptUrl);
+              if (fileId) {
+                setDriveFileId(fileId);
+              }
+              // Se vier do Drive com transcriptArray, usar ele para exibição formatada
+              if (data.transcriptArray && data.transcriptArray.length > 0) {
+                setTranscriptArray(data.transcriptArray);
+                setTranscriptLang(data.lang || null);
+                console.log('[Sidebar] ✅ transcriptArray carregado do Drive:', data.transcriptArray.length, 'itens');
+              }
             } else {
               setTranscriptUrl(data.transcriptUrl || null);
               setTranscriptContent(data.content || null);
               setFormattedContent(data.formattedContent || null);
               setTranscriptArray(data.transcriptArray || null);
               setTranscriptLang(data.lang || null);
+              setDriveFileId(null);
             }
           }
         } catch {
@@ -749,32 +1077,9 @@ export default function Sidebar({
                   )}
                 </div>
                 
-                <div className="flex gap-2 flex-wrap">
-                  {/* Botão para ver no Drive se tiver URL do Drive */}
-                  {transcriptUrl && transcriptUrl.includes('drive.google.com') && (
-                    <a
-                      href={transcriptUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      <Download className="w-3 h-3" />
-                      Ver no Google Drive
-                    </a>
-                  )}
-                  {/* Botão para baixar .srt se tiver URL e não for do Drive */}
-                  {transcriptUrl && !transcriptUrl.includes('drive.google.com') && (
-                    <a
-                      href={transcriptUrl}
-                      download
-                      className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      <Download className="w-3 h-3" />
-                      Baixar .srt
-                    </a>
-                  )}
-                  {/* Botão para baixar .docx sempre que tiver conteúdo */}
-                  {transcriptArray && transcriptArray.length > 0 && (
+                {/* Botão para baixar .docx sempre que tiver conteúdo */}
+                {transcriptArray && transcriptArray.length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
                     <button
                       onClick={handleDownloadDocx}
                       className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 transition-colors"
@@ -782,11 +1087,12 @@ export default function Sidebar({
                       <Download className="w-3 h-3" />
                       Baixar .docx
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                {/* Buscador de transcrição - apenas se não for do Drive */}
-                {!transcriptUrl?.includes('drive.google.com') && (
+                {/* Mostrar transcrição formatada se tiver conteúdo, senão mostrar DriveViewer */}
+                {transcriptArray && transcriptArray.length > 0 ? (
+                  /* Buscador e transcrição formatada - estilo anterior */
                   <>
                     <div className="relative">
                       <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -801,33 +1107,42 @@ export default function Sidebar({
                     
                     {/* Transcrição formatada com timestamps agrupados */}
                     <div className="text-sm text-gray-900 max-h-[800px] overflow-y-auto bg-white p-4 rounded border leading-relaxed">
-                      {transcriptArray && transcriptArray.length > 0 ? (
-                    <div className="space-y-4">
-                      {getGroupedTranscript().map((group, index) => (
-                        <div key={index} className="flex gap-4">
-                          <div className="flex-shrink-0">
-                            <span className="font-bold text-gray-700">{group.time}</span>
+                      <div className="space-y-4">
+                        {getGroupedTranscript().map((group, index) => (
+                          <div key={index} className="flex gap-4">
+                            <div className="flex-shrink-0">
+                              <span className="font-bold text-gray-700">{group.time}</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-gray-900">
+                                {highlightSearchTerm(group.text, transcriptSearchTerm)}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <p className="text-gray-900">
-                              {highlightSearchTerm(group.text, transcriptSearchTerm)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                      {transcriptSearchTerm.trim() && getGroupedTranscript().length === 0 && (
-                        <p className="text-gray-500 text-center py-4">
-                          Nenhum resultado encontrado para &quot;{transcriptSearchTerm}&quot;
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">
-                      {formattedContent || transcriptContent || 'Transcrição disponível. Clique em "Baixar .srt" para visualizar.'}
-                    </p>
-                  )}
+                        ))}
+                        {transcriptSearchTerm.trim() && getGroupedTranscript().length === 0 && (
+                          <p className="text-gray-500 text-center py-4">
+                            Nenhum resultado encontrado para &quot;{transcriptSearchTerm}&quot;
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </>
+                ) : driveFileId || (transcriptUrl && transcriptUrl.includes('drive.google.com')) ? (
+                  /* Fallback: DriveViewer apenas se não tiver conteúdo formatado */
+                  <div className="w-full h-[800px] border border-gray-200 rounded-md overflow-hidden bg-white">
+                    <DriveViewer
+                      fileId={driveFileId || extractFileIdFromUrl(transcriptUrl || '') || ''}
+                      title={currentMediaItem?.title || 'Transcrição'}
+                    />
+                  </div>
+                ) : (
+                  /* Carregando ou sem conteúdo */
+                  <div className="text-sm text-gray-900 max-h-[800px] overflow-y-auto bg-white p-4 rounded border leading-relaxed">
+                    <p className="text-gray-500">
+                      {formattedContent || transcriptContent || 'Carregando transcrição...'}
+                    </p>
+                  </div>
                 )}
               </div>
             ) : (
@@ -846,30 +1161,59 @@ export default function Sidebar({
                 ) : (
                   <div className="space-y-2">
                     <p className="text-sm text-gray-700">
-                      {currentMediaItem 
-                        ? `Gerar transcrição automática para: "${currentMediaItem.title}"`
-                        : 'Selecione um vídeo para gerar a transcrição'}
+                      {getTranscribeButtonMessage()}
                     </p>
                     <p className="text-xs text-gray-500">
-                      A transcrição será gerada automaticamente usando as legendas do YouTube.
+                      {canTranscribe() 
+                        ? 'A transcrição será gerada automaticamente usando as legendas do YouTube.'
+                        : 'Aguarde os vídeos serem carregados da API do YouTube antes de transcrever.'}
                     </p>
+                  </div>
+                )}
+                
+                {/* Área de logs durante o processo */}
+                {isTranscribing && transcriptionLogs.length > 0 && (
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-md max-h-48 overflow-y-auto">
+                    <p className="text-xs font-medium text-gray-700 mb-2">Progresso:</p>
+                    <div className="space-y-1">
+                      {transcriptionLogs.map((log, index) => (
+                        <div 
+                          key={index} 
+                          className={`text-xs flex items-start gap-2 ${
+                            log.type === 'success' ? 'text-green-700' :
+                            log.type === 'error' ? 'text-red-700' :
+                            log.type === 'warning' ? 'text-yellow-700' :
+                            'text-gray-600'
+                          }`}
+                        >
+                          <span className="flex-shrink-0">
+                            {log.type === 'success' && '✓'}
+                            {log.type === 'error' && '✗'}
+                            {log.type === 'warning' && '⚠'}
+                            {log.type === 'info' && '•'}
+                          </span>
+                          <span className="flex-1">{log.message}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
                 
                 <button
                   onClick={handleTranscribe}
-                  disabled={isTranscribing || !currentMediaItem}
+                  disabled={isTranscribing || !canTranscribe()}
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={!canTranscribe() ? 'Aguarde os vídeos serem carregados' : undefined}
                 >
                   {isTranscribing ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Gerando transcrição...
+                      Processando...
                     </>
                   ) : (
                     <>
                       <FileText className="w-4 h-4" />
-                      Gerar Transcrição Automática
+                      Solicitar Transcrição
                     </>
                   )}
                 </button>
@@ -877,8 +1221,9 @@ export default function Sidebar({
                 {transcriptError && (
                   <button
                     onClick={handleTranscribe}
-                    disabled={isTranscribing}
-                    className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+                    disabled={isTranscribing || !canTranscribe()}
+                    className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={!canTranscribe() ? 'Aguarde os vídeos serem carregados' : undefined}
                   >
                     Tentar novamente
                   </button>
