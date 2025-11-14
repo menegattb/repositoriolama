@@ -495,9 +495,14 @@ export async function POST(request: NextRequest) {
         const driveData = await driveResponse.json();
         
         if (driveData.success && driveData.found && driveData.transcript) {
-          // DOCX encontrado no Drive - retornar link do Drive
+          // DOCX encontrado no Drive - retornar link do Drive e transcriptArray se disponível
           if (process.env.NODE_ENV === 'development') {
             console.log(`[DRIVE HIT] DOCX encontrado no Google Drive para videoId: ${finalVideoId}`);
+            if (driveData.transcript.transcriptArray) {
+              console.log(`[DRIVE HIT] ✅ transcriptArray encontrado com ${driveData.transcript.transcriptArray.length} itens`);
+            } else {
+              console.log(`[DRIVE HIT] ⚠️ transcriptArray não encontrado no JSON do Drive`);
+            }
           }
           
           return NextResponse.json({
@@ -505,6 +510,10 @@ export async function POST(request: NextRequest) {
             videoId: finalVideoId,
             transcriptUrl: driveData.transcript.webViewLink,
             driveFileId: driveData.transcript.driveFileId,
+            transcriptArray: driveData.transcript.transcriptArray || undefined,
+            videoTitle: driveData.transcript.videoTitle || videoTitle || undefined,
+            videoUrl: driveData.transcript.videoUrl || finalVideoUrl || undefined,
+            lang: driveData.transcript.lang || undefined,
             fromDrive: true,
             cached: true,
             message: 'Transcrição encontrada no Google Drive'

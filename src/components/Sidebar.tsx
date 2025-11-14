@@ -780,7 +780,22 @@ export default function Sidebar({
               if (fileId) {
                 setDriveFileId(fileId);
               }
-              // Se for do Drive, não temos conteúdo formatado, apenas link
+              // Se tiver transcriptArray do Drive, usar ele para exibição formatada
+              if (data.transcriptArray && data.transcriptArray.length > 0) {
+                console.log('[Sidebar] ✅ transcriptArray encontrado do Drive, populando estado...');
+                setTranscriptArray(data.transcriptArray);
+                setTranscriptLang(data.lang || null);
+                // Gerar formattedContent a partir do transcriptArray
+                const formatted = data.transcriptArray.map(item => {
+                  const text = item.text || '';
+                  if (!text || text.trim().length === 0) return '';
+                  const timeStr = formatTimeForDisplay(item.offset || 0);
+                  return `[${timeStr}] ${text.trim()}`;
+                }).filter(Boolean).join('\n');
+                setFormattedContent(formatted);
+              } else {
+                console.log('[Sidebar] ⚠️ transcriptArray não encontrado do Drive, usando DriveViewer');
+              }
             } else {
               setTranscriptUrl(data.transcriptUrl || null);
               setTranscriptContent(data.content || null);
