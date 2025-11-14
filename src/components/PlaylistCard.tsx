@@ -59,7 +59,7 @@ export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps)
           </div>
           <div className="flex items-center">
             <Headphones className="w-4 h-4 mr-1" />
-            {playlist.metadata.total_talks} vídeos
+            {playlist.items?.length || playlist.metadata.total_talks} vídeos
           </div>
         </div>
 

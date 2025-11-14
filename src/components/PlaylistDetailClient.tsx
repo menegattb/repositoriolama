@@ -205,7 +205,7 @@ export default function PlaylistDetailClient({
                 </div>
                 <div className="flex items-center space-x-1">
                   <Headphones className="w-4 h-4" />
-                  <span>{playlist.metadata.total_talks} vídeos</span>
+                  <span>{playlistVideos.length} vídeos</span>
                 </div>
               </div>
             </div>
