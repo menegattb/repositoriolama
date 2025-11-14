@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
-import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2, MessageCircle } from 'lucide-react';
 import DriveViewer from './DriveViewer';
 import { extractFileIdFromUrl } from '@/lib/driveUtils';
 
@@ -1051,10 +1051,21 @@ export default function Sidebar({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">
-                  Nenhum áudio disponível para esta playlist.
+              <div className="text-center py-8 space-y-4">
+                <p className="text-gray-600 text-sm">
+                  Todos os audios foram baixados e estão sendo colocados na plataforma. Solicite este audio via WhatsApp
                 </p>
+                <button
+                  onClick={() => {
+                    const message = encodeURIComponent(`Olá! Gostaria de solicitar o áudio da playlist "${playlist.title}".`);
+                    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+                    window.open(whatsappUrl, '_blank');
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Solicitar Áudio
+                </button>
               </div>
             )}
           </div>
