@@ -573,8 +573,8 @@ export async function POST(request: NextRequest) {
         .join('\n');
       
       // Converter SRT para array para gerar formattedContent e transcriptArray
-      const transcriptArrayFromCache = parseSRTToArray(existingTranscript);
-      const formattedContentFromCache = transcriptArrayFromCache.length > 0
+      let transcriptArrayFromCache = parseSRTToArray(existingTranscript);
+      let formattedContentFromCache = transcriptArrayFromCache.length > 0
         ? transcriptArrayFromCache.map(item => {
             const text = item.text || '';
             if (!text || text.trim().length === 0) return '';
@@ -598,9 +598,22 @@ export async function POST(request: NextRequest) {
           const driveCheckData = await driveCheckResponse.json();
           
           if (driveCheckData.success && driveCheckData.found && driveCheckData.transcript) {
-            // Já existe no Drive
+            // Já existe no Drive - usar transcriptArray do Drive se disponível (mais atualizado)
             console.log('[CACHE] ✅ DOCX já existe no Google Drive');
             driveDocxUrl = driveCheckData.transcript.webViewLink;
+            
+            // Se o Drive tiver transcriptArray, usar ele ao invés do cache local (mais atualizado)
+            if (driveCheckData.transcript.transcriptArray && driveCheckData.transcript.transcriptArray.length > 0) {
+              console.log(`[CACHE] ✅ Usando transcriptArray do Drive (${driveCheckData.transcript.transcriptArray.length} itens) ao invés do cache local`);
+              transcriptArrayFromCache = driveCheckData.transcript.transcriptArray;
+              // Regenerar formattedContent com os dados do Drive
+              formattedContentFromCache = transcriptArrayFromCache.map(item => {
+                const text = item.text || '';
+                if (!text || text.trim().length === 0) return '';
+                const timeStr = formatTimeForDisplay(item.offset || 0);
+                return `[${timeStr}] ${text.trim()}`;
+              }).filter(Boolean).join('\n');
+            }
           } else {
             // Não existe no Drive - fazer upload
             console.log('[CACHE] 📤 DOCX não encontrado no Drive, fazendo upload...');
