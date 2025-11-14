@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
-import { existsSync } from 'fs';
 import path from 'path';
 import { Readable } from 'stream';
 import { Document, Packer, Paragraph, TextRun, ExternalHyperlink } from 'docx';
@@ -703,7 +702,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Determinar a URL do transcript - usar Drive se disponível, senão Hostinger/local
-      let transcriptUrl = driveDocxUrl || (() => {
+      const transcriptUrl = driveDocxUrl || (() => {
         if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
           const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://acaoparamita.com.br';
           return `${hostingerUrl}/repositorio/transcripts/${playlistFolder}/${finalVideoId}.srt`;
