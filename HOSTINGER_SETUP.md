@@ -76,7 +76,7 @@ No painel Node.js da Hostinger, adicione as variáveis de ambiente:
 
 ```
 NODE_ENV=production
-SUPADATA_API_KEY=sua_chave_supadata_aqui
+SUPADATA_API_KEY=sd_86b70226db51a917ffe6094c815f017f
 PORT=3000
 ```
 

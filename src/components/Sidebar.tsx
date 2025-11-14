@@ -39,6 +39,26 @@ export default function Sidebar({
     setPlaylistUrl(window.location.href);
   }, []);
 
+  // Log quando os vídeos são atualizados (para debug)
+  useEffect(() => {
+    const realVideos = playlist.items?.filter(v => 
+      v.id && 
+      v.id.length === 11 && 
+      !v.id.includes('-') && 
+      /^[a-zA-Z0-9_-]{11}$/.test(v.id)
+    ) || [];
+    
+    if (realVideos.length > 0 && !isTranscribing) {
+      const canTranscribeNow = canTranscribe();
+      console.log('[Sidebar] 📹 Vídeos reais detectados:', {
+        total: realVideos.length,
+        firstVideoId: realVideos[0]?.id,
+        currentMediaItemId: currentMediaItem?.id,
+        canTranscribe: canTranscribeNow
+      });
+    }
+  }, [playlist.items, currentMediaItem?.id, isTranscribing]);
+
   const matchesSearch = (item: MediaItem) =>
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -760,12 +780,7 @@ export default function Sidebar({
               if (fileId) {
                 setDriveFileId(fileId);
               }
-              // Se vier do Drive com transcriptArray, usar ele para exibição formatada
-              if (data.transcriptArray && data.transcriptArray.length > 0) {
-                setTranscriptArray(data.transcriptArray);
-                setTranscriptLang(data.lang || null);
-                console.log('[Sidebar] ✅ transcriptArray carregado do Drive:', data.transcriptArray.length, 'itens');
-              }
+              // Se for do Drive, não temos conteúdo formatado, apenas link
             } else {
               setTranscriptUrl(data.transcriptUrl || null);
               setTranscriptContent(data.content || null);

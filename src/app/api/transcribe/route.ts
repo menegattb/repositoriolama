@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
+import { existsSync } from 'fs';
 import path from 'path';
 import { Readable } from 'stream';
 import { Document, Packer, Paragraph, TextRun, ExternalHyperlink } from 'docx';
@@ -281,63 +282,6 @@ async function createAndUploadDocx(
         console.log(`[DRIVE UPLOAD SUCCESS] ✅ File ID: ${fileId}`);
         console.log(`[DRIVE UPLOAD SUCCESS] ✅ Link: ${webViewLink}`);
 
-        // Salvar transcriptArray como JSON no Drive para edição futura
-        try {
-          const jsonFileName = `${safeTitle}-${videoId}.json`;
-          const jsonContent = JSON.stringify({
-            videoId,
-            videoTitle,
-            videoUrl,
-            lang,
-            transcriptArray,
-            createdAt: new Date().toISOString(),
-            version: '1.0'
-          }, null, 2);
-          
-          const jsonBuffer = Buffer.from(jsonContent, 'utf-8');
-          const jsonStream = Readable.from(jsonBuffer);
-          
-          const jsonResponse = await drive.files.create({
-            requestBody: {
-              name: jsonFileName,
-              parents: [DRIVE_FOLDER_ID],
-            },
-            media: {
-              mimeType: 'application/json',
-              body: jsonStream,
-            },
-            fields: 'id, webViewLink',
-            supportsAllDrives: true,
-            supportsTeamDrives: true,
-          });
-
-          if (jsonResponse.data.id) {
-            // Tornar JSON público também
-            try {
-              await drive.permissions.create({
-                fileId: jsonResponse.data.id,
-                requestBody: {
-                  role: 'reader',
-                  type: 'anyone',
-                },
-                supportsAllDrives: true,
-                supportsTeamDrives: true,
-              });
-            } catch (shareError) {
-              // Não crítico
-              console.warn('[DRIVE UPLOAD] ⚠️ Não foi possível tornar JSON público:', shareError);
-            }
-            
-            console.log(`[DRIVE UPLOAD SUCCESS] ✅ JSON com transcriptArray salvo: ${jsonFileName}`);
-            console.log(`[DRIVE UPLOAD SUCCESS] ✅ JSON File ID: ${jsonResponse.data.id}`);
-          }
-        } catch (jsonError) {
-          // Não crítico - o DOCX foi salvo com sucesso
-          const jsonErrorMsg = jsonError instanceof Error ? jsonError.message : 'Erro desconhecido';
-          console.warn('[DRIVE UPLOAD] ⚠️ Erro ao salvar JSON (não crítico):', jsonErrorMsg);
-          console.warn('[DRIVE UPLOAD] O DOCX foi salvo com sucesso, mas o JSON não pôde ser salvo.');
-        }
-
         return webViewLink;
       } else {
         console.error('[DRIVE UPLOAD ERROR] ❌ Upload concluído mas sem ID de arquivo');
@@ -551,14 +495,9 @@ export async function POST(request: NextRequest) {
         const driveData = await driveResponse.json();
         
         if (driveData.success && driveData.found && driveData.transcript) {
-          // DOCX encontrado no Drive - retornar link do Drive e transcriptArray se disponível
+          // DOCX encontrado no Drive - retornar link do Drive
           if (process.env.NODE_ENV === 'development') {
             console.log(`[DRIVE HIT] DOCX encontrado no Google Drive para videoId: ${finalVideoId}`);
-            if (driveData.transcript.transcriptArray) {
-              console.log(`[DRIVE HIT] ✅ transcriptArray encontrado no JSON (${driveData.transcript.transcriptArray.length} itens)`);
-            } else {
-              console.log(`[DRIVE HIT] ⚠️ transcriptArray não encontrado no JSON`);
-            }
           }
           
           return NextResponse.json({
@@ -568,14 +507,7 @@ export async function POST(request: NextRequest) {
             driveFileId: driveData.transcript.driveFileId,
             fromDrive: true,
             cached: true,
-            // Incluir transcriptArray se disponível no JSON
-            transcriptArray: driveData.transcript.transcriptArray || undefined,
-            formattedContent: driveData.transcript.transcriptArray ? undefined : undefined, // Será gerado do array
-            content: driveData.transcript.transcriptArray ? undefined : undefined,
-            lang: driveData.transcript.lang || undefined,
-            message: driveData.transcript.transcriptArray 
-              ? 'Transcrição encontrada no Google Drive com dados completos'
-              : 'Transcrição encontrada no Google Drive'
+            message: 'Transcrição encontrada no Google Drive'
           });
         }
       }

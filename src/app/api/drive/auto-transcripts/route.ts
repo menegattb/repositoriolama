@@ -21,6 +21,16 @@ interface DriveApiResponse {
   nextPageToken?: string;
 }
 
+interface TranscriptJsonData {
+  videoId?: string;
+  videoTitle?: string;
+  videoUrl?: string;
+  lang?: string;
+  transcriptArray?: Array<{ text?: string; content?: string; offset: number; duration?: number }>;
+  createdAt?: string;
+  version?: string;
+}
+
 /**
  * Busca arquivos do Google Drive usando a API v3
  */
@@ -115,16 +125,6 @@ async function fetchJsonFiles(folderId: string, apiKey?: string): Promise<DriveF
   return allFiles;
 }
 
-interface TranscriptJsonData {
-  videoId?: string;
-  videoTitle?: string;
-  videoUrl?: string;
-  lang?: string;
-  transcriptArray?: Array<{ text?: string; content?: string; offset: number; duration?: number }>;
-  createdAt?: string;
-  version?: string;
-}
-
 /**
  * Busca e baixa conteúdo de um arquivo JSON do Drive
  */
@@ -162,33 +162,68 @@ async function fetchJsonContent(fileId: string, apiKey?: string): Promise<Transc
  * Tenta encontrar arquivo que contenha o videoId no nome
  */
 async function findTranscriptByVideoId(videoId: string, apiKey?: string): Promise<{ docxFile: DriveFile | null; jsonData: TranscriptJsonData | null }> {
+  console.log(`[Drive Auto-Transcripts API] 🔍 Buscando transcrição para videoId: ${videoId}`);
+  
   const allFiles = await fetchDriveFiles(DRIVE_FOLDER_ID, apiKey);
+  console.log(`[Drive Auto-Transcripts API] 📁 Total de arquivos DOCX encontrados: ${allFiles.length}`);
+  
+  if (allFiles.length > 0) {
+    console.log(`[Drive Auto-Transcripts API] 📋 Primeiros arquivos encontrados:`, allFiles.slice(0, 3).map(f => f.name));
+  }
   
   // Normalizar videoId para busca (remover caracteres especiais)
   const normalizedVideoId = videoId.toLowerCase().replace(/[^a-z0-9]/g, '');
+  console.log(`[Drive Auto-Transcripts API] 🔑 VideoId normalizado: "${normalizedVideoId}"`);
   
   // Buscar arquivo DOCX que contenha o videoId no nome
   const matchingDocxFile = allFiles.find(file => {
     const fileName = file.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return fileName.includes(normalizedVideoId) || normalizedVideoId.includes(fileName.substring(0, 11));
+    const matches = fileName.includes(normalizedVideoId) || normalizedVideoId.includes(fileName.substring(0, 11));
+    
+    if (matches) {
+      console.log(`[Drive Auto-Transcripts API] ✅ DOCX encontrado: "${file.name}"`);
+      console.log(`[Drive Auto-Transcripts API]    Nome normalizado: "${fileName}"`);
+      console.log(`[Drive Auto-Transcripts API]    VideoId normalizado: "${normalizedVideoId}"`);
+    }
+    
+    return matches;
   });
   
   if (!matchingDocxFile) {
+    console.log(`[Drive Auto-Transcripts API] ❌ Nenhum DOCX encontrado para videoId: ${videoId}`);
+    console.log(`[Drive Auto-Transcripts API] 📋 Arquivos disponíveis:`, allFiles.map(f => f.name));
     return { docxFile: null, jsonData: null };
   }
 
   // Buscar JSON correspondente
+  console.log(`[Drive Auto-Transcripts API] 🔍 Buscando JSON correspondente...`);
   const jsonFiles = await fetchJsonFiles(DRIVE_FOLDER_ID, apiKey);
+  console.log(`[Drive Auto-Transcripts API] 📁 Total de arquivos JSON encontrados: ${jsonFiles.length}`);
+  
   const matchingJsonFile = jsonFiles.find(file => {
     const fileName = file.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return fileName.includes(normalizedVideoId) || normalizedVideoId.includes(fileName.substring(0, 11));
+    const matches = fileName.includes(normalizedVideoId) || normalizedVideoId.includes(fileName.substring(0, 11));
+    
+    if (matches) {
+      console.log(`[Drive Auto-Transcripts API] ✅ JSON encontrado: "${file.name}"`);
+    }
+    
+    return matches;
   });
 
   let jsonData = null;
   if (matchingJsonFile) {
+    console.log(`[Drive Auto-Transcripts API] 📥 Baixando conteúdo do JSON: ${matchingJsonFile.id}`);
     jsonData = await fetchJsonContent(matchingJsonFile.id, apiKey);
     if (jsonData && jsonData.transcriptArray) {
-      console.log(`[Drive Auto-Transcripts API] ✅ JSON encontrado e carregado para videoId: ${videoId}`);
+      console.log(`[Drive Auto-Transcripts API] ✅ JSON carregado com sucesso! ${jsonData.transcriptArray.length} itens no transcriptArray`);
+    } else {
+      console.warn(`[Drive Auto-Transcripts API] ⚠️ JSON carregado mas sem transcriptArray`);
+    }
+  } else {
+    console.log(`[Drive Auto-Transcripts API] ⚠️ JSON não encontrado para videoId: ${videoId}`);
+    if (jsonFiles.length > 0) {
+      console.log(`[Drive Auto-Transcripts API] 📋 JSONs disponíveis:`, jsonFiles.map(f => f.name));
     }
   }
 
@@ -321,4 +356,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

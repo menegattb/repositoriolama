@@ -7,11 +7,15 @@ import { getDrivePreviewUrl, getDriveViewUrl } from '@/lib/driveUtils';
 interface DriveViewerProps {
   fileId: string;
   title: string;
+  onClose?: () => void;
+  showCloseButton?: boolean;
 }
 
 export default function DriveViewer({ 
   fileId, 
-  title
+  title, 
+  onClose,
+  showCloseButton = false 
 }: DriveViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
