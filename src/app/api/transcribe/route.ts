@@ -495,29 +495,36 @@ export async function POST(request: NextRequest) {
         const driveData = await driveResponse.json();
         
         if (driveData.success && driveData.found && driveData.transcript) {
-          // DOCX encontrado no Drive - retornar link do Drive e transcriptArray se disponível
+          // DOCX encontrado no Drive - só retornar sucesso se tiver transcriptArray (padronização)
           if (process.env.NODE_ENV === 'development') {
             console.log(`[DRIVE HIT] DOCX encontrado no Google Drive para videoId: ${finalVideoId}`);
             if (driveData.transcript.transcriptArray) {
               console.log(`[DRIVE HIT] ✅ transcriptArray encontrado com ${driveData.transcript.transcriptArray.length} itens`);
             } else {
-              console.log(`[DRIVE HIT] ⚠️ transcriptArray não encontrado no JSON do Drive`);
+              console.log(`[DRIVE HIT] ⚠️ transcriptArray não encontrado no JSON do Drive - será necessário gerar nova transcrição`);
             }
           }
           
-          return NextResponse.json({
-            success: true,
-            videoId: finalVideoId,
-            transcriptUrl: driveData.transcript.webViewLink,
-            driveFileId: driveData.transcript.driveFileId,
-            transcriptArray: driveData.transcript.transcriptArray || undefined,
-            videoTitle: driveData.transcript.videoTitle || videoTitle || undefined,
-            videoUrl: driveData.transcript.videoUrl || finalVideoUrl || undefined,
-            lang: driveData.transcript.lang || undefined,
-            fromDrive: true,
-            cached: true,
-            message: 'Transcrição encontrada no Google Drive'
-          });
+          // Só retornar sucesso se tiver transcriptArray (padronização para edição futura)
+          if (driveData.transcript.transcriptArray && driveData.transcript.transcriptArray.length > 0) {
+            return NextResponse.json({
+              success: true,
+              videoId: finalVideoId,
+              transcriptUrl: driveData.transcript.webViewLink,
+              driveFileId: driveData.transcript.driveFileId,
+              transcriptArray: driveData.transcript.transcriptArray,
+              videoTitle: driveData.transcript.videoTitle || videoTitle || undefined,
+              videoUrl: driveData.transcript.videoUrl || finalVideoUrl || undefined,
+              lang: driveData.transcript.lang || undefined,
+              fromDrive: true,
+              cached: true,
+              message: 'Transcrição encontrada no Google Drive'
+            });
+          } else {
+            // Se não tiver transcriptArray, não retornar sucesso - permitir gerar nova transcrição
+            console.log(`[DRIVE HIT] ⚠️ DOCX encontrado mas sem JSON/transcriptArray. Será necessário gerar nova transcrição.`);
+            // Continuar para gerar nova transcrição (não retornar aqui)
+          }
         }
       }
     } catch (driveError) {
@@ -655,31 +662,38 @@ export async function POST(request: NextRequest) {
         console.warn('[CACHE] ⚠️ Erro ao verificar Drive, continuando sem upload:', driveCheckError);
       }
       
-      // Determinar a URL do transcript - usar Drive se disponível, senão Hostinger/local
-      const transcriptUrl = driveDocxUrl || (() => {
-        if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
-          const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://acaoparamita.com.br';
-          return `${hostingerUrl}/repositorio/transcripts/${playlistFolder}/${finalVideoId}.srt`;
-        }
-        return `/transcripts/${playlistFolder}/${finalVideoId}.srt`;
-      })();
-      
-      return NextResponse.json({
-        success: true,
-        videoId: finalVideoId,
-        transcriptUrl: transcriptUrl,
-        driveDocxUrl: driveDocxUrl || undefined,
-        fromDrive: !!driveDocxUrl,
-        driveUploadError: driveUploadError || undefined,
-        content: plainTextCache,
-        formattedContent: formattedContentFromCache,
-        transcriptArray: transcriptArrayFromCache,
-        srtContent: existingTranscript,
-        cached: true,
-        message: driveDocxUrl 
-          ? 'Transcrição encontrada em cache e salva no Google Drive!' 
-          : 'Transcrição encontrada em cache'
-      });
+      // Só retornar sucesso se tiver transcriptArray (padronização para edição futura)
+      if (transcriptArrayFromCache && transcriptArrayFromCache.length > 0) {
+        // Determinar a URL do transcript - usar Drive se disponível, senão Hostinger/local
+        const transcriptUrl = driveDocxUrl || (() => {
+          if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
+            const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://acaoparamita.com.br';
+            return `${hostingerUrl}/repositorio/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+          }
+          return `/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+        })();
+        
+        return NextResponse.json({
+          success: true,
+          videoId: finalVideoId,
+          transcriptUrl: transcriptUrl,
+          driveDocxUrl: driveDocxUrl || undefined,
+          fromDrive: !!driveDocxUrl,
+          driveUploadError: driveUploadError || undefined,
+          content: plainTextCache,
+          formattedContent: formattedContentFromCache,
+          transcriptArray: transcriptArrayFromCache,
+          srtContent: existingTranscript,
+          cached: true,
+          message: driveDocxUrl 
+            ? 'Transcrição encontrada em cache e salva no Google Drive!' 
+            : 'Transcrição encontrada em cache'
+        });
+      } else {
+        // Se não tiver transcriptArray do cache, não retornar sucesso - permitir gerar nova transcrição
+        console.log(`[CACHE] ⚠️ Cache encontrado mas transcriptArray vazio. Será necessário gerar nova transcrição.`);
+        // Continuar para gerar nova transcrição (não retornar aqui)
+      }
     }
     
     // Arquivo não existe, continuar para gerar nova transcrição

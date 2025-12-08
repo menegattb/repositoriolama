@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
 import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2, MessageCircle } from 'lucide-react';
 import DriveViewer from './DriveViewer';
@@ -34,10 +34,26 @@ export default function Sidebar({
   const [transcriptLang, setTranscriptLang] = useState<string | null>(null);
   const [transcriptionLogs, setTranscriptionLogs] = useState<Array<{ type: 'info' | 'success' | 'error' | 'warning'; message: string; timestamp: Date }>>([]);
   const [driveFileId, setDriveFileId] = useState<string | null>(null);
+  
+  // Ref para controlar requisições em andamento e prevenir múltiplos cliques
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isProcessingRef = useRef<boolean>(false);
 
   useEffect(() => {
     setPlaylistUrl(window.location.href);
   }, []);
+
+  // Limpar requisições em andamento quando o vídeo mudar ou componente desmontar
+  useEffect(() => {
+    return () => {
+      // Cancelar requisição em andamento ao desmontar ou mudar vídeo
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      isProcessingRef.current = false;
+    };
+  }, [currentMediaItem?.id]);
 
   // Log quando os vídeos são atualizados (para debug)
   useEffect(() => {
@@ -211,11 +227,28 @@ export default function Sidebar({
 
   // Função para transcrever vídeo usando Supadata API
   const handleTranscribe = async () => {
+    // Proteção contra múltiplos cliques simultâneos
+    if (isTranscribing || isProcessingRef.current) {
+      console.log('[Sidebar] ⚠️ Transcrição já em andamento, ignorando clique duplicado');
+      return;
+    }
+
     if (!currentMediaItem) {
       setTranscriptError('Nenhum vídeo selecionado');
       return;
     }
 
+    // Cancelar requisição anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Criar novo AbortController para esta requisição
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
+    // Marcar como processando
+    isProcessingRef.current = true;
     setIsTranscribing(true);
     setTranscriptError(null);
     setTranscriptUrl(null);
@@ -512,6 +545,12 @@ export default function Sidebar({
       addLog('info', `URL do vídeo: ${videoUrl}`);
       console.log('[Sidebar] ✅ Enviando para API:', { videoId, videoUrl, playlistId: playlist.id });
 
+      // Verificar se a requisição foi cancelada antes de enviar
+      if (signal.aborted) {
+        console.log('[Sidebar] ⚠️ Requisição cancelada antes de enviar');
+        return;
+      }
+
       const response = await fetch('/api/transcribe', {
         method: 'POST',
         headers: {
@@ -523,10 +562,24 @@ export default function Sidebar({
           playlistId: playlist.id,
           videoTitle: currentMediaItem?.title,
         }),
+        signal: signal, // Adicionar signal para poder cancelar
       });
 
       addLog('info', 'Aguardando resposta da API...');
+      
+      // Verificar se a requisição foi cancelada durante o processamento
+      if (signal.aborted) {
+        console.log('[Sidebar] ⚠️ Requisição cancelada durante processamento');
+        return;
+      }
+
       const data: TranscriptResponse = await response.json();
+
+      // Verificar novamente após receber resposta
+      if (signal.aborted) {
+        console.log('[Sidebar] ⚠️ Requisição cancelada após receber resposta');
+        return;
+      }
 
       if (!response.ok || !data.success) {
         addLog('error', data.error || 'Erro ao transcrever vídeo');
@@ -592,6 +645,12 @@ export default function Sidebar({
       
       addLog('success', 'Processo concluído com sucesso!');
     } catch (error) {
+      // Ignorar erros de cancelamento (AbortError)
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('[Sidebar] ℹ️ Requisição cancelada pelo usuário');
+        return;
+      }
+
       let errorMessage = 'Erro desconhecido ao transcrever';
       
       if (error instanceof Error) {
@@ -604,7 +663,10 @@ export default function Sidebar({
       console.error('[Sidebar] Erro ao transcrever:', error);
       setTranscriptError(errorMessage);
     } finally {
+      // Limpar flags de processamento
+      isProcessingRef.current = false;
       setIsTranscribing(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -780,7 +842,7 @@ export default function Sidebar({
               if (fileId) {
                 setDriveFileId(fileId);
               }
-              // Se tiver transcriptArray do Drive, usar ele para exibição formatada
+              // SEMPRE usar transcriptArray do Drive se disponível (padronização)
               if (data.transcriptArray && data.transcriptArray.length > 0) {
                 console.log('[Sidebar] ✅ transcriptArray encontrado do Drive, populando estado...');
                 setTranscriptArray(data.transcriptArray);
@@ -794,15 +856,37 @@ export default function Sidebar({
                 }).filter(Boolean).join('\n');
                 setFormattedContent(formatted);
               } else {
-                console.log('[Sidebar] ⚠️ transcriptArray não encontrado do Drive, usando DriveViewer');
+                // Se não tiver transcriptArray no JSON, limpar estados e permitir gerar nova transcrição
+                console.log('[Sidebar] ⚠️ transcriptArray não encontrado no JSON do Drive. Será necessário gerar nova transcrição.');
+                setTranscriptArray(null);
+                setTranscriptContent(null);
+                setFormattedContent(null);
+                setTranscriptUrl(null);
+                setDriveFileId(null);
               }
             } else {
-              setTranscriptUrl(data.transcriptUrl || null);
-              setTranscriptContent(data.content || null);
-              setFormattedContent(data.formattedContent || null);
-              setTranscriptArray(data.transcriptArray || null);
-              setTranscriptLang(data.lang || null);
-              setDriveFileId(null);
+              // Se vier do cache local ou outra fonte, só usar se tiver transcriptArray
+              if (data.transcriptArray && data.transcriptArray.length > 0) {
+                setTranscriptArray(data.transcriptArray);
+                setTranscriptLang(data.lang || null);
+                setTranscriptUrl(data.transcriptUrl || null);
+                // Gerar formattedContent a partir do transcriptArray
+                const formatted = data.transcriptArray.map(item => {
+                  const text = item.text || '';
+                  if (!text || text.trim().length === 0) return '';
+                  const timeStr = formatTimeForDisplay(item.offset || 0);
+                  return `[${timeStr}] ${text.trim()}`;
+                }).filter(Boolean).join('\n');
+                setFormattedContent(formatted);
+              } else {
+                // Se não tiver transcriptArray, limpar estados
+                console.log('[Sidebar] ⚠️ transcriptArray não disponível. Será necessário gerar nova transcrição.');
+                setTranscriptArray(null);
+                setTranscriptContent(null);
+                setFormattedContent(null);
+                setTranscriptUrl(null);
+                setDriveFileId(null);
+              }
             }
           }
         } catch {
@@ -1073,18 +1157,8 @@ export default function Sidebar({
 
         {activeTab === 'transcript' && (
           <div className="space-y-4">
-            {/* Transcrição existente (prop) - manter compatibilidade */}
-            {transcript ? (
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-gray-900">
-                  Transcrição: {currentMediaItem?.title}
-                </h3>
-                <div className="text-sm text-gray-600 max-h-96 overflow-y-auto bg-gray-50 p-3 rounded border">
-                  {transcript.content}
-                </div>
-              </div>
-            ) : transcriptUrl || transcriptContent ? (
-              /* Transcrição gerada automaticamente */
+            {/* SOMENTE mostrar quando tiver transcriptArray */}
+            {transcriptArray && transcriptArray.length > 0 ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
@@ -1098,173 +1172,53 @@ export default function Sidebar({
                   )}
                 </div>
                 
-                {/* Botão para baixar .docx sempre que tiver conteúdo */}
-                {transcriptArray && transcriptArray.length > 0 && (
-                  <div className="flex gap-2 flex-wrap">
-                    <button
-                      onClick={handleDownloadDocx}
-                      className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 transition-colors"
-                    >
-                      <Download className="w-3 h-3" />
-                      Baixar .docx
-                    </button>
-                  </div>
-                )}
-
-                {/* Mostrar transcrição formatada se tiver conteúdo, senão mostrar DriveViewer */}
-                {transcriptArray && transcriptArray.length > 0 ? (
-                  /* Buscador e transcrição formatada - estilo anterior */
-                  <>
-                    <div className="relative">
-                      <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Busque na transcrição"
-                        value={transcriptSearchTerm}
-                        onChange={(e) => setTranscriptSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                      />
-                    </div>
-                    
-                    {/* Transcrição formatada com timestamps agrupados */}
-                    <div className="text-sm text-gray-900 max-h-[800px] overflow-y-auto bg-white p-4 rounded border leading-relaxed">
-                      <div className="space-y-4">
-                        {getGroupedTranscript().map((group, index) => (
-                          <div key={index} className="flex gap-4">
-                            <div className="flex-shrink-0">
-                              <span className="font-bold text-gray-700">{group.time}</span>
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-gray-900">
-                                {highlightSearchTerm(group.text, transcriptSearchTerm)}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                        {transcriptSearchTerm.trim() && getGroupedTranscript().length === 0 && (
-                          <p className="text-gray-500 text-center py-4">
-                            Nenhum resultado encontrado para &quot;{transcriptSearchTerm}&quot;
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                ) : driveFileId || (transcriptUrl && transcriptUrl.includes('drive.google.com')) ? (
-                  /* Fallback: DriveViewer apenas se não tiver conteúdo formatado */
-                  <div className="w-full h-[800px] border border-gray-200 rounded-md overflow-hidden bg-white">
-                    <DriveViewer
-                      fileId={driveFileId || extractFileIdFromUrl(transcriptUrl || '') || ''}
-                      title={currentMediaItem?.title || 'Transcrição'}
-                    />
-                  </div>
-                ) : (
-                  /* Carregando ou sem conteúdo */
-                  <div className="text-sm text-gray-900 max-h-[800px] overflow-y-auto bg-white p-4 rounded border leading-relaxed">
-                    <p className="text-gray-500">
-                      {formattedContent || transcriptContent || 'Carregando transcrição...'}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* Nenhuma transcrição - mostrar opções */
-              <div className="space-y-4">
-                {transcriptError ? (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-red-800 mb-1">Erro ao gerar transcrição</p>
-                        <p className="text-xs text-red-700">{transcriptError}</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-700">
-                      {getTranscribeButtonMessage()}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {canTranscribe() 
-                        ? 'A transcrição será gerada automaticamente usando as legendas do YouTube.'
-                        : 'Aguarde os vídeos serem carregados da API do YouTube antes de transcrever.'}
-                    </p>
-                  </div>
-                )}
-                
-                {/* Área de logs durante o processo */}
-                {isTranscribing && transcriptionLogs.length > 0 && (
-                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-md max-h-48 overflow-y-auto">
-                    <p className="text-xs font-medium text-gray-700 mb-2">Progresso:</p>
-                    <div className="space-y-1">
-                      {transcriptionLogs.map((log, index) => (
-                        <div 
-                          key={index} 
-                          className={`text-xs flex items-start gap-2 ${
-                            log.type === 'success' ? 'text-green-700' :
-                            log.type === 'error' ? 'text-red-700' :
-                            log.type === 'warning' ? 'text-yellow-700' :
-                            'text-gray-600'
-                          }`}
-                        >
-                          <span className="flex-shrink-0">
-                            {log.type === 'success' && '✓'}
-                            {log.type === 'error' && '✗'}
-                            {log.type === 'warning' && '⚠'}
-                            {log.type === 'info' && '•'}
-                          </span>
-                          <span className="flex-1">{log.message}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                <button
-                  onClick={handleTranscribe}
-                  disabled={isTranscribing || !canTranscribe()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={!canTranscribe() ? 'Aguarde os vídeos serem carregados' : undefined}
-                >
-                  {isTranscribing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-4 h-4" />
-                      Solicitar Transcrição
-                    </>
-                  )}
-                </button>
-
-                {transcriptError && (
+                {/* Botão para baixar .docx */}
+                <div className="flex gap-2 flex-wrap">
                   <button
-                    onClick={handleTranscribe}
-                    disabled={isTranscribing || !canTranscribe()}
-                    className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    title={!canTranscribe() ? 'Aguarde os vídeos serem carregados' : undefined}
+                    onClick={handleDownloadDocx}
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 transition-colors"
                   >
-                    Tentar novamente
+                    <Download className="w-3 h-3" />
+                    Baixar .docx
                   </button>
-                )}
+                </div>
 
-                <div className="pt-3 border-t border-gray-200">
-                  <p className="text-xs text-gray-500 mb-2">
-                    Ou solicite uma transcrição corrigida manualmente:
-                  </p>
-                  <a
-                    href={whatsappLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center w-full px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors"
-                  >
-                    Solicitar via WhatsApp
-                  </a>
+                {/* Buscador e transcrição formatada - layout padronizado */}
+                <div className="relative">
+                  <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Busque na transcrição"
+                    value={transcriptSearchTerm}
+                    onChange={(e) => setTranscriptSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                </div>
+                
+                {/* Transcrição formatada com timestamps agrupados */}
+                <div className="text-sm text-gray-900 max-h-[800px] overflow-y-auto bg-white p-4 rounded border leading-relaxed">
+                  <div className="space-y-4">
+                    {getGroupedTranscript().map((group, index) => (
+                      <div key={index} className="flex gap-4">
+                        <div className="flex-shrink-0">
+                          <span className="font-bold text-gray-700">{group.time}</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-gray-900">
+                            {highlightSearchTerm(group.text, transcriptSearchTerm)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {transcriptSearchTerm.trim() && getGroupedTranscript().length === 0 && (
+                      <p className="text-gray-500 text-center py-4">
+                        Nenhum resultado encontrado para &quot;{transcriptSearchTerm}&quot;
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </div>
