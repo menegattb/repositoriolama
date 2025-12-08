@@ -1158,8 +1158,15 @@ export default function Sidebar({
 
         {activeTab === 'transcript' && (
           <div className="space-y-4">
-            {/* Mostrar transcrição quando tiver transcriptArray */}
-            {transcriptArray && transcriptArray.length > 0 ? (
+            {/* Mostrar carregamento enquanto busca */}
+            {isLoadingTranscript ? (
+              <div className="text-center py-8 space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
+                <p className="text-sm text-gray-600">Carregando transcrição...</p>
+                <p className="text-xs text-gray-500">Buscando no Google Drive...</p>
+              </div>
+            ) : transcriptArray && transcriptArray.length > 0 ? (
+              /* Mostrar transcrição quando tiver transcriptArray */
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
