@@ -33,13 +33,11 @@ export default async function PlaylistDetailPage({ params }: PageProps) {
     console.log('[PlaylistDetailPage] Playlist encontrada:', playlist.title);
 
     const currentMediaItem = playlist.items?.[0] || null;
-    const transcript = currentMediaItem ? mockTranscripts.find(t => t.media_item_id === currentMediaItem.id) || null : null;
 
     return (
       <PlaylistDetailClient 
         playlist={playlist}
         initialMediaItem={currentMediaItem}
-        transcript={transcript}
       />
     );
   } catch (error) {

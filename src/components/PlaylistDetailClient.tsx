@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Playlist, MediaItem, Transcript } from '@/types';
+import { Playlist, MediaItem } from '@/types';
 import MediaPlayer from '@/components/MediaPlayer';
 import Sidebar from '@/components/Sidebar';
 import { Share2, ArrowLeft, ExternalLink, Calendar, MapPin, Headphones } from 'lucide-react';
@@ -11,13 +11,11 @@ import { youtubePlaylistService } from '@/services/youtubePlaylistService';
 interface PlaylistDetailClientProps {
   playlist: Playlist;
   initialMediaItem: MediaItem | null;
-  transcript: Transcript | null;
 }
 
 export default function PlaylistDetailClient({ 
   playlist, 
-  initialMediaItem, 
-  transcript 
+  initialMediaItem
 }: PlaylistDetailClientProps) {
   // Inicializar currentMediaItem com initialMediaItem ou o primeiro item da playlist
   const [currentMediaItem, setCurrentMediaItem] = useState<MediaItem | null>(
@@ -216,7 +214,6 @@ export default function PlaylistDetailClient({
             <Sidebar 
               playlist={{...playlist, items: playlistVideos}} 
               currentMediaItem={currentMediaItem} 
-              transcript={transcript}
               onMediaItemSelect={handleMediaItemSelect}
             />
           </div>

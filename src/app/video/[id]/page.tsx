@@ -72,13 +72,10 @@ export default async function VideoDetailPage({ params }: PageProps) {
       }
     };
 
-    const transcript = mockTranscripts.find(t => t.media_item_id === video.id) || null;
-
     return (
       <PlaylistDetailClient 
         playlist={virtualPlaylist}
         initialMediaItem={mediaItem}
-        transcript={transcript}
       />
     );
   } catch (error) {
