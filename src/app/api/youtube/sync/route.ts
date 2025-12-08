@@ -301,10 +301,36 @@ async function uploadJsonToDrive(jsonData: YouTubeDataResponse): Promise<string 
 
 /**
  * Endpoint principal de sincronização
+ * Protegido: apenas cron jobs do Vercel podem chamar
  */
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   console.log('[YOUTUBE SYNC] 🚀 Iniciando sincronização com YouTube...');
+
+  // Verificar se é uma chamada autorizada (cron job do Vercel ou header de autorização)
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+  const isVercelCron = request.headers.get('x-vercel-cron') === '1';
+  const userAgent = request.headers.get('user-agent') || '';
+  const isManualScript = userAgent.includes('YouTube-Sync-Script');
+  
+  // Permitir se for:
+  // 1. Cron job do Vercel
+  // 2. Script manual (desenvolvimento)
+  // 3. Header de autorização correto
+  // 4. Modo desenvolvimento
+  if (!isVercelCron && !isManualScript && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
+    // Em desenvolvimento, permitir sem autenticação
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[YOUTUBE SYNC] ⚠️ Modo desenvolvimento: autenticação ignorada');
+    } else {
+      console.error('[YOUTUBE SYNC] ❌ Acesso não autorizado');
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+  }
 
   try {
     // Verificar variáveis de ambiente

@@ -7,7 +7,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "start:server": "node server.js",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync:youtube": "node scripts/sync-youtube.js"
   },
   "dependencies": {
     "docx": "^9.5.1",
