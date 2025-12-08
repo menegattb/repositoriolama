@@ -20,7 +20,8 @@ export default async function PlaylistDetailPage({ params }: PageProps) {
   console.log('[PlaylistDetailPage] Buscando playlist:', playlistId);
   
   try {
-    const youtubePlaylists = await getYouTubePlaylists();
+    // Forçar refresh para garantir dados atualizados
+    const youtubePlaylists = await getYouTubePlaylists(true);
     console.log('[PlaylistDetailPage] Total de playlists carregadas:', youtubePlaylists.length);
     
     const playlist = youtubePlaylists.find(p => p.id === playlistId);
