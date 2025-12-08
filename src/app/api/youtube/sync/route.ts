@@ -209,8 +209,8 @@ async function fetchAllChannelPlaylists(channelId: string, apiKey: string): Prom
         youtubeOAuthClientId,
         youtubeOAuthClientSecret,
         process.env.NODE_ENV === 'production' 
-          ? 'https://repositorio.acaoparamita.com.br/api/auth/google/callback'
-          : 'http://localhost:3000/api/auth/google/callback'
+          ? 'https://repositorio.acaoparamita.com.br/api/auth/youtube/callback'
+          : 'http://localhost:3000/api/auth/youtube/callback'
       );
 
       oauth2Client.setCredentials({
@@ -317,8 +317,8 @@ async function fetchAllStandaloneVideos(channelId: string, apiKey: string, exist
         youtubeOAuthClientId,
         youtubeOAuthClientSecret,
         process.env.NODE_ENV === 'production' 
-          ? 'https://repositorio.acaoparamita.com.br/api/auth/google/callback'
-          : 'http://localhost:3000/api/auth/google/callback'
+          ? 'https://repositorio.acaoparamita.com.br/api/auth/youtube/callback'
+          : 'http://localhost:3000/api/auth/youtube/callback'
       );
 
       oauth2Client.setCredentials({
