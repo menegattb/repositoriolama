@@ -307,29 +307,39 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
   console.log('[YOUTUBE SYNC] 🚀 Iniciando sincronização com YouTube...');
 
-  // Verificar se é uma chamada autorizada (cron job do Vercel ou header de autorização)
+  // Verificar se é uma chamada autorizada
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
   const isVercelCron = request.headers.get('x-vercel-cron') === '1';
   const userAgent = request.headers.get('user-agent') || '';
   const isManualScript = userAgent.includes('YouTube-Sync-Script');
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  // Permitir se for:
-  // 1. Cron job do Vercel
-  // 2. Script manual (desenvolvimento)
-  // 3. Header de autorização correto
-  // 4. Modo desenvolvimento
-  if (!isVercelCron && !isManualScript && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
-    // Em desenvolvimento, permitir sem autenticação
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[YOUTUBE SYNC] ⚠️ Modo desenvolvimento: autenticação ignorada');
-    } else {
-      console.error('[YOUTUBE SYNC] ❌ Acesso não autorizado');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+  // Permitir acesso se:
+  // 1. Cron job do Vercel (sempre permitido)
+  // 2. Script manual com User-Agent correto
+  // 3. Header de autorização correto (se CRON_SECRET configurado)
+  // 4. Modo desenvolvimento (sempre permitido)
+  // 5. Em produção sem CRON_SECRET configurado (permitir para facilitar testes)
+  
+  const hasValidAuth = cronSecret && authHeader === `Bearer ${cronSecret}`;
+  const shouldAllow = isVercelCron || isManualScript || hasValidAuth || !isProduction || !cronSecret;
+  
+  if (!shouldAllow) {
+    console.error('[YOUTUBE SYNC] ❌ Acesso não autorizado');
+    console.error('[YOUTUBE SYNC] Headers:', {
+      'x-vercel-cron': request.headers.get('x-vercel-cron'),
+      'user-agent': userAgent,
+      'authorization': authHeader ? 'present' : 'missing',
+    });
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Use npm run sync:youtube ou configure CRON_SECRET' },
+      { status: 401 }
+    );
+  }
+  
+  if (!isVercelCron && !hasValidAuth) {
+    console.warn('[YOUTUBE SYNC] ⚠️ Execução manual detectada');
   }
 
   try {
