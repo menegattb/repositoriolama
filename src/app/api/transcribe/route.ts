@@ -407,7 +407,7 @@ async function createAndUploadJson(
       lang: lang || 'pt',
       transcriptArray: transcriptArray,
       createdAt: new Date().toISOString(),
-      version: '1.0'
+      version: '1.1'
     };
 
     // Converter para string JSON
