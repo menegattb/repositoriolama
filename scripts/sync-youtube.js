@@ -29,8 +29,18 @@ const options = {
 const req = client.request(options, (res) => {
   // Seguir redirecionamentos
   if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-    console.log(`🔄 Redirecionando para: ${res.headers.location}`);
-    const redirectUrl = new URL(res.headers.location);
+    const location = res.headers.location;
+    console.log(`🔄 Redirecionando para: ${location}`);
+    
+    // Resolver URL relativa para absoluta se necessário
+    let redirectUrl;
+    try {
+      redirectUrl = new URL(location);
+    } catch (e) {
+      // URL relativa, resolver usando a URL base
+      redirectUrl = new URL(location, SYNC_URL);
+    }
+    
     const redirectClient = redirectUrl.protocol === 'https:' ? https : http;
     const redirectOptions = {
       hostname: redirectUrl.hostname,
@@ -46,6 +56,11 @@ const req = client.request(options, (res) => {
     });
     redirectReq.on('error', (error) => {
       console.error('❌ Erro na requisição de redirecionamento:', error.message);
+      process.exit(1);
+    });
+    redirectReq.setTimeout(300000, () => {
+      console.error('❌ Timeout na requisição de redirecionamento');
+      redirectReq.destroy();
       process.exit(1);
     });
     redirectReq.end();
