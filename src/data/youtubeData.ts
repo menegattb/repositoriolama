@@ -306,7 +306,7 @@ export const youtubePlaylists: Playlist[] = [];
  * Função para buscar vídeos sem playlist do JSON
  */
 export async function getStandaloneVideos(): Promise<StandaloneVideo[]> {
-  const url = YOUTUBE_DATA_URL;
+  const url = getYouTubeDataUrl(true); // Forçar refresh para dados atualizados
   
   try {
     const response = await fetch(url, {
@@ -314,7 +314,7 @@ export async function getStandaloneVideos(): Promise<StandaloneVideo[]> {
       headers: {
         'Accept': 'application/json',
       },
-      cache: typeof window === 'undefined' ? 'no-store' as RequestCache : 'default' as RequestCache,
+      cache: 'no-store' as RequestCache, // Sempre sem cache
     });
 
     if (!response.ok) {
