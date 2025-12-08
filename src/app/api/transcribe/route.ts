@@ -228,26 +228,61 @@ async function createAndUploadDocx(
       console.log('[DRIVE UPLOAD] Fazendo upload do arquivo:', fileName);
       console.log('[DRIVE UPLOAD] Tamanho do buffer:', buffer.length, 'bytes');
 
+      // Verificar se arquivo já existe (para sobrescrever sem criar histórico)
+      let existingFileId: string | null = null;
+      try {
+        const existingFiles = await drive.files.list({
+          q: `name='${fileName}' and '${DRIVE_FOLDER_ID}' in parents and trashed=false`,
+          fields: 'files(id, name)',
+          supportsAllDrives: true,
+          includeItemsFromAllDrives: true,
+        });
+
+        if (existingFiles.data.files && existingFiles.data.files.length > 0) {
+          existingFileId = existingFiles.data.files[0].id || null;
+          console.log(`[DRIVE UPLOAD] 📝 Arquivo DOCX já existe, será sobrescrito: ${existingFileId}`);
+        }
+      } catch (searchError) {
+        console.warn('[DRIVE UPLOAD] ⚠️ Erro ao buscar arquivo existente, criando novo:', searchError);
+      }
+
       // Converter Buffer para Stream (googleapis requer stream para uploads)
       const bufferStream = Readable.from(Buffer.from(buffer));
       
-      // Fazer upload do arquivo
-      // IMPORTANTE: Service Accounts não têm quota própria
-      // A pasta deve pertencer a um usuário real e estar compartilhada com a Service Account
-      // Usar supportsAllDrives: true para suportar Shared Drives (se aplicável)
-      const response = await drive.files.create({
-        requestBody: {
-          name: fileName,
-          parents: [DRIVE_FOLDER_ID],
-        },
-        media: {
-          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          body: bufferStream,
-        },
-        fields: 'id, webViewLink, name, permissions',
-        supportsAllDrives: true, // Suportar Shared Drives
-        supportsTeamDrives: true, // Compatibilidade com Team Drives antigos
-      });
+      let response;
+      if (existingFileId) {
+        // Atualizar arquivo existente (sobrescrever sem histórico)
+        console.log('[DRIVE UPLOAD] Atualizando arquivo existente...');
+        response = await drive.files.update({
+          fileId: existingFileId,
+          requestBody: {
+            name: fileName,
+          },
+          media: {
+            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            body: bufferStream,
+          },
+          fields: 'id, webViewLink, name',
+          supportsAllDrives: true,
+        });
+        console.log('[DRIVE UPLOAD] ✅ Arquivo DOCX atualizado (sobrescrito)');
+      } else {
+        // Criar novo arquivo
+        response = await drive.files.create({
+          requestBody: {
+            name: fileName,
+            parents: [DRIVE_FOLDER_ID],
+          },
+          media: {
+            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            body: bufferStream,
+          },
+          fields: 'id, webViewLink, name, permissions',
+          supportsAllDrives: true,
+          supportsTeamDrives: true,
+        });
+        console.log('[DRIVE UPLOAD] ✅ Novo arquivo DOCX criado');
+      }
 
       console.log('[DRIVE UPLOAD] Resposta recebida:', {
         id: response.data.id,
@@ -346,6 +381,182 @@ async function createAndUploadDocx(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error('[DRIVE UPLOAD ERROR] Erro ao criar/fazer upload do DOCX:', errorMessage);
+    return null;
+  }
+}
+
+/**
+ * Função para criar JSON e fazer upload para o Google Drive
+ * JSON contém transcriptArray estruturado (fonte de verdade para edição futura)
+ */
+async function createAndUploadJson(
+  transcriptArray: TranscriptItem[],
+  videoId: string,
+  videoTitle?: string,
+  videoUrl?: string,
+  lang?: string
+): Promise<string | null> {
+  try {
+    const DRIVE_FOLDER_ID = '1SKEAfJ8oC0dOq0LGxUt6UtxQXjuvykwg';
+    
+    // Criar objeto JSON com todos os dados estruturados
+    const jsonData = {
+      videoId: videoId,
+      videoTitle: videoTitle || undefined,
+      videoUrl: videoUrl || undefined,
+      lang: lang || 'pt',
+      transcriptArray: transcriptArray,
+      createdAt: new Date().toISOString(),
+      version: '1.0'
+    };
+
+    // Converter para string JSON
+    const jsonString = JSON.stringify(jsonData, null, 2);
+    const jsonBuffer = Buffer.from(jsonString, 'utf-8');
+
+    // Criar nome do arquivo (mesmo padrão do DOCX)
+    const safeTitle = (videoTitle || videoId || 'transcricao')
+      .replace(/[^a-z0-9\s-]/gi, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50);
+    const fileName = `${safeTitle}-${videoId}.json`;
+
+    // Carregar credenciais OAuth 2.0
+    const oauthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+    const oauthClientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+    const oauthRefreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
+
+    if (!oauthClientId || !oauthClientSecret || !oauthRefreshToken) {
+      console.error('[DRIVE JSON UPLOAD ERROR] ❌ Credenciais OAuth não configuradas!');
+      return null;
+    }
+
+    try {
+      console.log('[DRIVE JSON UPLOAD] Iniciando autenticação com OAuth 2.0...');
+      
+      // Criar cliente OAuth 2.0
+      const oauth2Client = new OAuth2Client(
+        oauthClientId,
+        oauthClientSecret,
+        process.env.NODE_ENV === 'production' 
+          ? 'https://repositorio.acaoparamita.com.br/api/auth/google/callback'
+          : 'http://localhost:3000/api/auth/google/callback'
+      );
+
+      // Configurar refresh token
+      oauth2Client.setCredentials({
+        refresh_token: oauthRefreshToken,
+      });
+
+      // Obter access token
+      const { credentials } = await oauth2Client.refreshAccessToken();
+      oauth2Client.setCredentials(credentials);
+
+      console.log('[DRIVE JSON UPLOAD] ✅ Autenticação OAuth concluída');
+
+      // Criar cliente do Drive com OAuth
+      const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+      // Verificar se arquivo já existe (para sobrescrever sem criar histórico)
+      let existingFileId: string | null = null;
+      try {
+        const existingFiles = await drive.files.list({
+          q: `name='${fileName}' and '${DRIVE_FOLDER_ID}' in parents and trashed=false`,
+          fields: 'files(id, name)',
+          supportsAllDrives: true,
+          includeItemsFromAllDrives: true,
+        });
+
+        if (existingFiles.data.files && existingFiles.data.files.length > 0) {
+          existingFileId = existingFiles.data.files[0].id || null;
+          console.log(`[DRIVE JSON UPLOAD] 📝 Arquivo JSON já existe, será sobrescrito: ${existingFileId}`);
+        }
+      } catch (searchError) {
+        console.warn('[DRIVE JSON UPLOAD] ⚠️ Erro ao buscar arquivo existente, criando novo:', searchError);
+      }
+
+      console.log('[DRIVE JSON UPLOAD] Fazendo upload do arquivo:', fileName);
+      console.log('[DRIVE JSON UPLOAD] Tamanho do JSON:', jsonBuffer.length, 'bytes');
+      console.log('[DRIVE JSON UPLOAD] Itens no transcriptArray:', transcriptArray.length);
+
+      // Converter Buffer para Stream
+      const bufferStream = Readable.from(jsonBuffer);
+      
+      let response;
+      if (existingFileId) {
+        // Atualizar arquivo existente (sobrescrever sem histórico)
+        console.log('[DRIVE JSON UPLOAD] Atualizando arquivo existente...');
+        response = await drive.files.update({
+          fileId: existingFileId,
+          requestBody: {
+            name: fileName,
+          },
+          media: {
+            mimeType: 'application/json',
+            body: bufferStream,
+          },
+          fields: 'id, webViewLink, name',
+          supportsAllDrives: true,
+        });
+        console.log('[DRIVE JSON UPLOAD] ✅ Arquivo JSON atualizado (sobrescrito)');
+      } else {
+        // Criar novo arquivo
+        response = await drive.files.create({
+          requestBody: {
+            name: fileName,
+            parents: [DRIVE_FOLDER_ID],
+          },
+          media: {
+            mimeType: 'application/json',
+            body: bufferStream,
+          },
+          fields: 'id, webViewLink, name, permissions',
+          supportsAllDrives: true,
+        });
+        console.log('[DRIVE JSON UPLOAD] ✅ Novo arquivo JSON criado');
+      }
+
+      if (response.data.id) {
+        const fileId = response.data.id;
+        
+        // Tornar arquivo público para visualização
+        try {
+          await drive.permissions.create({
+            fileId: fileId,
+            requestBody: {
+              role: 'reader',
+              type: 'anyone',
+            },
+            supportsAllDrives: true,
+          });
+          console.log('[DRIVE JSON UPLOAD] ✅ Arquivo JSON compartilhado publicamente');
+        } catch (shareError) {
+          console.warn('[DRIVE JSON UPLOAD] ⚠️ Não foi possível tornar arquivo público:', shareError);
+        }
+        
+        const webViewLink = response.data.webViewLink || `https://drive.google.com/file/d/${fileId}/view`;
+
+        console.log(`[DRIVE JSON UPLOAD SUCCESS] ✅ JSON enviado com sucesso: ${fileName}`);
+        console.log(`[DRIVE JSON UPLOAD SUCCESS] ✅ File ID: ${fileId}`);
+        console.log(`[DRIVE JSON UPLOAD SUCCESS] ✅ Link: ${webViewLink}`);
+
+        return webViewLink;
+      } else {
+        console.error('[DRIVE JSON UPLOAD ERROR] ❌ Upload concluído mas sem ID de arquivo');
+        return null;
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('[DRIVE JSON UPLOAD ERROR] ❌ Erro ao fazer upload:', {
+        message: errorMessage,
+        fileName,
+        folderId: DRIVE_FOLDER_ID,
+      });
+      return null;
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error('[DRIVE JSON UPLOAD ERROR] Erro ao criar/fazer upload do JSON:', errorMessage);
     return null;
   }
 }
@@ -622,11 +833,29 @@ export async function POST(request: NextRequest) {
             }
           } else {
             // Não existe no Drive - fazer upload
-            console.log('[CACHE] 📤 DOCX não encontrado no Drive, fazendo upload...');
+            console.log('[CACHE] 📤 Arquivos não encontrados no Drive, fazendo upload...');
             
             if (transcriptArrayFromCache.length > 0) {
-              console.log(`[CACHE] 📝 Gerando DOCX a partir do cache (${transcriptArrayFromCache.length} itens)...`);
+              console.log(`[CACHE] 📝 Gerando JSON e DOCX a partir do cache (${transcriptArrayFromCache.length} itens)...`);
               try {
+                // Criar e fazer upload do JSON primeiro (fonte de verdade)
+                console.log('[CACHE] 📝 Criando e fazendo upload do JSON...');
+                const driveJsonUrl = await createAndUploadJson(
+                  transcriptArrayFromCache,
+                  finalVideoId,
+                  videoTitle,
+                  finalVideoUrl,
+                  'pt' // Idioma padrão
+                );
+                
+                if (driveJsonUrl) {
+                  console.log(`[CACHE] ✅ JSON enviado para o Drive com sucesso: ${driveJsonUrl}`);
+                } else {
+                  console.warn('[CACHE] ⚠️ Upload do JSON falhou, mas continuando com DOCX...');
+                }
+                
+                // Criar e fazer upload do DOCX
+                console.log('[CACHE] 📄 Criando e fazendo upload do DOCX...');
                 driveDocxUrl = await createAndUploadDocx(
                   transcriptArrayFromCache,
                   finalVideoId,
@@ -645,14 +874,14 @@ export async function POST(request: NextRequest) {
                 const errorMessage = docxError instanceof Error ? docxError.message : 'Erro desconhecido';
                 const errorStack = docxError instanceof Error ? docxError.stack : undefined;
                 driveUploadError = `Erro ao fazer upload para o Drive: ${errorMessage}`;
-                console.error('[CACHE] ❌ Erro ao criar/fazer upload do DOCX:', {
+                console.error('[CACHE] ❌ Erro ao criar/fazer upload dos arquivos:', {
                   message: errorMessage,
                   stack: errorStack,
                   videoId: finalVideoId
                 });
               }
             } else {
-              console.warn('[CACHE] ⚠️ transcriptArrayFromCache está vazio, não foi possível gerar DOCX');
+              console.warn('[CACHE] ⚠️ transcriptArrayFromCache está vazio, não foi possível gerar JSON e DOCX');
               console.warn('[CACHE] Tamanho do SRT:', existingTranscript.length, 'caracteres');
             }
           }
@@ -1302,19 +1531,39 @@ export async function POST(request: NextRequest) {
     
     if (transcriptArray.length > 0) {
       try {
-        console.log('[DRIVE] ✅ Iniciando criação e upload do DOCX...');
+        console.log('[DRIVE] ✅ Iniciando criação e upload do DOCX e JSON...');
         console.log('[DRIVE] transcriptArray tem', transcriptArray.length, 'itens');
         console.log('[DRIVE] Primeiros itens do transcriptArray:', transcriptArray.slice(0, 3).map(item => ({
           text: (item.text || item.content || '').substring(0, 50),
           offset: item.offset
         })));
         
+        const lang = result.lang || result.language || 'pt';
+        
+        // Criar e fazer upload do JSON primeiro (fonte de verdade)
+        console.log('[DRIVE] 📝 Criando e fazendo upload do JSON (fonte de verdade)...');
+        const driveJsonUrl = await createAndUploadJson(
+          transcriptArray,
+          finalVideoId,
+          videoTitle,
+          finalVideoUrl,
+          lang
+        );
+        
+        if (driveJsonUrl) {
+          console.log(`[DRIVE SUCCESS] ✅ JSON salvo no Drive: ${driveJsonUrl}`);
+        } else {
+          console.warn('[DRIVE WARNING] ⚠️ Upload do JSON falhou, mas continuando com DOCX...');
+        }
+        
+        // Criar e fazer upload do DOCX (gerado a partir do transcriptArray)
+        console.log('[DRIVE] 📄 Criando e fazendo upload do DOCX...');
         driveDocxUrl = await createAndUploadDocx(
           transcriptArray,
           finalVideoId,
           videoTitle,
           finalVideoUrl,
-          result.lang || result.language || 'pt'
+          lang
         );
         
         if (driveDocxUrl) {
@@ -1328,7 +1577,7 @@ export async function POST(request: NextRequest) {
         const errorMessage = docxError instanceof Error ? docxError.message : 'Erro desconhecido';
         const errorStack = docxError instanceof Error ? docxError.stack : undefined;
         driveUploadError = `Erro ao fazer upload para o Drive: ${errorMessage}`;
-        console.error('[DRIVE ERROR] ❌ Erro ao criar/fazer upload do DOCX:', {
+        console.error('[DRIVE ERROR] ❌ Erro ao criar/fazer upload dos arquivos:', {
           message: errorMessage,
           stack: errorStack,
           videoId: finalVideoId,
@@ -1339,7 +1588,7 @@ export async function POST(request: NextRequest) {
     } else {
       console.warn('[DRIVE WARNING] ⚠️ transcriptArray está vazio, não será feito upload para o Drive');
       console.warn('[DRIVE WARNING] transcriptContent length:', transcriptContent?.length || 0);
-      driveUploadError = 'transcriptArray está vazio - não foi possível gerar DOCX';
+      driveUploadError = 'transcriptArray está vazio - não foi possível gerar DOCX e JSON';
     }
     
     // Retornar sucesso
