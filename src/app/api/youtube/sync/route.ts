@@ -188,6 +188,378 @@ async function fetchVideoInfo(videoId: string, apiKey: string): Promise<Standalo
 }
 
 /**
+ * Buscar todas as playlists do canal (públicas e privadas se OAuth disponível)
+ */
+async function fetchAllChannelPlaylists(channelId: string, apiKey: string): Promise<YouTubePlaylist[]> {
+  const playlists: YouTubePlaylist[] = [];
+  let nextPageToken = '';
+
+  // Tentar usar OAuth do YouTube primeiro (para playlists privadas)
+  const youtubeOAuthClientId = process.env.YOUTUBE_OAUTH_CLIENT_ID;
+  const youtubeOAuthClientSecret = process.env.YOUTUBE_OAUTH_CLIENT_SECRET;
+  const youtubeOAuthRefreshToken = process.env.YOUTUBE_OAUTH_REFRESH_TOKEN;
+  
+  let useOAuth = false;
+  let youtube: any = null;
+  
+  if (youtubeOAuthClientId && youtubeOAuthClientSecret && youtubeOAuthRefreshToken) {
+    try {
+      console.log(`[YOUTUBE SYNC] 🔐 Usando OAuth do YouTube para buscar playlists (incluindo privadas)...`);
+      const oauth2Client = new OAuth2Client(
+        youtubeOAuthClientId,
+        youtubeOAuthClientSecret,
+        process.env.NODE_ENV === 'production' 
+          ? 'https://repositorio.acaoparamita.com.br/api/auth/google/callback'
+          : 'http://localhost:3000/api/auth/google/callback'
+      );
+
+      oauth2Client.setCredentials({
+        refresh_token: youtubeOAuthRefreshToken,
+      });
+
+      const { credentials } = await oauth2Client.refreshAccessToken();
+      oauth2Client.setCredentials(credentials);
+
+      youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+      useOAuth = true;
+    } catch (error) {
+      console.warn(`[YOUTUBE SYNC] ⚠️ Erro ao configurar OAuth do YouTube, usando API Key apenas:`, error);
+      useOAuth = false;
+    }
+  } else {
+    console.log(`[YOUTUBE SYNC] 📝 Usando API Key apenas (playlists públicas)...`);
+  }
+
+  console.log(`[YOUTUBE SYNC] 🔍 Buscando TODAS as playlists do canal: ${channelId}`);
+
+  do {
+    try {
+      let data: any;
+      
+      if (useOAuth && youtube) {
+        // Usar OAuth para buscar playlists (incluindo privadas)
+        const response = await youtube.playlists.list({
+          part: ['snippet', 'contentDetails'],
+          channelId: channelId,
+          maxResults: 50,
+          pageToken: nextPageToken || undefined,
+        });
+        
+        data = response.data;
+      } else {
+        // Usar API Key para buscar playlists públicas
+        const url = `https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&channelId=${channelId}&maxResults=50&key=${apiKey}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[YOUTUBE SYNC] ❌ Erro ao buscar playlists: ${response.status}`, errorText.substring(0, 500));
+          break;
+        }
+
+        data = await response.json();
+      }
+
+      if (data.items && data.items.length > 0) {
+        for (const item of data.items) {
+          playlists.push({
+            id: item.id,
+            title: item.snippet.title,
+            description: item.snippet.description || '',
+            publishedAt: item.snippet.publishedAt,
+            itemCount: item.contentDetails?.itemCount || 0,
+          });
+        }
+        console.log(`[YOUTUBE SYNC] ✅ Encontradas ${data.items.length} playlists nesta página (total: ${playlists.length})`);
+      }
+
+      nextPageToken = data.nextPageToken || '';
+      
+      // Delay para evitar rate limiting
+      if (nextPageToken) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    } catch (error) {
+      console.error('[YOUTUBE SYNC] ❌ Erro ao buscar playlists:', error);
+      break;
+    }
+  } while (nextPageToken);
+
+  console.log(`[YOUTUBE SYNC] ✅ Total de playlists encontradas no canal: ${playlists.length}`);
+  return playlists;
+}
+
+/**
+ * Buscar todos os vídeos standalone do canal
+ */
+async function fetchAllStandaloneVideos(channelId: string, apiKey: string, existingPlaylistIds: string[]): Promise<StandaloneVideo[]> {
+  const standaloneVideos: StandaloneVideo[] = [];
+  let nextPageToken = '';
+  const maxVideosToCheck = 2000; // Aumentar limite para buscar mais vídeos
+  let videosChecked = 0;
+
+  // Tentar usar OAuth do YouTube primeiro (para vídeos privados)
+  const youtubeOAuthClientId = process.env.YOUTUBE_OAUTH_CLIENT_ID;
+  const youtubeOAuthClientSecret = process.env.YOUTUBE_OAUTH_CLIENT_SECRET;
+  const youtubeOAuthRefreshToken = process.env.YOUTUBE_OAUTH_REFRESH_TOKEN;
+  
+  let useOAuth = false;
+  let youtube: any = null;
+  
+  if (youtubeOAuthClientId && youtubeOAuthClientSecret && youtubeOAuthRefreshToken) {
+    try {
+      const oauth2Client = new OAuth2Client(
+        youtubeOAuthClientId,
+        youtubeOAuthClientSecret,
+        process.env.NODE_ENV === 'production' 
+          ? 'https://repositorio.acaoparamita.com.br/api/auth/google/callback'
+          : 'http://localhost:3000/api/auth/google/callback'
+      );
+
+      oauth2Client.setCredentials({
+        refresh_token: youtubeOAuthRefreshToken,
+      });
+
+      const { credentials } = await oauth2Client.refreshAccessToken();
+      oauth2Client.setCredentials(credentials);
+
+      youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+      useOAuth = true;
+    } catch (error) {
+      console.warn(`[YOUTUBE SYNC] ⚠️ Erro ao configurar OAuth do YouTube para vídeos, usando API Key apenas:`, error);
+      useOAuth = false;
+    }
+  }
+
+  console.log(`[YOUTUBE SYNC] 🔍 Buscando TODOS os vídeos standalone do canal: ${channelId}`);
+
+  // Buscar todos os vídeos de todas as playlists conhecidas para criar um Set
+  const videosInPlaylists = new Set<string>();
+  console.log(`[YOUTUBE SYNC] 📋 Coletando vídeos de ${existingPlaylistIds.length} playlists conhecidas...`);
+  
+  // Processar todas as playlists, mas em lotes para não demorar muito
+  const batchSize = 50;
+  for (let i = 0; i < Math.min(existingPlaylistIds.length, 200); i += batchSize) {
+    const batch = existingPlaylistIds.slice(i, i + batchSize);
+    console.log(`[YOUTUBE SYNC] 📋 Processando lote ${Math.floor(i / batchSize) + 1} de playlists (${batch.length} playlists)...`);
+    
+    for (const playlistId of batch) {
+    try {
+      let playlistPageToken = '';
+      do {
+        const playlistItemsUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${apiKey}${playlistPageToken ? `&pageToken=${playlistPageToken}` : ''}`;
+        const playlistResponse = await fetch(playlistItemsUrl);
+        
+        if (playlistResponse.ok) {
+          const playlistData = await playlistResponse.json();
+          if (playlistData.items) {
+            for (const item of playlistData.items) {
+              if (item.snippet?.resourceId?.videoId) {
+                videosInPlaylists.add(item.snippet.resourceId.videoId);
+              }
+            }
+          }
+          playlistPageToken = playlistData.nextPageToken || '';
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+      } while (playlistPageToken);
+    } catch (error) {
+      console.warn(`[YOUTUBE SYNC] ⚠️ Erro ao buscar vídeos da playlist ${playlistId}:`, error);
+    }
+    }
+    
+    // Delay entre lotes
+    if (i + batchSize < Math.min(existingPlaylistIds.length, 200)) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  }
+  
+  console.log(`[YOUTUBE SYNC] ✅ Encontrados ${videosInPlaylists.size} vídeos em playlists conhecidas`);
+
+  // Buscar vídeos do canal
+  do {
+    try {
+      if (videosChecked >= maxVideosToCheck) {
+        console.log(`[YOUTUBE SYNC] ⚠️ Limite de ${maxVideosToCheck} vídeos atingido`);
+        break;
+      }
+
+      let data: any;
+      
+      if (useOAuth && youtube) {
+        // Usar OAuth para buscar vídeos (incluindo privados)
+        const response = await youtube.search.list({
+          part: ['snippet'],
+          channelId: channelId,
+          type: 'video',
+          maxResults: 50,
+          order: 'date',
+          pageToken: nextPageToken || undefined,
+        });
+        
+        data = response.data;
+      } else {
+        // Usar API Key para buscar vídeos públicos
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&type=video&maxResults=50&order=date&key=${apiKey}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[YOUTUBE SYNC] ❌ Erro ao buscar vídeos: ${response.status}`, errorText.substring(0, 500));
+          break;
+        }
+
+        data = await response.json();
+      }
+
+      if (data.items && data.items.length > 0) {
+        // Buscar informações detalhadas dos vídeos em lote
+        const videoIds = data.items.map((item: any) => item.id.videoId || item.id).join(',');
+        
+        let videosDetailsData: any;
+        
+        if (useOAuth && youtube) {
+          // Usar OAuth para buscar detalhes dos vídeos
+          const videosDetailsResponse = await youtube.videos.list({
+            part: ['snippet', 'contentDetails'],
+            id: videoIds.split(','),
+          });
+          videosDetailsData = videosDetailsResponse.data;
+        } else {
+          // Usar API Key
+          const videosDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoIds}&key=${apiKey}`;
+          const videosDetailsResponse = await fetch(videosDetailsUrl);
+          
+          if (!videosDetailsResponse.ok) {
+            console.error(`[YOUTUBE SYNC] ❌ Erro ao buscar detalhes dos vídeos: ${videosDetailsResponse.status}`);
+            nextPageToken = data.nextPageToken || '';
+            if (nextPageToken) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            continue;
+          }
+          
+          videosDetailsData = await videosDetailsResponse.json();
+        }
+        
+        if (videosDetailsData && videosDetailsData.items) {
+          
+          for (const videoDetail of videosDetailsData.items || []) {
+            const videoId = videoDetail.id;
+            videosChecked++;
+            
+            // Se o vídeo não está em nenhuma playlist conhecida, é standalone
+            if (!videosInPlaylists.has(videoId)) {
+              const durationMatch = videoDetail.contentDetails?.duration?.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+              const duration = durationMatch 
+                ? (parseInt(durationMatch[1] || '0', 10) * 3600 + 
+                   parseInt(durationMatch[2] || '0', 10) * 60 + 
+                   parseInt(durationMatch[3] || '0', 10))
+                : 0;
+              
+              standaloneVideos.push({
+                id: videoId,
+                title: videoDetail.snippet.title,
+                description: videoDetail.snippet.description || '',
+                publishedAt: videoDetail.snippet.publishedAt,
+                thumbnail: videoDetail.snippet.thumbnails?.high?.url || videoDetail.snippet.thumbnails?.default?.url,
+                duration: duration,
+              });
+            }
+          }
+        }
+        
+        console.log(`[YOUTUBE SYNC] ✅ Processados ${data.items.length} vídeos nesta página (standalone encontrados: ${standaloneVideos.length})`);
+      }
+
+      nextPageToken = data.nextPageToken || '';
+      
+      // Delay para evitar rate limiting
+      if (nextPageToken) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    } catch (error) {
+      console.error('[YOUTUBE SYNC] ❌ Erro ao buscar vídeos standalone:', error);
+      break;
+    }
+  } while (nextPageToken && videosChecked < maxVideosToCheck);
+
+  console.log(`[YOUTUBE SYNC] ✅ Total de vídeos standalone encontrados: ${standaloneVideos.length}`);
+  return standaloneVideos;
+}
+
+/**
+ * Atualizar e sincronizar playlists: atualizar existentes e adicionar novas
+ */
+async function syncPlaylists(jsonData: YouTubeDataResponse, channelId: string, apiKey: string): Promise<{ updated: number; added: number }> {
+  let updatedCount = 0;
+  let addedCount = 0;
+  
+  // Buscar todas as playlists do canal
+  const allChannelPlaylists = await fetchAllChannelPlaylists(channelId, apiKey);
+  
+  // Criar Map de playlists existentes por ID para busca rápida
+  const existingPlaylistsMap = new Map<string, YouTubePlaylist>();
+  jsonData.playlists.forEach(p => existingPlaylistsMap.set(p.id, p));
+  
+  console.log(`[YOUTUBE SYNC] 🔄 Sincronizando playlists...`);
+  console.log(`[YOUTUBE SYNC]   - Existentes no JSON: ${jsonData.playlists.length}`);
+  console.log(`[YOUTUBE SYNC]   - Encontradas no canal: ${allChannelPlaylists.length}`);
+  
+  // Atualizar playlists existentes e adicionar novas
+  const syncedPlaylists: YouTubePlaylist[] = [];
+  
+  for (const channelPlaylist of allChannelPlaylists) {
+    const existing = existingPlaylistsMap.get(channelPlaylist.id);
+    
+    if (existing) {
+      // Atualizar dados existentes
+      existing.title = channelPlaylist.title;
+      existing.description = channelPlaylist.description;
+      existing.publishedAt = channelPlaylist.publishedAt;
+      existing.itemCount = channelPlaylist.itemCount;
+      syncedPlaylists.push(existing);
+      updatedCount++;
+    } else {
+      // Adicionar nova playlist
+      syncedPlaylists.push(channelPlaylist);
+      addedCount++;
+      console.log(`[YOUTUBE SYNC] ➕ Nova playlist adicionada: ${channelPlaylist.title}`);
+    }
+  }
+  
+  // Manter playlists que não estão mais no canal (não deletar)
+  for (const existingPlaylist of jsonData.playlists) {
+    if (!allChannelPlaylists.find(p => p.id === existingPlaylist.id)) {
+      syncedPlaylists.push(existingPlaylist);
+      console.log(`[YOUTUBE SYNC] 📌 Mantendo playlist que não está mais no canal: ${existingPlaylist.title}`);
+    }
+  }
+  
+  // Ordenar por publishedAt (mais recentes primeiro)
+  syncedPlaylists.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  
+  jsonData.playlists = syncedPlaylists;
+  
+  console.log(`[YOUTUBE SYNC] ✅ Sincronização de playlists concluída:`);
+  console.log(`[YOUTUBE SYNC]   - Atualizadas: ${updatedCount}`);
+  console.log(`[YOUTUBE SYNC]   - Adicionadas: ${addedCount}`);
+  console.log(`[YOUTUBE SYNC]   - Total final: ${jsonData.playlists.length}`);
+  
+  return { updated: updatedCount, added: addedCount };
+}
+
+/**
  * Atualizar todas as playlists do JSON existente
  */
 async function updatePlaylists(jsonData: YouTubeDataResponse, apiKey: string): Promise<number> {
@@ -453,19 +825,59 @@ export async function GET(request: NextRequest) {
       console.log(`[YOUTUBE SYNC]   - Vídeos standalone: ${jsonData.standaloneVideos.length}`);
     }
 
-    // 2. Atualizar todas as playlists existentes
-    const playlistsUpdated = await updatePlaylists(jsonData, apiKey);
+    // 2. Buscar todas as playlists do canal e sincronizar (atualizar existentes + adicionar novas)
+    const channelId = process.env.YOUTUBE_CHANNEL_ID || 'UCz3WPsPTwekahMtKoz9YdmA';
+    const playlistsSync = await syncPlaylists(jsonData, channelId, apiKey);
 
-    // 3. Atualizar todos os vídeos standalone existentes
-    const videosUpdated = await updateStandaloneVideos(jsonData, apiKey);
+    // 3. Buscar todos os vídeos standalone do canal
+    const existingPlaylistIds = jsonData.playlists.map(p => p.id);
+    const allStandaloneVideos = await fetchAllStandaloneVideos(channelId, apiKey, existingPlaylistIds);
+    
+    // Criar Map de vídeos existentes por ID
+    const existingVideosMap = new Map<string, StandaloneVideo>();
+    (jsonData.standaloneVideos || []).forEach(v => existingVideosMap.set(v.id, v));
+    
+    // Sincronizar vídeos standalone (atualizar existentes + adicionar novos)
+    const syncedVideos: StandaloneVideo[] = [];
+    let videosUpdated = 0;
+    let videosAdded = 0;
+    
+    for (const channelVideo of allStandaloneVideos) {
+      const existing = existingVideosMap.get(channelVideo.id);
+      if (existing) {
+        // Atualizar dados existentes
+        existing.title = channelVideo.title;
+        existing.description = channelVideo.description;
+        existing.publishedAt = channelVideo.publishedAt;
+        existing.thumbnail = channelVideo.thumbnail;
+        existing.duration = channelVideo.duration;
+        syncedVideos.push(existing);
+        videosUpdated++;
+      } else {
+        // Adicionar novo vídeo
+        syncedVideos.push(channelVideo);
+        videosAdded++;
+        console.log(`[YOUTUBE SYNC] ➕ Novo vídeo standalone adicionado: ${channelVideo.title}`);
+      }
+    }
+    
+    // Ordenar por publishedAt (mais recentes primeiro)
+    syncedVideos.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    
+    jsonData.standaloneVideos = syncedVideos.length > 0 ? syncedVideos : undefined;
+    
+    console.log(`[YOUTUBE SYNC] ✅ Sincronização de vídeos standalone concluída:`);
+    console.log(`[YOUTUBE SYNC]   - Atualizados: ${videosUpdated}`);
+    console.log(`[YOUTUBE SYNC]   - Adicionados: ${videosAdded}`);
+    console.log(`[YOUTUBE SYNC]   - Total final: ${syncedVideos.length}`);
 
     // 4. Atualizar timestamp
     jsonData.updatedAt = new Date().toISOString();
     jsonData.version = '1.1';
 
-    console.log(`[YOUTUBE SYNC] 📊 Resumo da atualização:`);
-    console.log(`[YOUTUBE SYNC]   - Playlists atualizadas: ${playlistsUpdated}/${jsonData.playlists.length}`);
-    console.log(`[YOUTUBE SYNC]   - Vídeos atualizados: ${videosUpdated}/${jsonData.standaloneVideos?.length || 0}`);
+    console.log(`[YOUTUBE SYNC] 📊 Resumo da sincronização:`);
+    console.log(`[YOUTUBE SYNC]   - Playlists: ${jsonData.playlists.length} total (${playlistsSync.updated} atualizadas, ${playlistsSync.added} adicionadas)`);
+    console.log(`[YOUTUBE SYNC]   - Vídeos standalone: ${syncedVideos.length} total (${videosUpdated} atualizados, ${videosAdded} adicionados)`);
 
     // 5. Salvar JSON atualizado no Drive
     const driveUrl = await uploadJsonToDrive(jsonData);
@@ -479,11 +891,13 @@ export async function GET(request: NextRequest) {
       data: {
         playlists: {
           total: jsonData.playlists.length,
-          updated: playlistsUpdated,
+          updated: playlistsSync.updated,
+          added: playlistsSync.added,
         },
         standaloneVideos: {
-          total: jsonData.standaloneVideos?.length || 0,
+          total: syncedVideos.length,
           updated: videosUpdated,
+          added: videosAdded,
         },
         driveUrl: driveUrl,
         duration: `${duration}ms`,

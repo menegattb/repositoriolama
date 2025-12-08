@@ -92,8 +92,12 @@ function handleResponse(res) {
       
       if (res.statusCode === 200 && result.success) {
         console.log('✅ Sincronização concluída com sucesso!');
-        console.log(`📊 Playlists: ${result.data.playlists}`);
-        console.log(`📹 Vídeos standalone: ${result.data.standaloneVideos}`);
+        console.log(`📊 Playlists:`);
+        console.log(`   - Total: ${result.data.playlists?.total || 0}`);
+        console.log(`   - Atualizadas: ${result.data.playlists?.updated || 0}`);
+        console.log(`📹 Vídeos standalone:`);
+        console.log(`   - Total: ${result.data.standaloneVideos?.total || 0}`);
+        console.log(`   - Atualizados: ${result.data.standaloneVideos?.updated || 0}`);
         console.log(`⏱️  Duração: ${result.data.duration}`);
         if (result.data.driveUrl) {
           console.log(`🔗 Drive URL: ${result.data.driveUrl}`);
