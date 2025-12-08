@@ -55,11 +55,86 @@ export async function GET(request: NextRequest) {
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error('[YouTube OAuth Callback] Erro ao trocar código por tokens:', errorText);
-      return NextResponse.json(
-        { error: 'Failed to exchange authorization code for tokens' },
-        { status: 500 }
-      );
+      console.error('[YouTube OAuth Callback] ❌ Erro ao trocar código por tokens:', errorText);
+      console.error('[YouTube OAuth Callback] Status:', tokenResponse.status);
+      console.error('[YouTube OAuth Callback] Redirect URI usado:', redirectUri);
+      
+      // Criar página HTML com erro detalhado
+      const errorHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Erro OAuth - YouTube</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #ff0000; margin-top: 0; }
+    .error {
+      background: #ffebee;
+      border-left: 4px solid #f44336;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+    }
+    .instructions {
+      background: #fff3e0;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>❌ Erro no OAuth do YouTube</h1>
+    <div class="error">
+      <strong>Falha ao trocar código de autorização por tokens</strong>
+      <p>Status: ${tokenResponse.status}</p>
+      <p><code>${errorText.substring(0, 500)}</code></p>
+    </div>
+    <div class="instructions">
+      <h3>🔧 Possíveis Causas:</h3>
+      <ol>
+        <li><strong>Redirect URI não configurado:</strong> Verifique se <code>${redirectUri}</code> está adicionado no Google Cloud Console</li>
+        <li><strong>Credenciais incorretas:</strong> Verifique se YOUTUBE_OAUTH_CLIENT_ID e YOUTUBE_OAUTH_CLIENT_SECRET estão corretos</li>
+        <li><strong>Código expirado:</strong> O código de autorização pode ter expirado. Tente novamente.</li>
+      </ol>
+      <p><strong>Próximos passos:</strong></p>
+      <ol>
+        <li>Acesse: <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a></li>
+        <li>Verifique se o redirect URI <code>${redirectUri}</code> está na lista</li>
+        <li>Se não estiver, adicione e tente novamente</li>
+        <li><a href="/api/auth/youtube">Tentar novamente</a></li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>
+      `;
+      
+      return new NextResponse(errorHtml, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        status: 500,
+      });
     }
 
     const tokens = await tokenResponse.json();
