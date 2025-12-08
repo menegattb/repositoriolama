@@ -126,8 +126,6 @@ export default function TranscriptCard({ transcript }: TranscriptCardProps) {
             <DriveViewer
               fileId={transcript.driveFileId}
               title={transcript.title}
-              onClose={() => setShowViewer(false)}
-              showCloseButton={true}
             />
           </div>
         </div>
