@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
-import { Search, Clock, Download, CheckCircle2, MessageCircle } from 'lucide-react';
+import { Search, Clock, Download, CheckCircle2, MessageCircle, Loader2, FileText, AlertCircle } from 'lucide-react';
 import { extractFileIdFromUrl } from '@/lib/driveUtils';
 
 interface SidebarProps {
@@ -1148,7 +1148,7 @@ export default function Sidebar({
 
         {activeTab === 'transcript' && (
           <div className="space-y-4">
-            {/* SOMENTE mostrar quando tiver transcriptArray */}
+            {/* Mostrar transcrição quando tiver transcriptArray */}
             {transcriptArray && transcriptArray.length > 0 ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -1209,7 +1209,106 @@ export default function Sidebar({
                   </div>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              /* Quando não tem transcriptArray - mostrar logs e botão de solicitar */
+              <div className="space-y-4">
+                {transcriptError ? (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-red-800 mb-1">Erro ao gerar transcrição</p>
+                        <p className="text-xs text-red-700">{transcriptError}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-700">
+                      {getTranscribeButtonMessage()}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {canTranscribe() 
+                        ? 'A transcrição será gerada automaticamente usando as legendas do YouTube.'
+                        : 'Aguarde os vídeos serem carregados da API do YouTube antes de transcrever.'}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Área de logs durante o processo */}
+                {transcriptionLogs.length > 0 && (
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-md max-h-48 overflow-y-auto">
+                    <p className="text-xs font-medium text-gray-700 mb-2">Progresso:</p>
+                    <div className="space-y-1">
+                      {transcriptionLogs.map((log, index) => (
+                        <div 
+                          key={index} 
+                          className={`text-xs flex items-start gap-2 ${
+                            log.type === 'success' ? 'text-green-700' :
+                            log.type === 'error' ? 'text-red-700' :
+                            log.type === 'warning' ? 'text-yellow-700' :
+                            'text-gray-600'
+                          }`}
+                        >
+                          <span className="flex-shrink-0">
+                            {log.type === 'success' && '✓'}
+                            {log.type === 'error' && '✗'}
+                            {log.type === 'warning' && '⚠'}
+                            {log.type === 'info' && '•'}
+                          </span>
+                          <span className="flex-1">{log.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <button
+                  onClick={handleTranscribe}
+                  disabled={isTranscribing || !canTranscribe()}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={!canTranscribe() ? 'Aguarde os vídeos serem carregados' : undefined}
+                >
+                  {isTranscribing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4" />
+                      Solicitar Transcrição
+                    </>
+                  )}
+                </button>
+
+                {transcriptError && (
+                  <button
+                    onClick={handleTranscribe}
+                    disabled={isTranscribing || !canTranscribe()}
+                    className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={!canTranscribe() ? 'Aguarde os vídeos serem carregados' : undefined}
+                  >
+                    Tentar novamente
+                  </button>
+                )}
+
+                <div className="pt-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 mb-2">
+                    Ou solicite uma transcrição corrigida manualmente:
+                  </p>
+                  <a
+                    href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Olá! Gostaria de solicitar a transcrição do vídeo "${currentMediaItem?.title || ''}".`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-full px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Solicitar via WhatsApp
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
