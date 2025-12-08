@@ -56,3 +56,4 @@ public/transcripts/*.srt
 !package*.json
 !tsconfig*.json
 !eslint*.json
+!vercel.json
