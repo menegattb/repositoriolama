@@ -27,6 +27,35 @@ const options = {
 };
 
 const req = client.request(options, (res) => {
+  // Seguir redirecionamentos
+  if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+    console.log(`🔄 Redirecionando para: ${res.headers.location}`);
+    const redirectUrl = new URL(res.headers.location);
+    const redirectClient = redirectUrl.protocol === 'https:' ? https : http;
+    const redirectOptions = {
+      hostname: redirectUrl.hostname,
+      port: redirectUrl.port || (redirectUrl.protocol === 'https:' ? 443 : 80),
+      path: redirectUrl.pathname + redirectUrl.search,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'YouTube-Sync-Script/1.0',
+      },
+    };
+    const redirectReq = redirectClient.request(redirectOptions, (redirectRes) => {
+      handleResponse(redirectRes);
+    });
+    redirectReq.on('error', (error) => {
+      console.error('❌ Erro na requisição de redirecionamento:', error.message);
+      process.exit(1);
+    });
+    redirectReq.end();
+    return;
+  }
+
+  handleResponse(res);
+});
+
+function handleResponse(res) {
   let data = '';
 
   res.on('data', (chunk) => {
@@ -35,6 +64,15 @@ const req = client.request(options, (res) => {
 
   res.on('end', () => {
     try {
+      // Verificar se é HTML (redirecionamento ou erro)
+      if (data.trim().startsWith('<') || data.trim().startsWith('Redirecting')) {
+        console.error('❌ Resposta não é JSON. Pode ser que o endpoint ainda não esteja disponível.');
+        console.error('💡 Aguarde o deploy no Vercel ou execute localmente com: npm run dev');
+        console.error(`📄 Resposta recebida: ${data.substring(0, 200)}...`);
+        process.exit(1);
+        return;
+      }
+
       const result = JSON.parse(data);
       
       if (res.statusCode === 200 && result.success) {
@@ -53,11 +91,12 @@ const req = client.request(options, (res) => {
       }
     } catch (error) {
       console.error('❌ Erro ao processar resposta:', error.message);
-      console.error('Resposta:', data);
+      console.error('Status:', res.statusCode);
+      console.error('Resposta:', data.substring(0, 500));
       process.exit(1);
     }
   });
-});
+}
 
 req.on('error', (error) => {
   console.error('❌ Erro na requisição:', error.message);
