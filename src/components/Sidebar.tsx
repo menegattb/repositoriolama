@@ -2,21 +2,18 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
-import { Search, Clock, Loader2, FileText, Download, AlertCircle, CheckCircle2, MessageCircle } from 'lucide-react';
-import DriveViewer from './DriveViewer';
+import { Search, Clock, Download, CheckCircle2, MessageCircle } from 'lucide-react';
 import { extractFileIdFromUrl } from '@/lib/driveUtils';
 
 interface SidebarProps {
   playlist: Playlist;
   currentMediaItem: MediaItem | null;
-  transcript: Transcript | null;
   onMediaItemSelect?: (item: MediaItem) => void;
 }
 
 export default function Sidebar({ 
   playlist, 
   currentMediaItem, 
-  transcript,
   onMediaItemSelect
 }: SidebarProps) {
   const [activeTab, setActiveTab] = useState<'playlist' | 'transcript' | 'audio'>('playlist');
@@ -65,12 +62,10 @@ export default function Sidebar({
     ) || [];
     
     if (realVideos.length > 0 && !isTranscribing) {
-      const canTranscribeNow = canTranscribe();
       console.log('[Sidebar] 📹 Vídeos reais detectados:', {
         total: realVideos.length,
         firstVideoId: realVideos[0]?.id,
         currentMediaItemId: currentMediaItem?.id,
-        canTranscribe: canTranscribeNow
       });
     }
   }, [playlist.items, currentMediaItem?.id, isTranscribing]);
@@ -83,10 +78,6 @@ export default function Sidebar({
   const audioItems = playlist.items?.filter(item => item.format === 'audio') || [];
   const filteredAudioItems = audioItems.filter(matchesSearch);
   const whatsappNumber = '5548991486176';
-  const whatsappMessage = encodeURIComponent(
-    `Olá Bruno! Gostaria de solicitar a transcrição da playlist "${playlist.title}". Link: ${playlistUrl}`
-  );
-  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);

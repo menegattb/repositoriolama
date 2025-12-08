@@ -52,3 +52,5 @@ echo "4. Substitua o arquivo existente"
 echo ""
 echo "Ou configure SSH/SCP e execute novamente este script."
 
+
+
