@@ -11,48 +11,98 @@ interface YouTubePlaylist {
 
 // URL da Hostinger onde o JSON está hospedado
 // Usar API route do Next.js como proxy para evitar problemas de CORS
-const YOUTUBE_DATA_URL = process.env.NEXT_PUBLIC_YOUTUBE_DATA_URL || 
-  (typeof window !== 'undefined' 
-    ? '/api/youtube-data'  // Client-side: usar API route do Next.js (evita CORS)
-    : (process.env.HOSTINGER_API_URL 
-        ? `${process.env.HOSTINGER_API_URL}/repositorio/api/youtube-data.json`
-        : 'https://acaoparamita.com.br/repositorio/api/youtube-data.json')  // Server-side: novo domínio
-  );
+const getYouTubeDataUrl = (forceRefresh: boolean = false) => {
+  const baseUrl = process.env.NEXT_PUBLIC_YOUTUBE_DATA_URL || 
+    (typeof window !== 'undefined' 
+      ? '/api/youtube-data'  // Client-side: usar API route do Next.js (evita CORS)
+      : (process.env.HOSTINGER_API_URL 
+          ? `${process.env.HOSTINGER_API_URL}/repositorio/api/youtube-data.json`
+          : 'https://acaoparamita.com.br/repositorio/api/youtube-data.json')  // Server-side: novo domínio
+    );
+  
+  // Adicionar refresh=true se necessário
+  if (forceRefresh && baseUrl.includes('/api/youtube-data')) {
+    return `${baseUrl}?refresh=true`;
+  }
+  
+  return baseUrl;
+};
 
 // Cache para os dados
 let cachedData: Playlist[] | null = null;
 let fetchPromise: Promise<Playlist[]> | null = null;
 
 /**
- * Busca os dados do YouTube da Hostinger
+ * Limpar cache dos dados do YouTube
  */
-async function fetchYouTubeData(): Promise<YouTubePlaylist[]> {
-  const url = YOUTUBE_DATA_URL;
+export function clearYouTubeDataCache() {
+  cachedData = null;
+  fetchPromise = null;
+  console.log('[YouTube Data] 🗑️ Cache limpo');
+}
+
+/**
+ * Busca os dados do YouTube
+ * Em desenvolvimento no servidor: busca do arquivo local
+ * Em produção ou client-side: busca via API/Hostinger
+ * @param forceRefresh - Se true, força busca atualizada ignorando cache
+ */
+async function fetchYouTubeData(forceRefresh: boolean = false): Promise<YouTubePlaylist[]> {
+  // Em desenvolvimento no servidor, ler diretamente do arquivo local
+  if (process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
+    try {
+      const { readFile } = await import('fs/promises');
+      const { join } = await import('path');
+      const { existsSync } = await import('fs');
+      
+      const localFilePath = join(process.cwd(), 'public', 'youtube-data.json');
+      
+      if (existsSync(localFilePath)) {
+        console.log('[YouTube Data] 📁 Buscando dados do arquivo local (server-side):', localFilePath);
+        const fileContent = await readFile(localFilePath, 'utf-8');
+        const data = JSON.parse(fileContent);
+        console.log('[YouTube Data] ✅ Dados carregados localmente (server-side). Total de playlists:', data.playlists?.length || 0);
+        
+        if (!data || typeof data !== 'object' || data.error) {
+          console.error('[YouTube Data] ❌ Erro na resposta do arquivo local:', data.error);
+          return [];
+        }
+        
+        return data.playlists || [];
+      } else {
+        console.warn('[YouTube Data] ⚠️ Arquivo local não encontrado, buscando via API...');
+      }
+    } catch (error) {
+      console.error('[YouTube Data] ❌ Erro ao ler arquivo local:', error);
+      console.warn('[YouTube Data] ⚠️ Continuando com busca via API...');
+    }
+  }
+  
+  // Buscar via API/Hostinger
+  const url = getYouTubeDataUrl(forceRefresh);
   
   try {
     console.log('[YouTube Data] 🌐 Buscando dados de:', url);
     console.log('[YouTube Data] 📍 Ambiente:', typeof window !== 'undefined' ? 'Client' : 'Server');
+    if (forceRefresh) {
+      console.log('[YouTube Data] 🔄 Refresh forçado');
+    }
     
-    // Configuração de fetch diferente para client vs server
+    // Adicionar timestamp para evitar cache do navegador em client-side (se não tiver refresh=true)
+    const urlWithCacheBust = typeof window !== 'undefined' && !forceRefresh
+      ? `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`
+      : url;
+    
+    // Configuração de fetch - sempre usar no-store para garantir dados atualizados
     const fetchOptions: RequestInit = {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
       },
-      // Configuração de cache
-      ...(typeof window === 'undefined' 
-        ? { 
-            // Server-side: não usar cache para garantir dados atualizados
-            cache: 'no-store' as RequestCache
-          }
-        : { 
-            // Client-side: usar cache padrão
-            cache: 'default' as RequestCache 
-          }
-      ),
+      cache: 'no-store' as RequestCache, // Sempre sem cache
     };
     
-    const response = await fetch(url, fetchOptions);
+    const response = await fetch(urlWithCacheBust, fetchOptions);
 
     console.log('[YouTube Data] 📊 Status da resposta:', response.status, response.statusText);
     console.log('[YouTube Data] 📋 Headers CORS:', {
@@ -218,10 +268,16 @@ function getDeterministicDuration(id: string): number {
 /**
  * Função assíncrona para buscar playlists da Hostinger
  * Use esta função em Server Components ou com await
+ * @param forceRefresh - Se true, ignora cache e busca dados atualizados
  */
-export async function getYouTubePlaylists(): Promise<Playlist[]> {
-  // Se já temos cache, retornar
-  if (cachedData) {
+export async function getYouTubePlaylists(forceRefresh: boolean = false): Promise<Playlist[]> {
+  // Se forçar refresh, limpar cache primeiro
+  if (forceRefresh) {
+    clearYouTubeDataCache();
+  }
+  
+  // Se já temos cache e não é refresh forçado, retornar
+  if (!forceRefresh && cachedData) {
     return cachedData;
   }
 
@@ -231,7 +287,7 @@ export async function getYouTubePlaylists(): Promise<Playlist[]> {
   }
 
   // Criar nova requisição
-  fetchPromise = fetchYouTubeData().then((data) => {
+  fetchPromise = fetchYouTubeData(forceRefresh).then((data) => {
     cachedData = convertYouTubeToPlaylist(data);
     fetchPromise = null; // Limpar após concluir
     return cachedData;

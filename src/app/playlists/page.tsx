@@ -26,7 +26,8 @@ export default function PlaylistsPage() {
       try {
         setLoading(true);
         console.log('[PlaylistsPage] Iniciando carregamento de playlists...');
-        const data = await getYouTubePlaylists();
+        // Forçar refresh para garantir dados atualizados
+        const data = await getYouTubePlaylists(true);
         console.log('[PlaylistsPage] Playlists recebidas:', data.length);
         setPlaylists(data);
         
