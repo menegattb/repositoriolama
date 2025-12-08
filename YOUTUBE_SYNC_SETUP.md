@@ -77,16 +77,34 @@ Os cron jobs estão configurados no arquivo `vercel.json`:
 
 ## Testando Manualmente
 
+### Via Script NPM
+
+Execute a sincronização manualmente usando o script:
+
+```bash
+npm run sync:youtube
+```
+
+Ou diretamente:
+
+```bash
+node scripts/sync-youtube.js
+```
+
+### Via URL Direta
+
 Você pode testar a sincronização manualmente acessando:
 
 ```
 https://repositorio.acaoparamita.com.br/api/youtube/sync
 ```
 
-Ou localmente:
+Ou localmente (com servidor rodando):
 
-```
-http://localhost:3000/api/youtube/sync
+```bash
+npm run dev
+# Em outro terminal:
+curl http://localhost:3000/api/youtube/sync
 ```
 
 ## Logs e Monitoramento
