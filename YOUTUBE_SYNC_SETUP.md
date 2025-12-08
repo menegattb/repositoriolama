@@ -14,11 +14,10 @@ Configure as seguintes variáveis de ambiente no painel do Vercel:
    - Chave da API do YouTube Data API v3
    - Exemplo: `AIzaSyDl_8EPAngkktSNXRrMMIrD7CSAF4RXXkY`
 
-2. **YOUTUBE_CHANNEL_ID** (opcional - tem valor padrão)
+2. **YOUTUBE_CHANNEL_ID** (nova)
    - ID do canal do YouTube (formato: `UC...`)
-   - Valor padrão: `UCz3WPsPTwekahMtKoz9YdmA` (Canal Ação Paramita)
-   - Pode ser sobrescrito pela variável de ambiente se necessário
-   - Como encontrar: Execute `node scripts/find-channel-id.js` ou acesse o canal no YouTube
+   - Exemplo: `UCxxxxxxxxxxxxxxxxxxxxxx`
+   - Como encontrar: Acesse o canal no YouTube e copie o ID da URL ou use o YouTube Data API
 
 3. **GOOGLE_OAUTH_CLIENT_ID** (já existe)
    - Client ID do OAuth 2.0 do Google
