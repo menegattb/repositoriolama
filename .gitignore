@@ -31,6 +31,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# local credential files
+*.local.json
+
 # vercel
 .vercel
 
