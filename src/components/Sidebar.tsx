@@ -23,6 +23,7 @@ export default function Sidebar({
   
   // Estados para transcrição automática
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isLoadingTranscript, setIsLoadingTranscript] = useState(false);
   const [transcriptUrl, setTranscriptUrl] = useState<string | null>(null);
   const [transcriptContent, setTranscriptContent] = useState<string | null>(null);
   const [formattedContent, setFormattedContent] = useState<string | null>(null);
@@ -745,6 +746,7 @@ export default function Sidebar({
       setTranscriptError(null);
       setTranscriptLang(null);
       setTranscriptSearchTerm('');
+      setIsLoadingTranscript(true); // Iniciar carregamento
 
       // Verificar automaticamente se a transcrição já existe
       const checkExistingTranscript = async () => {
@@ -846,6 +848,7 @@ export default function Sidebar({
                   return `[${timeStr}] ${text.trim()}`;
                 }).filter(Boolean).join('\n');
                 setFormattedContent(formatted);
+                setIsLoadingTranscript(false); // Parar carregamento
               } else {
                 // Se não tiver transcriptArray no JSON, limpar estados e permitir gerar nova transcrição
                 console.log('[Sidebar] ⚠️ transcriptArray não encontrado no JSON do Drive. Será necessário gerar nova transcrição.');
@@ -854,6 +857,7 @@ export default function Sidebar({
                 setFormattedContent(null);
                 setTranscriptUrl(null);
                 setDriveFileId(null);
+                setIsLoadingTranscript(false); // Parar carregamento
               }
             } else {
               // Se vier do cache local ou outra fonte, só usar se tiver transcriptArray
@@ -869,6 +873,7 @@ export default function Sidebar({
                   return `[${timeStr}] ${text.trim()}`;
                 }).filter(Boolean).join('\n');
                 setFormattedContent(formatted);
+                setIsLoadingTranscript(false); // Parar carregamento
               } else {
                 // Se não tiver transcriptArray, limpar estados
                 console.log('[Sidebar] ⚠️ transcriptArray não disponível. Será necessário gerar nova transcrição.');
@@ -877,12 +882,17 @@ export default function Sidebar({
                 setFormattedContent(null);
                 setTranscriptUrl(null);
                 setDriveFileId(null);
+                setIsLoadingTranscript(false); // Parar carregamento
               }
             }
+          } else {
+            // Não encontrou transcrição
+            setIsLoadingTranscript(false); // Parar carregamento
           }
         } catch {
           // Silenciosamente ignorar erros - a transcrição simplesmente não existe ainda
           console.log('[Sidebar] Transcrição não encontrada, será necessário gerar');
+          setIsLoadingTranscript(false); // Parar carregamento mesmo em caso de erro
         }
       };
 
