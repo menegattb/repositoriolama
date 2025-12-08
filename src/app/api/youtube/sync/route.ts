@@ -345,7 +345,8 @@ export async function GET(request: NextRequest) {
   try {
     // Verificar variáveis de ambiente
     const apiKey = process.env.YOUTUBE_API_KEY;
-    const channelId = process.env.YOUTUBE_CHANNEL_ID;
+    // Channel ID padrão do canal Ação Paramita (pode ser sobrescrito por variável de ambiente)
+    const channelId = process.env.YOUTUBE_CHANNEL_ID || 'UCz3WPsPTwekahMtKoz9YdmA';
 
     if (!apiKey) {
       console.error('[YOUTUBE SYNC] ❌ YOUTUBE_API_KEY não configurada!');
