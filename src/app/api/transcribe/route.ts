@@ -64,7 +64,9 @@ async function createAndUploadDocx(
   videoId: string,
   videoTitle?: string,
   videoUrl?: string,
-  lang?: string
+  lang?: string,
+  forceRegenerate?: boolean,
+  transcriptText?: string
 ): Promise<string | null> {
   try {
     // Função auxiliar para formatar tempo
@@ -142,12 +144,43 @@ async function createAndUploadDocx(
     // Gerar buffer
     const buffer = await Packer.toBuffer(doc);
 
-    // Criar nome do arquivo
-    const safeTitle = (videoTitle || videoId || 'transcricao')
-      .replace(/[^a-z0-9\s-]/gi, '')
-      .replace(/\s+/g, '-')
-      .substring(0, 50);
-    const fileName = `${safeTitle}-${videoId}.docx`;
+    // Criar nome do arquivo baseado no texto da transcrição (se disponível) ou título do vídeo
+    let fileNameBase: string;
+    
+    if (transcriptText && transcriptText.trim().length > 0) {
+      // Extrair primeiras palavras do texto da transcrição (até 50 caracteres)
+      // Remover timestamps [HH:MM:SS], quebras de linha e caracteres especiais
+      const cleanText = transcriptText
+        .replace(/\[\d{2}:\d{2}:\d{2}\]/g, '') // Remover timestamps
+        .replace(/\n+/g, ' ') // Substituir quebras de linha por espaço
+        .replace(/\s+/g, ' ') // Normalizar espaços
+        .trim();
+      
+      // Pegar primeiras palavras (até 50 caracteres)
+      const firstWords = cleanText.substring(0, 50).trim();
+      
+      // Remover caracteres especiais e criar nome seguro
+      fileNameBase = firstWords
+        .replace(/[^a-z0-9\s-]/gi, '')
+        .replace(/\s+/g, '-')
+        .substring(0, 50);
+      
+      // Se ficou vazio após limpeza, usar fallback
+      if (!fileNameBase || fileNameBase.length === 0) {
+        fileNameBase = (videoTitle || videoId || 'transcricao')
+          .replace(/[^a-z0-9\s-]/gi, '')
+          .replace(/\s+/g, '-')
+          .substring(0, 50);
+      }
+    } else {
+      // Fallback para título do vídeo
+      fileNameBase = (videoTitle || videoId || 'transcricao')
+        .replace(/[^a-z0-9\s-]/gi, '')
+        .replace(/\s+/g, '-')
+        .substring(0, 50);
+    }
+    
+    const fileName = `${fileNameBase}-${videoId}.docx`;
 
     // Fazer upload para Drive usando OAuth 2.0
     const DRIVE_FOLDER_ID = '1SKEAfJ8oC0dOq0LGxUt6UtxQXjuvykwg';
@@ -250,8 +283,19 @@ async function createAndUploadDocx(
       const bufferStream = Readable.from(Buffer.from(buffer));
       
       let response;
-      if (existingFileId) {
-        // Atualizar arquivo existente (sobrescrever sem histórico)
+      if (existingFileId && forceRegenerate) {
+        // Excluir arquivo antigo primeiro quando regenerando
+        console.log('[DRIVE UPLOAD] 🗑️ Excluindo arquivo antigo antes de criar novo...');
+        await drive.files.delete({
+          fileId: existingFileId,
+          supportsAllDrives: true,
+        });
+        console.log('[DRIVE UPLOAD] ✅ Arquivo antigo excluído');
+        existingFileId = null; // Resetar para criar novo
+      }
+      
+      if (existingFileId && !forceRegenerate) {
+        // Atualizar arquivo existente (sobrescrever sem histórico) - comportamento normal
         console.log('[DRIVE UPLOAD] Atualizando arquivo existente...');
         response = await drive.files.update({
           fileId: existingFileId,
@@ -394,7 +438,9 @@ async function createAndUploadJson(
   videoId: string,
   videoTitle?: string,
   videoUrl?: string,
-  lang?: string
+  lang?: string,
+  forceRegenerate?: boolean,
+  transcriptText?: string
 ): Promise<string | null> {
   try {
     const DRIVE_FOLDER_ID = '1SKEAfJ8oC0dOq0LGxUt6UtxQXjuvykwg';
@@ -483,8 +529,19 @@ async function createAndUploadJson(
       const bufferStream = Readable.from(jsonBuffer);
       
       let response;
-      if (existingFileId) {
-        // Atualizar arquivo existente (sobrescrever sem histórico)
+      if (existingFileId && forceRegenerate) {
+        // Excluir arquivo antigo primeiro quando regenerando
+        console.log('[DRIVE JSON UPLOAD] 🗑️ Excluindo arquivo antigo antes de criar novo...');
+        await drive.files.delete({
+          fileId: existingFileId,
+          supportsAllDrives: true,
+        });
+        console.log('[DRIVE JSON UPLOAD] ✅ Arquivo antigo excluído');
+        existingFileId = null; // Resetar para criar novo
+      }
+      
+      if (existingFileId && !forceRegenerate) {
+        // Atualizar arquivo existente (sobrescrever sem histórico) - comportamento normal
         console.log('[DRIVE JSON UPLOAD] Atualizando arquivo existente...');
         response = await drive.files.update({
           fileId: existingFileId,
@@ -627,7 +684,7 @@ const parseSRTToArray = (srtContent: string): TranscriptItem[] => {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { videoId, videoUrl, playlistId, videoTitle } = body;
+    const { videoId, videoUrl, playlistId, videoTitle, forceRegenerate } = body;
 
     // Validação de entrada
     if (!videoId && !videoUrl) {
@@ -693,55 +750,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // PRIMEIRO: Verificar se existe DOCX no Google Drive
-    try {
-      const { GET: getAutoTranscripts } = await import('../drive/auto-transcripts/route');
-      const driveRequest = new NextRequest(
-        new URL(`/api/drive/auto-transcripts?videoId=${finalVideoId}`, 'http://localhost:3000')
-      );
-      const driveResponse = await getAutoTranscripts(driveRequest);
-      
-      if (driveResponse.ok) {
-        const driveData = await driveResponse.json();
+    // PRIMEIRO: Verificar se existe DOCX no Google Drive (pular se forceRegenerate for true)
+    if (!forceRegenerate) {
+      try {
+        const { GET: getAutoTranscripts } = await import('../drive/auto-transcripts/route');
+        const driveRequest = new NextRequest(
+          new URL(`/api/drive/auto-transcripts?videoId=${finalVideoId}`, 'http://localhost:3000')
+        );
+        const driveResponse = await getAutoTranscripts(driveRequest);
         
-        if (driveData.success && driveData.found && driveData.transcript) {
-          // DOCX encontrado no Drive - só retornar sucesso se tiver transcriptArray (padronização)
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`[DRIVE HIT] DOCX encontrado no Google Drive para videoId: ${finalVideoId}`);
-            if (driveData.transcript.transcriptArray) {
-              console.log(`[DRIVE HIT] ✅ transcriptArray encontrado com ${driveData.transcript.transcriptArray.length} itens`);
+        if (driveResponse.ok) {
+          const driveData = await driveResponse.json();
+          
+          if (driveData.success && driveData.found && driveData.transcript) {
+            // DOCX encontrado no Drive - só retornar sucesso se tiver transcriptArray (padronização)
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`[DRIVE HIT] DOCX encontrado no Google Drive para videoId: ${finalVideoId}`);
+              if (driveData.transcript.transcriptArray) {
+                console.log(`[DRIVE HIT] ✅ transcriptArray encontrado com ${driveData.transcript.transcriptArray.length} itens`);
+              } else {
+                console.log(`[DRIVE HIT] ⚠️ transcriptArray não encontrado no JSON do Drive - será necessário gerar nova transcrição`);
+              }
+            }
+            
+            // Só retornar sucesso se tiver transcriptArray (padronização para edição futura)
+            if (driveData.transcript.transcriptArray && driveData.transcript.transcriptArray.length > 0) {
+              return NextResponse.json({
+                success: true,
+                videoId: finalVideoId,
+                transcriptUrl: driveData.transcript.webViewLink,
+                driveFileId: driveData.transcript.driveFileId,
+                transcriptArray: driveData.transcript.transcriptArray,
+                videoTitle: driveData.transcript.videoTitle || videoTitle || undefined,
+                videoUrl: driveData.transcript.videoUrl || finalVideoUrl || undefined,
+                lang: driveData.transcript.lang || undefined,
+                fromDrive: true,
+                cached: true,
+                message: 'Transcrição encontrada no Google Drive'
+              });
             } else {
-              console.log(`[DRIVE HIT] ⚠️ transcriptArray não encontrado no JSON do Drive - será necessário gerar nova transcrição`);
+              // Se não tiver transcriptArray, não retornar sucesso - permitir gerar nova transcrição
+              console.log(`[DRIVE HIT] ⚠️ DOCX encontrado mas sem JSON/transcriptArray. Será necessário gerar nova transcrição.`);
+              // Continuar para gerar nova transcrição (não retornar aqui)
             }
           }
-          
-          // Só retornar sucesso se tiver transcriptArray (padronização para edição futura)
-          if (driveData.transcript.transcriptArray && driveData.transcript.transcriptArray.length > 0) {
-            return NextResponse.json({
-              success: true,
-              videoId: finalVideoId,
-              transcriptUrl: driveData.transcript.webViewLink,
-              driveFileId: driveData.transcript.driveFileId,
-              transcriptArray: driveData.transcript.transcriptArray,
-              videoTitle: driveData.transcript.videoTitle || videoTitle || undefined,
-              videoUrl: driveData.transcript.videoUrl || finalVideoUrl || undefined,
-              lang: driveData.transcript.lang || undefined,
-              fromDrive: true,
-              cached: true,
-              message: 'Transcrição encontrada no Google Drive'
-            });
-          } else {
-            // Se não tiver transcriptArray, não retornar sucesso - permitir gerar nova transcrição
-            console.log(`[DRIVE HIT] ⚠️ DOCX encontrado mas sem JSON/transcriptArray. Será necessário gerar nova transcrição.`);
-            // Continuar para gerar nova transcrição (não retornar aqui)
-          }
+        }
+      } catch (driveError) {
+        // Ignorar erro - continuar para verificar cache local/Hostinger ou gerar nova
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[DRIVE CHECK] Erro ao verificar Drive, continuando...', driveError);
         }
       }
-    } catch (driveError) {
-      // Ignorar erro - continuar para verificar cache local/Hostinger ou gerar nova
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[DRIVE CHECK] Erro ao verificar Drive, continuando...', driveError);
-      }
+    } else {
+      console.log(`[TRANSCRIBE] 🔄 forceRegenerate=true: Pulando verificação de cache do Drive`);
     }
     
     // Definir estrutura de pastas: public/transcripts/{playlistId}/{videoId}.srt
@@ -750,35 +811,40 @@ export async function POST(request: NextRequest) {
     const transcriptDir = path.join(process.cwd(), 'public', 'transcripts', playlistFolder);
     const transcriptFilePath = path.join(transcriptDir, `${finalVideoId}.srt`);
     
-    // Tentar buscar do cache local primeiro
+    // Tentar buscar do cache local primeiro (pular se forceRegenerate for true)
     let existingTranscript: string | null = null;
     
-    try {
-      existingTranscript = await fs.readFile(transcriptFilePath, 'utf-8');
+    if (!forceRegenerate) {
       
-      // Log informativo em desenvolvimento
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[CACHE HIT] Transcrição encontrada localmente para videoId: ${finalVideoId}`);
-        console.log(`[CACHE] Arquivo: ${transcriptFilePath}`);
-      }
-    } catch {
-      // Arquivo não existe localmente, tentar buscar do Hostinger
-      if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
-        try {
-          const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://acaoparamita.com.br';
-          const transcriptUrl = `${hostingerUrl}/repositorio/transcripts/${playlistFolder}/${finalVideoId}.srt`;
-          
-          const response = await fetch(transcriptUrl);
-          if (response.ok) {
-            existingTranscript = await response.text();
-            if (process.env.NODE_ENV === 'development') {
-              console.log(`[CACHE HIT] Transcrição encontrada no Hostinger para videoId: ${finalVideoId}`);
+      try {
+        existingTranscript = await fs.readFile(transcriptFilePath, 'utf-8');
+        
+        // Log informativo em desenvolvimento
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[CACHE HIT] Transcrição encontrada localmente para videoId: ${finalVideoId}`);
+          console.log(`[CACHE] Arquivo: ${transcriptFilePath}`);
+        }
+      } catch {
+        // Arquivo não existe localmente, tentar buscar do Hostinger
+        if (process.env.HOSTINGER_API_URL || process.env.VERCEL) {
+          try {
+            const hostingerUrl = process.env.HOSTINGER_API_URL || 'https://acaoparamita.com.br';
+            const transcriptUrl = `${hostingerUrl}/repositorio/transcripts/${playlistFolder}/${finalVideoId}.srt`;
+            
+            const response = await fetch(transcriptUrl);
+            if (response.ok) {
+              existingTranscript = await response.text();
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`[CACHE HIT] Transcrição encontrada no Hostinger para videoId: ${finalVideoId}`);
+              }
             }
+          } catch {
+            // Ignorar erro - transcrição não existe
           }
-        } catch {
-          // Ignorar erro - transcrição não existe
         }
       }
+    } else {
+      console.log(`[TRANSCRIBE] 🔄 forceRegenerate=true: Pulando verificação de cache local/Hostinger`);
     }
     
     if (existingTranscript) {
@@ -838,6 +904,11 @@ export async function POST(request: NextRequest) {
             if (transcriptArrayFromCache.length > 0) {
               console.log(`[CACHE] 📝 Gerando JSON e DOCX a partir do cache (${transcriptArrayFromCache.length} itens)...`);
               try {
+                // Criar texto simples da transcrição para usar no nome do arquivo
+                const plainTextFromCache = transcriptArrayFromCache.length > 0
+                  ? transcriptArrayFromCache.map(item => (item.text || item.content || '')).filter(Boolean).join('\n')
+                  : plainTextCache;
+                
                 // Criar e fazer upload do JSON primeiro (fonte de verdade)
                 console.log('[CACHE] 📝 Criando e fazendo upload do JSON...');
                 const driveJsonUrl = await createAndUploadJson(
@@ -845,7 +916,9 @@ export async function POST(request: NextRequest) {
                   finalVideoId,
                   videoTitle,
                   finalVideoUrl,
-                  'pt' // Idioma padrão
+                  'pt', // Idioma padrão
+                  false, // Não regenerar quando vem do cache
+                  plainTextFromCache // Passar texto da transcrição para usar no nome do arquivo
                 );
                 
                 if (driveJsonUrl) {
@@ -861,7 +934,9 @@ export async function POST(request: NextRequest) {
                   finalVideoId,
                   videoTitle,
                   finalVideoUrl,
-                  'pt' // Idioma padrão
+                  'pt', // Idioma padrão
+                  false, // Não regenerar quando vem do cache
+                  plainTextFromCache // Passar texto da transcrição para usar no nome do arquivo
                 );
                 
                 if (driveDocxUrl) {
@@ -950,14 +1025,22 @@ export async function POST(request: NextRequest) {
     // Chamar API Supadata
     // Usar mode=auto para gerar legendas automaticamente se não estiverem disponíveis
     // Primeiro tenta com legendas existentes, depois com geração automática
-    const supadataUrl = `https://api.supadata.ai/v1/transcript?url=${encodeURIComponent(finalVideoUrl)}&mode=auto`;
+    let supadataUrl = `https://api.supadata.ai/v1/transcript?url=${encodeURIComponent(finalVideoUrl)}&mode=auto`;
+    
+    // Se forceRegenerate for true, adicionar timestamp para forçar nova transcrição (evitar cache da Supadata)
+    if (forceRegenerate) {
+      const timestamp = Date.now();
+      supadataUrl += `&_t=${timestamp}&_force=true`;
+      console.log('[Supadata API] 🔄 Adicionando parâmetros para forçar nova transcrição:', { timestamp, forceRegenerate });
+    }
     
     // Log da URL de chamada (para debug)
     console.log('[Supadata API] Chamando API:', {
       url: supadataUrl,
       videoId: finalVideoId,
       videoUrl: finalVideoUrl,
-      hasApiKey: !!apiKey
+      hasApiKey: !!apiKey,
+      forceRegenerate: forceRegenerate || false
     });
     
     // Função para fazer requisição com retry
@@ -993,14 +1076,25 @@ export async function POST(request: NextRequest) {
       throw new Error('Todas as tentativas falharam');
     };
     
+    // Preparar headers da requisição
+    const requestHeaders: HeadersInit = {
+      'x-api-key': apiKey,
+      'Content-Type': 'application/json',
+    };
+    
+    // Adicionar headers para evitar cache quando regenerando
+    if (forceRegenerate) {
+      requestHeaders['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      requestHeaders['Pragma'] = 'no-cache';
+      requestHeaders['Expires'] = '0';
+      console.log('[Supadata API] 🔄 Headers de cache adicionados para forçar nova transcrição');
+    }
+    
     let supadataResponse: Response;
     try {
       supadataResponse = await fetchWithRetry(supadataUrl, {
         method: 'GET',
-        headers: {
-          'x-api-key': apiKey,
-          'Content-Type': 'application/json',
-        },
+        headers: requestHeaders,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -1547,7 +1641,9 @@ export async function POST(request: NextRequest) {
           finalVideoId,
           videoTitle,
           finalVideoUrl,
-          lang
+          lang,
+          forceRegenerate || false,
+          plainText // Passar texto da transcrição para usar no nome do arquivo
         );
         
         if (driveJsonUrl) {
@@ -1563,7 +1659,9 @@ export async function POST(request: NextRequest) {
           finalVideoId,
           videoTitle,
           finalVideoUrl,
-          lang
+          lang,
+          forceRegenerate || false,
+          plainText // Passar texto da transcrição para usar no nome do arquivo
         );
         
         if (driveDocxUrl) {
@@ -1612,6 +1710,7 @@ export async function POST(request: NextRequest) {
       transcriptArray: transcriptArray, // Array original para gerar DOCX
       srtContent: transcriptContent, // Formato SRT completo para download
       lang: result.lang || result.language || 'pt',
+      videoTitle: videoTitle || undefined, // Título do vídeo
       message: driveDocxUrl 
         ? 'Transcrição gerada e salva no Google Drive!' 
         : fileSaved 
