@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import { Readable } from 'stream';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
 
 const DRIVE_FOLDER_ID = '1SKEAfJ8oC0dOq0LGxUt6UtxQXjuvykwg';
 
@@ -199,12 +201,17 @@ async function fetchAllChannelPlaylists(channelId: string, apiKey: string): Prom
   const youtubeOAuthClientSecret = process.env.YOUTUBE_OAUTH_CLIENT_SECRET;
   const youtubeOAuthRefreshToken = process.env.YOUTUBE_OAUTH_REFRESH_TOKEN;
   
+  console.log(`\n[YOUTUBE SYNC] 🔍 Verificando configuração OAuth do YouTube...`);
+  console.log(`[YOUTUBE SYNC]   - YOUTUBE_OAUTH_CLIENT_ID: ${youtubeOAuthClientId ? `${youtubeOAuthClientId.substring(0, 20)}...` : '❌ NÃO CONFIGURADO'}`);
+  console.log(`[YOUTUBE SYNC]   - YOUTUBE_OAUTH_CLIENT_SECRET: ${youtubeOAuthClientSecret ? '✅ CONFIGURADO' : '❌ NÃO CONFIGURADO'}`);
+  console.log(`[YOUTUBE SYNC]   - YOUTUBE_OAUTH_REFRESH_TOKEN: ${youtubeOAuthRefreshToken ? '✅ CONFIGURADO' : '❌ NÃO CONFIGURADO'}`);
+  
   let useOAuth = false;
   let youtube: any = null;
   
   if (youtubeOAuthClientId && youtubeOAuthClientSecret && youtubeOAuthRefreshToken) {
     try {
-      console.log(`[YOUTUBE SYNC] 🔐 Usando OAuth do YouTube para buscar playlists (incluindo privadas)...`);
+      console.log(`\n[YOUTUBE SYNC] 🔐 Tentando configurar OAuth do YouTube...`);
       const oauth2Client = new OAuth2Client(
         youtubeOAuthClientId,
         youtubeOAuthClientSecret,
@@ -217,20 +224,53 @@ async function fetchAllChannelPlaylists(channelId: string, apiKey: string): Prom
         refresh_token: youtubeOAuthRefreshToken,
       });
 
+      console.log(`[YOUTUBE SYNC] 🔄 Renovando access token...`);
+      console.log(`[YOUTUBE SYNC]   Redirect URI usado: ${process.env.NODE_ENV === 'production' ? 'https://repositorio.acaoparamita.com.br/api/auth/youtube/callback' : 'http://localhost:3000/api/auth/youtube/callback'}`);
       const { credentials } = await oauth2Client.refreshAccessToken();
       oauth2Client.setCredentials(credentials);
+      console.log(`[YOUTUBE SYNC] ✅ Access token renovado com sucesso!`);
+      console.log(`[YOUTUBE SYNC]   Access token expira em: ${credentials.expiry_date ? new Date(credentials.expiry_date).toLocaleString() : 'N/A'}`);
 
       youtube = google.youtube({ version: 'v3', auth: oauth2Client });
       useOAuth = true;
-    } catch (error) {
-      console.warn(`[YOUTUBE SYNC] ⚠️ Erro ao configurar OAuth do YouTube, usando API Key apenas:`, error);
+      console.log(`[YOUTUBE SYNC] ✅ OAuth configurado! Buscando playlists PRIVADAS e públicas...\n`);
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      const errorCode = error?.response?.data?.error || error?.code || 'unknown';
+      const errorDescription = error?.response?.data?.error_description || '';
+      
+      console.error(`\n[YOUTUBE SYNC] ❌ Erro ao configurar OAuth do YouTube:`);
+      console.error(`[YOUTUBE SYNC]   Código: ${errorCode}`);
+      console.error(`[YOUTUBE SYNC]   Mensagem: ${errorMessage}`);
+      if (errorDescription) {
+        console.error(`[YOUTUBE SYNC]   Descrição: ${errorDescription}`);
+      }
+      
+      if (errorCode === 'invalid_grant') {
+        console.error(`\n[YOUTUBE SYNC] 🔧 SOLUÇÃO PARA invalid_grant:`);
+        console.error(`[YOUTUBE SYNC]   1. O refresh token pode estar expirado ou inválido`);
+        console.error(`[YOUTUBE SYNC]   2. Verifique se o redirect URI está correto no Google Cloud Console:`);
+        console.error(`[YOUTUBE SYNC]      - http://localhost:3000/api/auth/youtube/callback`);
+        console.error(`[YOUTUBE SYNC]      - https://repositorio.acaoparamita.com.br/api/auth/youtube/callback`);
+        console.error(`[YOUTUBE SYNC]   3. Revogue o acesso em: https://myaccount.google.com/permissions`);
+        console.error(`[YOUTUBE SYNC]   4. Obtenha um novo refresh token em: http://localhost:3000/api/auth/youtube`);
+        console.error(`[YOUTUBE SYNC]   5. Atualize YOUTUBE_OAUTH_REFRESH_TOKEN no .env.local`);
+        console.error(`[YOUTUBE SYNC]   6. Reinicie o servidor após atualizar`);
+      }
+      
+      console.warn(`[YOUTUBE SYNC] ⚠️ Continuando com API Key apenas (apenas playlists públicas)...\n`);
       useOAuth = false;
     }
   } else {
-    console.log(`[YOUTUBE SYNC] 📝 Usando API Key apenas (playlists públicas)...`);
+    console.log(`\n[YOUTUBE SYNC] ⚠️ Variáveis OAuth não configuradas completamente!`);
+    console.log(`[YOUTUBE SYNC] 📝 Usando API Key apenas (apenas playlists públicas)...`);
+    console.log(`[YOUTUBE SYNC] 💡 Para buscar playlists privadas, configure todas as variáveis YOUTUBE_OAUTH_*\n`);
   }
 
   console.log(`[YOUTUBE SYNC] 🔍 Buscando TODAS as playlists do canal: ${channelId}`);
+
+  let retryCount = 0;
+  const maxRetries = 3;
 
   do {
     try {
@@ -238,9 +278,10 @@ async function fetchAllChannelPlaylists(channelId: string, apiKey: string): Prom
       
       if (useOAuth && youtube) {
         // Usar OAuth para buscar playlists (incluindo privadas)
+        // Usar mine=true ao invés de channelId para pegar todas as playlists do canal autenticado
         const response = await youtube.playlists.list({
           part: ['snippet', 'contentDetails'],
-          channelId: channelId,
+          mine: true, // Usar mine=true ao invés de channelId para pegar todas as playlists
           maxResults: 50,
           pageToken: nextPageToken || undefined,
         });
@@ -275,22 +316,37 @@ async function fetchAllChannelPlaylists(channelId: string, apiKey: string): Prom
             itemCount: item.contentDetails?.itemCount || 0,
           });
         }
-        console.log(`[YOUTUBE SYNC] ✅ Encontradas ${data.items.length} playlists nesta página (total: ${playlists.length})`);
+        const privacyStatus = useOAuth ? '(privadas + públicas)' : '(apenas públicas)';
+        console.log(`[YOUTUBE SYNC] ✅ Página ${Math.floor(playlists.length / 50) + 1}: ${data.items.length} playlists ${privacyStatus} | Total acumulado: ${playlists.length}`);
+      } else {
+        console.log(`[YOUTUBE SYNC] ⚠️ Nenhuma playlist encontrada nesta página`);
       }
 
       nextPageToken = data.nextPageToken || '';
+      retryCount = 0; // Reset retry count em caso de sucesso
       
       // Delay para evitar rate limiting
       if (nextPageToken) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {
-      console.error('[YOUTUBE SYNC] ❌ Erro ao buscar playlists:', error);
-      break;
+      retryCount++;
+      if (retryCount < maxRetries) {
+        console.warn(`[YOUTUBE SYNC] ⚠️ Erro na página, tentando novamente (${retryCount}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Backoff exponencial
+        continue;
+      } else {
+        console.error('[YOUTUBE SYNC] ❌ Erro ao buscar playlists após múltiplas tentativas:', error);
+        break;
+      }
     }
   } while (nextPageToken);
 
-  console.log(`[YOUTUBE SYNC] ✅ Total de playlists encontradas no canal: ${playlists.length}`);
+  console.log(`\n[YOUTUBE SYNC] ✅ Busca de playlists concluída!`);
+  console.log(`[YOUTUBE SYNC] 📊 Total de playlists encontradas: ${playlists.length}`);
+  console.log(`[YOUTUBE SYNC] 🔐 Método usado: ${useOAuth ? 'OAuth (privadas + públicas)' : 'API Key (apenas públicas)'}\n`);
+  
+  // Logs comparativos serão adicionados na função syncPlaylists onde temos acesso ao jsonData
   return playlists;
 }
 
@@ -313,6 +369,7 @@ async function fetchAllStandaloneVideos(channelId: string, apiKey: string, exist
   
   if (youtubeOAuthClientId && youtubeOAuthClientSecret && youtubeOAuthRefreshToken) {
     try {
+      console.log(`[YOUTUBE SYNC] 🔐 Configurando OAuth para buscar vídeos standalone...`);
       const oauth2Client = new OAuth2Client(
         youtubeOAuthClientId,
         youtubeOAuthClientSecret,
@@ -330,23 +387,52 @@ async function fetchAllStandaloneVideos(channelId: string, apiKey: string, exist
 
       youtube = google.youtube({ version: 'v3', auth: oauth2Client });
       useOAuth = true;
-    } catch (error) {
-      console.warn(`[YOUTUBE SYNC] ⚠️ Erro ao configurar OAuth do YouTube para vídeos, usando API Key apenas:`, error);
+      console.log(`[YOUTUBE SYNC] ✅ OAuth configurado para vídeos!`);
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      const errorCode = error?.response?.data?.error || error?.code || 'unknown';
+      const errorDescription = error?.response?.data?.error_description || '';
+      
+      console.warn(`\n[YOUTUBE SYNC] ⚠️ Erro ao configurar OAuth para vídeos:`);
+      console.warn(`[YOUTUBE SYNC]   Código: ${errorCode}`);
+      console.warn(`[YOUTUBE SYNC]   Mensagem: ${errorMessage}`);
+      if (errorDescription) {
+        console.warn(`[YOUTUBE SYNC]   Descrição: ${errorDescription}`);
+      }
+      
+      if (errorCode === 'invalid_grant') {
+        console.error(`\n[YOUTUBE SYNC] 🔧 SOLUÇÃO PARA invalid_grant:`);
+        console.error(`[YOUTUBE SYNC]   1. O refresh token pode estar expirado ou inválido`);
+        console.error(`[YOUTUBE SYNC]   2. Verifique se o redirect URI está correto no Google Cloud Console:`);
+        console.error(`[YOUTUBE SYNC]      - http://localhost:3000/api/auth/youtube/callback`);
+        console.error(`[YOUTUBE SYNC]      - https://repositorio.acaoparamita.com.br/api/auth/youtube/callback`);
+        console.error(`[YOUTUBE SYNC]   3. Revogue o acesso em: https://myaccount.google.com/permissions`);
+        console.error(`[YOUTUBE SYNC]   4. Obtenha um novo refresh token em: http://localhost:3000/api/auth/youtube`);
+        console.error(`[YOUTUBE SYNC]   5. Atualize YOUTUBE_OAUTH_REFRESH_TOKEN no .env.local`);
+        console.error(`[YOUTUBE SYNC]   6. Reinicie o servidor após atualizar`);
+      }
+      
+      console.warn(`[YOUTUBE SYNC] ⚠️ Usando API Key apenas (apenas vídeos públicos)...\n`);
       useOAuth = false;
     }
+  } else {
+    console.log(`[YOUTUBE SYNC] 📝 Usando API Key para vídeos (apenas públicos)...`);
   }
 
   console.log(`[YOUTUBE SYNC] 🔍 Buscando TODOS os vídeos standalone do canal: ${channelId}`);
 
   // Buscar todos os vídeos de todas as playlists conhecidas para criar um Set
   const videosInPlaylists = new Set<string>();
-  console.log(`[YOUTUBE SYNC] 📋 Coletando vídeos de ${existingPlaylistIds.length} playlists conhecidas...`);
+  const totalPlaylistsToCheck = existingPlaylistIds.length; // Remover limite de 200 playlists
+  console.log(`\n[YOUTUBE SYNC] 📋 Coletando vídeos de ${totalPlaylistsToCheck} playlists conhecidas...`);
   
   // Processar todas as playlists, mas em lotes para não demorar muito
   const batchSize = 50;
-  for (let i = 0; i < Math.min(existingPlaylistIds.length, 200); i += batchSize) {
+  const totalBatches = Math.ceil(totalPlaylistsToCheck / batchSize);
+  for (let i = 0; i < totalPlaylistsToCheck; i += batchSize) {
     const batch = existingPlaylistIds.slice(i, i + batchSize);
-    console.log(`[YOUTUBE SYNC] 📋 Processando lote ${Math.floor(i / batchSize) + 1} de playlists (${batch.length} playlists)...`);
+    const batchNumber = Math.floor(i / batchSize) + 1;
+    console.log(`[YOUTUBE SYNC] 📦 Lote ${batchNumber}/${totalBatches}: Processando ${batch.length} playlists...`);
     
     for (const playlistId of batch) {
     try {
@@ -374,12 +460,13 @@ async function fetchAllStandaloneVideos(channelId: string, apiKey: string, exist
     }
     
     // Delay entre lotes
-    if (i + batchSize < Math.min(existingPlaylistIds.length, 200)) {
+    if (i + batchSize < existingPlaylistIds.length) {
       await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
   
-  console.log(`[YOUTUBE SYNC] ✅ Encontrados ${videosInPlaylists.size} vídeos em playlists conhecidas`);
+  console.log(`\n[YOUTUBE SYNC] ✅ Coleta de vídeos de playlists concluída!`);
+  console.log(`[YOUTUBE SYNC] 📊 Total de vídeos encontrados em playlists: ${videosInPlaylists.size}`);
 
   // Buscar vídeos do canal
   do {
@@ -479,7 +566,8 @@ async function fetchAllStandaloneVideos(channelId: string, apiKey: string, exist
           }
         }
         
-        console.log(`[YOUTUBE SYNC] ✅ Processados ${data.items.length} vídeos nesta página (standalone encontrados: ${standaloneVideos.length})`);
+        const privacyStatus = useOAuth ? '(privados + públicos)' : '(apenas públicos)';
+        console.log(`[YOUTUBE SYNC] ✅ Página ${Math.floor(videosChecked / 50) + 1}: ${data.items.length} vídeos processados ${privacyStatus} | Standalone encontrados: ${standaloneVideos.length} | Total verificado: ${videosChecked}`);
       }
 
       nextPageToken = data.nextPageToken || '';
@@ -494,7 +582,11 @@ async function fetchAllStandaloneVideos(channelId: string, apiKey: string, exist
     }
   } while (nextPageToken && videosChecked < maxVideosToCheck);
 
-  console.log(`[YOUTUBE SYNC] ✅ Total de vídeos standalone encontrados: ${standaloneVideos.length}`);
+  console.log(`\n[YOUTUBE SYNC] ✅ Busca de vídeos standalone concluída!`);
+  console.log(`[YOUTUBE SYNC] 📊 Total de vídeos standalone encontrados: ${standaloneVideos.length}`);
+  console.log(`[YOUTUBE SYNC] 📊 Total de vídeos verificados: ${videosChecked}`);
+  console.log(`[YOUTUBE SYNC] 📊 Vídeos em playlists conhecidas: ${videosInPlaylists.size}`);
+  console.log(`[YOUTUBE SYNC] 🔐 Método usado: ${useOAuth ? 'OAuth (privados + públicos)' : 'API Key (apenas públicos)'}\n`);
   return standaloneVideos;
 }
 
@@ -512,9 +604,13 @@ async function syncPlaylists(jsonData: YouTubeDataResponse, channelId: string, a
   const existingPlaylistsMap = new Map<string, YouTubePlaylist>();
   jsonData.playlists.forEach(p => existingPlaylistsMap.set(p.id, p));
   
-  console.log(`[YOUTUBE SYNC] 🔄 Sincronizando playlists...`);
-  console.log(`[YOUTUBE SYNC]   - Existentes no JSON: ${jsonData.playlists.length}`);
-  console.log(`[YOUTUBE SYNC]   - Encontradas no canal: ${allChannelPlaylists.length}`);
+  console.log(`\n[YOUTUBE SYNC] 🔄 Sincronizando playlists...`);
+  console.log(`[YOUTUBE SYNC]   📋 Existentes no JSON: ${jsonData.playlists.length}`);
+  console.log(`[YOUTUBE SYNC]   🔍 Encontradas no canal: ${allChannelPlaylists.length}`);
+  console.log(`[YOUTUBE SYNC]   📊 COMPARAÇÃO:`);
+  console.log(`[YOUTUBE SYNC]      - Playlists encontradas no YouTube: ${allChannelPlaylists.length}`);
+  console.log(`[YOUTUBE SYNC]      - Playlists no repositório atual: ${jsonData.playlists.length}`);
+  console.log(`[YOUTUBE SYNC]      - Diferença: ${allChannelPlaylists.length - jsonData.playlists.length}`);
   
   // Atualizar playlists existentes e adicionar novas
   const syncedPlaylists: YouTubePlaylist[] = [];
@@ -551,10 +647,10 @@ async function syncPlaylists(jsonData: YouTubeDataResponse, channelId: string, a
   
   jsonData.playlists = syncedPlaylists;
   
-  console.log(`[YOUTUBE SYNC] ✅ Sincronização de playlists concluída:`);
-  console.log(`[YOUTUBE SYNC]   - Atualizadas: ${updatedCount}`);
-  console.log(`[YOUTUBE SYNC]   - Adicionadas: ${addedCount}`);
-  console.log(`[YOUTUBE SYNC]   - Total final: ${jsonData.playlists.length}`);
+  console.log(`\n[YOUTUBE SYNC] ✅ Sincronização de playlists concluída!`);
+  console.log(`[YOUTUBE SYNC]   ✅ Atualizadas: ${updatedCount}`);
+  console.log(`[YOUTUBE SYNC]   ➕ Adicionadas: ${addedCount}`);
+  console.log(`[YOUTUBE SYNC]   📊 Total final: ${jsonData.playlists.length}`);
   
   return { updated: updatedCount, added: addedCount };
 }
@@ -634,6 +730,28 @@ async function updateStandaloneVideos(jsonData: YouTubeDataResponse, apiKey: str
   return updatedCount;
 }
 
+
+/**
+ * Salvar JSON localmente em public/youtube-data.json
+ */
+async function saveJsonLocally(jsonData: YouTubeDataResponse): Promise<boolean> {
+  try {
+    const jsonString = JSON.stringify(jsonData, null, 2);
+    const publicDir = join(process.cwd(), 'public');
+    const filePath = join(publicDir, 'youtube-data.json');
+    
+    // Garantir que o diretório existe
+    await mkdir(publicDir, { recursive: true });
+    
+    // Salvar arquivo
+    await writeFile(filePath, jsonString, 'utf-8');
+    console.log(`[YOUTUBE SYNC] ✅ Arquivo salvo localmente: ${filePath}`);
+    return true;
+  } catch (error) {
+    console.error('[YOUTUBE SYNC] ❌ Erro ao salvar arquivo localmente:', error);
+    return false;
+  }
+}
 
 /**
  * Fazer upload do JSON para Google Drive
@@ -750,7 +868,9 @@ async function uploadJsonToDrive(jsonData: YouTubeDataResponse): Promise<string 
  */
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
-  console.log('[YOUTUBE SYNC] 🚀 Iniciando sincronização com YouTube...');
+  console.log('\n═══════════════════════════════════════════════════════════');
+  console.log('[YOUTUBE SYNC] 🚀 INICIANDO SINCRONIZAÇÃO COM YOUTUBE');
+  console.log('═══════════════════════════════════════════════════════════\n');
 
   // Verificar se é uma chamada autorizada
   const authHeader = request.headers.get('authorization');
@@ -800,7 +920,9 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`[YOUTUBE SYNC] 📋 Configurações:`);
-    console.log(`[YOUTUBE SYNC]   - API Key: ${apiKey.substring(0, 10)}...`);
+    console.log(`[YOUTUBE SYNC]   ✅ YOUTUBE_API_KEY: ${apiKey.substring(0, 10)}...`);
+    console.log(`[YOUTUBE SYNC]   📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`[YOUTUBE SYNC]   📍 Channel ID: ${process.env.YOUTUBE_CHANNEL_ID || 'UCz3WPsPTwekahMtKoz9YdmA'}\n`);
 
     // 1. Ler JSON existente do Drive (ou começar vazio)
     let jsonData = await readJsonFromDrive();
@@ -875,15 +997,42 @@ export async function GET(request: NextRequest) {
     jsonData.updatedAt = new Date().toISOString();
     jsonData.version = '1.1';
 
-    console.log(`[YOUTUBE SYNC] 📊 Resumo da sincronização:`);
-    console.log(`[YOUTUBE SYNC]   - Playlists: ${jsonData.playlists.length} total (${playlistsSync.updated} atualizadas, ${playlistsSync.added} adicionadas)`);
-    console.log(`[YOUTUBE SYNC]   - Vídeos standalone: ${syncedVideos.length} total (${videosUpdated} atualizados, ${videosAdded} adicionados)`);
+    console.log(`\n[YOUTUBE SYNC] 📊 RESUMO DA SINCRONIZAÇÃO:`);
+    console.log(`[YOUTUBE SYNC]   ─────────────────────────────────────────────`);
+    console.log(`[YOUTUBE SYNC]   📋 Playlists:`);
+    console.log(`[YOUTUBE SYNC]      • Total: ${jsonData.playlists.length}`);
+    console.log(`[YOUTUBE SYNC]      • Atualizadas: ${playlistsSync.updated}`);
+    console.log(`[YOUTUBE SYNC]      • Adicionadas: ${playlistsSync.added}`);
+    console.log(`[YOUTUBE SYNC]   ─────────────────────────────────────────────`);
+    console.log(`[YOUTUBE SYNC]   📹 Vídeos Standalone:`);
+    console.log(`[YOUTUBE SYNC]      • Total: ${syncedVideos.length}`);
+    console.log(`[YOUTUBE SYNC]      • Atualizados: ${videosUpdated}`);
+    console.log(`[YOUTUBE SYNC]      • Adicionados: ${videosAdded}`);
+    console.log(`[YOUTUBE SYNC]   ─────────────────────────────────────────────`);
 
-    // 5. Salvar JSON atualizado no Drive
+    // 5. Validar dados antes de salvar
+    const validPlaylists = jsonData.playlists.filter(p => p.id && p.title);
+    if (validPlaylists.length !== jsonData.playlists.length) {
+      console.warn(`[YOUTUBE SYNC] ⚠️ Removendo ${jsonData.playlists.length - validPlaylists.length} playlists inválidas`);
+      jsonData.playlists = validPlaylists;
+    }
+    
+    const validStandaloneVideos = (jsonData.standaloneVideos || []).filter(v => v.id && v.title);
+    if (validStandaloneVideos.length !== (jsonData.standaloneVideos || []).length) {
+      console.warn(`[YOUTUBE SYNC] ⚠️ Removendo ${(jsonData.standaloneVideos || []).length - validStandaloneVideos.length} vídeos standalone inválidos`);
+      jsonData.standaloneVideos = validStandaloneVideos.length > 0 ? validStandaloneVideos : undefined;
+    }
+
+    // 6. Salvar JSON atualizado no Drive
     const driveUrl = await uploadJsonToDrive(jsonData);
+    
+    // 7. Salvar também localmente para desenvolvimento
+    await saveJsonLocally(jsonData);
 
     const duration = Date.now() - startTime;
-    console.log(`[YOUTUBE SYNC] ✅ Sincronização concluída em ${duration}ms`);
+    console.log('\n═══════════════════════════════════════════════════════════');
+    console.log(`[YOUTUBE SYNC] ✅ SINCRONIZAÇÃO CONCLUÍDA EM ${duration}ms`);
+    console.log('═══════════════════════════════════════════════════════════\n');
 
     return NextResponse.json({
       success: true,
