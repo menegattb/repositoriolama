@@ -2,21 +2,32 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
-import { Search, Clock, Download, CheckCircle2, MessageCircle, Loader2, FileText, AlertCircle } from 'lucide-react';
+import { Search, Clock, Download, CheckCircle2, MessageCircle, Loader2, FileText, AlertCircle, RefreshCw, Music, FolderOpen } from 'lucide-react';
 import { extractFileIdFromUrl } from '@/lib/driveUtils';
+
+// Interface para áudios do Drive
+interface DriveAudioFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  size?: string;
+  streamUrl: string;
+}
 
 interface SidebarProps {
   playlist: Playlist;
   currentMediaItem: MediaItem | null;
   onMediaItemSelect?: (item: MediaItem) => void;
+  initialTab?: 'playlist' | 'transcript' | 'audio';
 }
 
 export default function Sidebar({ 
   playlist, 
   currentMediaItem, 
-  onMediaItemSelect
+  onMediaItemSelect,
+  initialTab = 'playlist'
 }: SidebarProps) {
-  const [activeTab, setActiveTab] = useState<'playlist' | 'transcript' | 'audio'>('playlist');
+  const [activeTab, setActiveTab] = useState<'playlist' | 'transcript' | 'audio'>(initialTab);
   const [searchTerm, setSearchTerm] = useState('');
   const [transcriptSearchTerm, setTranscriptSearchTerm] = useState('');
   const [playlistUrl, setPlaylistUrl] = useState('');
@@ -36,6 +47,14 @@ export default function Sidebar({
   // Ref para controlar requisições em andamento e prevenir múltiplos cliques
   const abortControllerRef = useRef<AbortController | null>(null);
   const isProcessingRef = useRef<boolean>(false);
+
+  // Estados para áudios do Google Drive
+  const [driveAudios, setDriveAudios] = useState<DriveAudioFile[]>([]);
+  const [isLoadingDriveAudios, setIsLoadingDriveAudios] = useState(false);
+  const [driveAudioError, setDriveAudioError] = useState<string | null>(null);
+  const [driveAudioConfigured, setDriveAudioConfigured] = useState<boolean | null>(null);
+  const [audioSearchTerm, setAudioSearchTerm] = useState('');
+  const [videoTitlesCache, setVideoTitlesCache] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setPlaylistUrl(window.location.href);
@@ -70,6 +89,178 @@ export default function Sidebar({
       });
     }
   }, [playlist.items, currentMediaItem?.id, isTranscribing]);
+
+  // Buscar áudios do Drive quando a aba de áudio for ativada
+  useEffect(() => {
+    if (activeTab === 'audio' && driveAudioConfigured === null) {
+      // Primeira verificação - checar se está configurado
+      fetchDriveAudios();
+    }
+  }, [activeTab, driveAudioConfigured]);
+
+  // Buscar áudios do Drive para a playlist atual
+  const fetchDriveAudios = async () => {
+    setIsLoadingDriveAudios(true);
+    setDriveAudioError(null);
+
+    try {
+      console.log('[Sidebar Audio] 🔍 Buscando áudios para playlist:', playlist.id);
+      
+      // Tentar buscar áudios da pasta correspondente à playlist
+      // Primeiro, tentar pelo nome da pasta (que é o playlistId)
+      let url = `/api/drive/audio/youtube?folder=${encodeURIComponent(playlist.id)}`;
+      
+      let response = await fetch(url);
+      let data = await response.json();
+
+      // Se não configurado, marcar e parar
+      if (response.status === 503) {
+        setDriveAudioConfigured(false);
+        setDriveAudioError(data.error || 'Audio Drive não configurado');
+        setIsLoadingDriveAudios(false);
+        return;
+      }
+
+      setDriveAudioConfigured(true);
+
+      // Se encontrou áudios
+      if (data.success && data.audios && data.audios.length > 0) {
+        setDriveAudios(data.audios);
+        console.log('[Sidebar Audio] ✅ Áudios encontrados:', data.audios.length);
+        
+        // Extrair IDs de vídeo dos nomes dos arquivos
+        const videoIds = data.audios
+          .map((a: DriveAudioFile) => extractVideoIdFromFilename(a.name))
+          .filter((id: string) => /^[a-zA-Z0-9_-]{11}$/.test(id));
+        
+        // Verificar quais IDs não têm match na playlist
+        const unmatchedIds = videoIds.filter((videoId: string) => {
+          const hasMatch = playlist.items?.some(item => {
+            if (item.id === videoId) return true;
+            const urlVideoId = extractVideoIdFromUrl(item.media_url);
+            return urlVideoId === videoId;
+          });
+          return !hasMatch;
+        });
+        
+        // Se há IDs sem match, buscar títulos do YouTube
+        if (unmatchedIds.length > 0) {
+          console.log('[Sidebar Audio] 🔍 Buscando títulos de', unmatchedIds.length, 'vídeos no YouTube...');
+          fetchVideoTitlesFromYouTube(unmatchedIds);
+        }
+      } else if (response.status === 404) {
+        // Pasta não encontrada - esta playlist não tem áudios no Drive
+        console.log('[Sidebar Audio] ℹ️ Pasta de áudios não encontrada para esta playlist');
+        setDriveAudios([]);
+      } else if (data.success && data.folders) {
+        // Se retornou lista de pastas (nenhum parâmetro específico)
+        console.log('[Sidebar Audio] 📁 Pastas disponíveis:', data.folders.length);
+        setDriveAudios([]);
+      } else {
+        // Não encontrou áudios
+        console.log('[Sidebar Audio] ℹ️ Nenhum áudio encontrado para esta playlist');
+        setDriveAudios([]);
+      }
+    } catch (error) {
+      console.error('[Sidebar Audio] Erro ao buscar áudios:', error);
+      setDriveAudioError(error instanceof Error ? error.message : 'Erro ao buscar áudios');
+      setDriveAudioConfigured(true); // Configurado mas com erro
+    } finally {
+      setIsLoadingDriveAudios(false);
+    }
+  };
+
+  // Função para extrair o ID do vídeo do nome do arquivo de áudio
+  const extractVideoIdFromFilename = (filename: string): string => {
+    // Remover extensão (.mp3, .m4a, etc.)
+    const withoutExt = filename.replace(/\.(mp3|m4a|wav|ogg|flac|aac)$/i, '');
+    // Remover prefixos comuns (underscore, hífen, etc.)
+    return withoutExt.replace(/^[_\-]+/, '');
+  };
+
+  // Função para extrair video ID de uma URL do YouTube
+  const extractVideoIdFromUrl = (url: string): string | null => {
+    if (!url) return null;
+    // Formatos de URL do YouTube:
+    // https://www.youtube.com/watch?v=VIDEO_ID
+    // https://youtu.be/VIDEO_ID
+    // https://www.youtube.com/embed/VIDEO_ID
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+      /[?&]v=([a-zA-Z0-9_-]{11})/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
+  // Função para buscar títulos de vídeos do YouTube em lote
+  const fetchVideoTitlesFromYouTube = async (videoIds: string[]): Promise<void> => {
+    const idsToFetch = videoIds.filter(id => !videoTitlesCache[id] && /^[a-zA-Z0-9_-]{11}$/.test(id));
+    if (idsToFetch.length === 0) return;
+
+    try {
+      // Buscar em lotes de 50 (limite da API do YouTube)
+      for (let i = 0; i < idsToFetch.length; i += 50) {
+        const batch = idsToFetch.slice(i, i + 50);
+        const response = await fetch(`/api/youtube/videos/titles?ids=${batch.join(',')}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.titles) {
+            setVideoTitlesCache(prev => ({ ...prev, ...data.titles }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[Sidebar Audio] Erro ao buscar títulos de vídeos:', error);
+    }
+  };
+
+  // Função para obter o título do vídeo correspondente ao áudio
+  const getAudioDisplayName = (audioFilename: string): string => {
+    const filenameVideoId = extractVideoIdFromFilename(audioFilename);
+    
+    // 1. Primeiro, verificar no cache de títulos buscados do YouTube
+    if (videoTitlesCache[filenameVideoId]) {
+      return videoTitlesCache[filenameVideoId];
+    }
+    
+    // 2. Buscar o vídeo correspondente na playlist
+    const matchingVideo = playlist.items?.find(item => {
+      // Comparar diretamente por ID do item
+      if (item.id === filenameVideoId) return true;
+      
+      // Extrair e comparar videoId da URL do YouTube
+      const urlVideoId = extractVideoIdFromUrl(item.media_url);
+      if (urlVideoId && urlVideoId === filenameVideoId) return true;
+      
+      // Verificar se o filename contém o videoId da URL (caso tenha prefixo/sufixo)
+      if (urlVideoId && filenameVideoId.includes(urlVideoId)) return true;
+      
+      // Verificar se o videoId da URL contém o filename (parcial)
+      if (urlVideoId && urlVideoId.includes(filenameVideoId) && filenameVideoId.length >= 8) return true;
+      
+      return false;
+    });
+
+    if (matchingVideo) {
+      return matchingVideo.title;
+    }
+
+    // Fallback: retornar ID limpo enquanto busca o título
+    return audioFilename.replace(/\.(mp3|m4a|wav|ogg|flac|aac)$/i, '').replace(/^[_\-]+/, '');
+  };
+
+  // Filtrar áudios do Drive por termo de busca (buscar por nome ou título mapeado)
+  const filteredDriveAudios = driveAudios.filter(audio => {
+    const displayName = getAudioDisplayName(audio.name);
+    return displayName.toLowerCase().includes(audioSearchTerm.toLowerCase()) ||
+           audio.name.toLowerCase().includes(audioSearchTerm.toLowerCase());
+  });
 
   const matchesSearch = (item: MediaItem) =>
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -662,6 +853,167 @@ export default function Sidebar({
     }
   };
 
+  // Função para regenerar transcrição (força nova transcrição ignorando cache)
+  const handleRegenerateTranscript = async () => {
+    // Proteção contra múltiplos cliques simultâneos
+    if (isTranscribing || isProcessingRef.current) {
+      console.log('[Sidebar] ⚠️ Transcrição já em andamento, ignorando clique duplicado');
+      return;
+    }
+
+    if (!currentMediaItem) {
+      setTranscriptError('Nenhum vídeo selecionado');
+      return;
+    }
+
+    // Cancelar requisição anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Criar novo AbortController para esta requisição
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
+    // Marcar como processando
+    isProcessingRef.current = true;
+    setIsTranscribing(true);
+    setTranscriptError(null);
+    
+    // Limpar transcrição atual antes de iniciar nova
+    setTranscriptUrl(null);
+    setTranscriptContent(null);
+    setFormattedContent(null);
+    setTranscriptArray(null);
+    setTranscriptLang(null);
+    setTranscriptionLogs([]);
+    setDriveFileId(null);
+
+    addLog('info', `Regenerando transcrição para: "${currentMediaItem.title}"`);
+    addLog('info', 'Ignorando cache e gerando nova transcrição...');
+
+    try {
+      // Extrair videoId do media_url ou usar o id diretamente
+      let videoId = currentMediaItem.id;
+      let videoUrl = currentMediaItem.media_url;
+
+      // Extrair videoId da URL se necessário
+      if (videoUrl) {
+        const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+        if (match && match[1]) {
+          videoId = match[1];
+          videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        }
+      }
+
+      // Validar videoId
+      if (!videoId || videoId.length !== 11) {
+        throw new Error('Não foi possível identificar o ID do vídeo');
+      }
+
+      addLog('info', `Enviando requisição para API de transcrição (forceRegenerate=true)...`);
+      console.log('[Sidebar] 🔄 Regenerando transcrição:', { videoId, videoUrl });
+
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoId: videoId,
+          videoUrl: videoUrl,
+          playlistId: playlist.id,
+          videoTitle: currentMediaItem?.title,
+          forceRegenerate: true, // Forçar regeneração
+        }),
+        signal: signal,
+      });
+
+      addLog('info', 'Aguardando resposta da API...');
+
+      if (signal.aborted) {
+        console.log('[Sidebar] ⚠️ Requisição cancelada durante processamento');
+        return;
+      }
+
+      const data: TranscriptResponse = await response.json();
+
+      if (signal.aborted) {
+        console.log('[Sidebar] ⚠️ Requisição cancelada após receber resposta');
+        return;
+      }
+
+      if (!response.ok || !data.success) {
+        addLog('error', data.error || 'Erro ao regenerar transcrição');
+        throw new Error(data.error || 'Erro ao regenerar transcrição');
+      }
+
+      addLog('success', 'Nova transcrição gerada com sucesso!');
+
+      const dataWithDrive = data as TranscriptResponse & { 
+        fromDrive?: boolean; 
+        driveDocxUrl?: string;
+        driveFileId?: string;
+        driveUploadError?: string;
+      };
+
+      if (dataWithDrive.driveUploadError) {
+        addLog('warning', `Transcrição gerada, mas erro ao salvar no Drive: ${dataWithDrive.driveUploadError}`);
+        setTranscriptError(`⚠️ Transcrição gerada, mas erro ao salvar no Drive: ${dataWithDrive.driveUploadError}`);
+      } else if (dataWithDrive.fromDrive && dataWithDrive.driveDocxUrl) {
+        addLog('success', `Nova transcrição salva no Google Drive!`);
+        addLog('info', `Link: ${dataWithDrive.driveDocxUrl}`);
+      } else if (dataWithDrive.driveDocxUrl) {
+        addLog('success', 'Nova transcrição salva no Google Drive!');
+      }
+
+      // Definir novos dados
+      setTranscriptUrl(data.transcriptUrl || null);
+      setTranscriptContent(data.content || null);
+      setFormattedContent(data.formattedContent || null);
+      setTranscriptArray(data.transcriptArray || null);
+      setTranscriptLang(data.lang || null);
+
+      if (dataWithDrive.fromDrive && dataWithDrive.driveDocxUrl) {
+        setTranscriptUrl(dataWithDrive.driveDocxUrl);
+        const fileId = dataWithDrive.driveFileId || extractFileIdFromUrl(dataWithDrive.driveDocxUrl);
+        if (fileId) {
+          setDriveFileId(fileId);
+        }
+        console.log('[Sidebar] ✅ Nova transcrição salva no Drive:', dataWithDrive.driveDocxUrl);
+      } else if (dataWithDrive.driveDocxUrl) {
+        setTranscriptUrl(dataWithDrive.driveDocxUrl);
+        const fileId = dataWithDrive.driveFileId || extractFileIdFromUrl(dataWithDrive.driveDocxUrl);
+        if (fileId) {
+          setDriveFileId(fileId);
+        }
+      }
+
+      addLog('success', 'Processo concluído com sucesso!');
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('[Sidebar] ℹ️ Requisição cancelada pelo usuário');
+        return;
+      }
+
+      let errorMessage = 'Erro desconhecido ao regenerar transcrição';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      addLog('error', errorMessage);
+      console.error('[Sidebar] Erro ao regenerar transcrição:', error);
+      setTranscriptError(errorMessage);
+    } finally {
+      isProcessingRef.current = false;
+      setIsTranscribing(false);
+      abortControllerRef.current = null;
+    }
+  };
+
   // Função para baixar transcrição em formato DOCX
   const handleDownloadDocx = async () => {
     if (!transcriptArray || transcriptArray.length === 0) {
@@ -1093,64 +1445,154 @@ export default function Sidebar({
               <input
                 type="text"
                 placeholder="Buscar nos áudios..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={audioSearchTerm}
+                onChange={(e) => setAudioSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
-            {/* Audio Items */}
-            {filteredAudioItems.length > 0 ? (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {filteredAudioItems.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => onMediaItemSelect?.(item)}
-                    className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                      currentMediaItem?.id === item.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="space-y-2">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                      <audio controls className="w-full">
-                        <source src={item.media_url} />
-                        Seu navegador não suporta reprodução de áudio.
-                      </audio>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Clock size={12} className="text-gray-400" />
-                        <span>{formatDuration(item.duration)}</span>
-                        <span>•</span>
-                        <span>{item.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {/* Loading State */}
+            {isLoadingDriveAudios && (
+              <div className="text-center py-8 space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
+                <p className="text-sm text-gray-600">Carregando áudios...</p>
+                <p className="text-xs text-gray-500">Buscando no Google Drive...</p>
               </div>
-            ) : (
+            )}
+
+            {/* Not Configured State */}
+            {!isLoadingDriveAudios && driveAudioConfigured === false && (
               <div className="text-center py-8 space-y-4">
-                <p className="text-gray-600 text-sm">
-                  Todos os audios foram baixados e estão sendo colocados na plataforma. Solicite este audio via WhatsApp
-                </p>
+                <FolderOpen className="w-12 h-12 text-gray-400 mx-auto" />
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Audio Drive não configurado</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Acesse <code className="bg-gray-100 px-1 rounded">/api/auth/audio-drive</code> para configurar.
+                  </p>
+                </div>
                 <button
                   onClick={() => {
                     const message = encodeURIComponent(`Olá! Gostaria de solicitar o áudio da playlist "${playlist.title}".`);
                     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
                     window.open(whatsappUrl, '_blank');
                   }}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Solicitar Áudio
+                  Solicitar via WhatsApp
                 </button>
+              </div>
+            )}
+
+            {/* Error State */}
+            {!isLoadingDriveAudios && driveAudioConfigured && driveAudioError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-800 mb-1">Erro ao carregar áudios</p>
+                    <p className="text-xs text-red-700">{driveAudioError}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={fetchDriveAudios}
+                  className="mt-3 w-full text-sm text-red-600 hover:text-red-800 font-medium"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            )}
+
+            {/* Drive Audio Files */}
+            {!isLoadingDriveAudios && driveAudioConfigured && !driveAudioError && filteredDriveAudios.length > 0 && (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {filteredDriveAudios.map((audio) => (
+                  <div
+                    key={audio.id}
+                    className="p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <Music size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
+                            {getAudioDisplayName(audio.name)}
+                          </h4>
+                        </div>
+                      </div>
+                      <audio controls className="w-full" preload="none">
+                        <source src={audio.streamUrl} type={audio.mimeType} />
+                        Seu navegador não suporta reprodução de áudio.
+                      </audio>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* No Audio Files Found */}
+            {!isLoadingDriveAudios && driveAudioConfigured && !driveAudioError && filteredDriveAudios.length === 0 && (
+              <div className="text-center py-8 space-y-4">
+                <Music className="w-12 h-12 text-gray-400 mx-auto" />
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">
+                    {audioSearchTerm ? 'Nenhum áudio encontrado' : 'Nenhum áudio disponível para esta playlist'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {audioSearchTerm 
+                      ? `Nenhum resultado para "${audioSearchTerm}"`
+                      : 'Os áudios podem estar sendo processados ou não estão disponíveis ainda.'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    const message = encodeURIComponent(`Olá! Gostaria de solicitar o áudio da playlist "${playlist.title}".`);
+                    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+                    window.open(whatsappUrl, '_blank');
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Solicitar via WhatsApp
+                </button>
+                <button
+                  onClick={fetchDriveAudios}
+                  className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Atualizar lista de áudios
+                </button>
+              </div>
+            )}
+
+            {/* Legacy Audio Items (from playlist.items) */}
+            {filteredAudioItems.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-xs text-gray-500 mb-2">Áudios da playlist:</p>
+                <div className="space-y-3 max-h-48 overflow-y-auto">
+                  {filteredAudioItems.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => onMediaItemSelect?.(item)}
+                      className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                        currentMediaItem?.id === item.id
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
+                            {item.title}
+                          </h4>
+                        </div>
+                        <audio controls className="w-full">
+                          <source src={item.media_url} />
+                          Seu navegador não suporta reprodução de áudio.
+                        </audio>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -1180,7 +1622,7 @@ export default function Sidebar({
                   )}
                 </div>
                 
-                {/* Botão para baixar .docx */}
+                {/* Botões para baixar e regenerar */}
                 <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={handleDownloadDocx}
@@ -1188,6 +1630,14 @@ export default function Sidebar({
                   >
                     <Download className="w-3 h-3" />
                     Baixar .docx
+                  </button>
+                  <button
+                    onClick={handleRegenerateTranscript}
+                    disabled={isTranscribing || !currentMediaItem}
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isTranscribing ? 'animate-spin' : ''}`} />
+                    {isTranscribing ? 'Gerando...' : 'Gerar novamente'}
                   </button>
                 </div>
 

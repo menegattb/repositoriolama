@@ -3,6 +3,7 @@
 /**
  * Script para executar sincronização manual com YouTube
  * Uso: node scripts/sync-youtube.js
+ * Para testar localmente: SYNC_URL=http://localhost:3000/api/youtube/sync npm run sync:youtube
  */
 
 const https = require('https');
@@ -91,16 +92,18 @@ function handleResponse(res) {
       const result = JSON.parse(data);
       
       if (res.statusCode === 200 && result.success) {
-        console.log('✅ Sincronização concluída com sucesso!');
-        console.log(`📊 Playlists:`);
+        console.log('\n✅ Sincronização concluída com sucesso!');
+        console.log(`\n📊 Playlists:`);
         console.log(`   - Total: ${result.data.playlists?.total || 0}`);
         console.log(`   - Atualizadas: ${result.data.playlists?.updated || 0}`);
-        console.log(`📹 Vídeos standalone:`);
+        console.log(`   - Adicionadas: ${result.data.playlists?.added || 0}`);
+        console.log(`\n📹 Vídeos standalone:`);
         console.log(`   - Total: ${result.data.standaloneVideos?.total || 0}`);
         console.log(`   - Atualizados: ${result.data.standaloneVideos?.updated || 0}`);
-        console.log(`⏱️  Duração: ${result.data.duration}`);
+        console.log(`   - Adicionados: ${result.data.standaloneVideos?.added || 0}`);
+        console.log(`\n⏱️  Duração: ${result.data.duration}`);
         if (result.data.driveUrl) {
-          console.log(`🔗 Drive URL: ${result.data.driveUrl}`);
+          console.log(`\n🔗 Drive URL: ${result.data.driveUrl}`);
         }
         process.exit(0);
       } else {
@@ -129,4 +132,3 @@ req.setTimeout(300000, () => {
 });
 
 req.end();
-
