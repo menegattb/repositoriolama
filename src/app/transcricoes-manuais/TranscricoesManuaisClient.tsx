@@ -28,8 +28,10 @@ export default function TranscricoesManuaisClient() {
     // Formato 1: https://www.youtube.com/watch?v=VIDEO_ID
     // Formato 2: https://youtu.be/VIDEO_ID
     // Formato 3: https://www.youtube.com/embed/VIDEO_ID
+    // Formato 4: https://www.youtube.com/live/VIDEO_ID
+    // Formato 5: https://www.youtube.com/shorts/VIDEO_ID
     const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/|youtube\.com\/shorts\/)([^&\n?#]+)/,
       /youtube\.com\/.*[?&]v=([^&\n?#]+)/,
     ];
 

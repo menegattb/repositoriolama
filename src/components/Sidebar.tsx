@@ -768,8 +768,8 @@ export default function Sidebar({
             }
           } else {
             // Tentar extrair videoId da URL primeiro
-            if (videoUrl && (videoUrl.includes('watch?v=') || videoUrl.includes('youtu.be/'))) {
-              const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+            if (videoUrl && (videoUrl.includes('watch?v=') || videoUrl.includes('youtu.be/') || videoUrl.includes('/live/') || videoUrl.includes('/shorts/'))) {
+              const match = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
               if (match && match[1]) {
                 videoId = match[1];
               }

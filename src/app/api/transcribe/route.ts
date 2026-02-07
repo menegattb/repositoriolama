@@ -709,9 +709,9 @@ export async function POST(request: NextRequest) {
 
     // Se não tiver videoId mas tiver URL, tentar extrair da URL
     if (!finalVideoId && finalVideoUrl) {
-      // Extrair ID da URL do YouTube (apenas se for URL de vídeo, não playlist)
-      if (finalVideoUrl.includes('watch?v=') || finalVideoUrl.includes('youtu.be/')) {
-        const match = finalVideoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+      // Extrair ID da URL do YouTube (diversos formatos)
+      if (finalVideoUrl.includes('watch?v=') || finalVideoUrl.includes('youtu.be/') || finalVideoUrl.includes('/live/') || finalVideoUrl.includes('/shorts/')) {
+        const match = finalVideoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
         if (match && match[1]) {
           finalVideoId = match[1];
         }
