@@ -185,8 +185,10 @@ export default function Sidebar({
     // https://www.youtube.com/watch?v=VIDEO_ID
     // https://youtu.be/VIDEO_ID
     // https://www.youtube.com/embed/VIDEO_ID
+    // https://www.youtube.com/live/VIDEO_ID
+    // https://www.youtube.com/shorts/VIDEO_ID
     const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
       /[?&]v=([a-zA-Z0-9_-]{11})/
     ];
     
