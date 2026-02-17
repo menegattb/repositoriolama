@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Music, FolderOpen, Search, Loader2, AlertCircle, ChevronRight, ArrowLeft, Home } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -18,11 +18,19 @@ interface AudioFile {
 interface Folder {
   id: string;
   name: string;
-  displayName?: string; // Nome real da playlist
+  displayName?: string;
   audioCount?: number;
 }
 
 export default function AudiosYoutubePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>}>
+      <AudiosYoutubeContent />
+    </Suspense>
+  );
+}
+
+function AudiosYoutubeContent() {
   const searchParams = useSearchParams();
   const initialFolder = searchParams.get('folder');
   

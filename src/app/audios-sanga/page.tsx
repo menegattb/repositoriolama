@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Music, FolderOpen, Search, Loader2, AlertCircle, ChevronRight, ArrowLeft, Home } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -20,6 +20,14 @@ interface Folder {
 }
 
 export default function AudiosSangaPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>}>
+      <AudiosSangaContent />
+    </Suspense>
+  );
+}
+
+function AudiosSangaContent() {
   const searchParams = useSearchParams();
   const initialFolder = searchParams.get('folder');
   
