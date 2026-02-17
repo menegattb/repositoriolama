@@ -133,15 +133,14 @@ export default function PlaylistsPage() {
           const folderName = f.name;
           let displayName = folderName;
           
-          // Verificar se é um ID de playlist do YouTube (começa com PL)
-          const isPlaylistId = folderName.startsWith('PL');
           // Verificar se é numérico
           const isNumeric = /^\d+$/.test(folderName);
           
-          if (isPlaylistId) {
-            // Buscar playlist pelo ID
-            const matchedPlaylist = playlists.find(p => p.id === folderName);
-            displayName = matchedPlaylist?.title || folderName;
+          // Tentar encontrar playlist correspondente pelo ID (cobre PL, FL, UU, etc.)
+          const matchedPlaylistById = playlists.find(p => p.id === folderName);
+          
+          if (matchedPlaylistById) {
+            displayName = matchedPlaylistById.title;
           } else if (isNumeric) {
             // Tentar encontrar playlist correspondente pelo catálogo ou índice
             const playlistId = audioCatalog[folderName];
@@ -532,8 +531,9 @@ export default function PlaylistsPage() {
                 {visibleAudioFolders.map((folder) => {
                   if (audioSourceFilter === 'youtube') {
                     // Áudios do YouTube - link direto para playlist com tab=audio
-                    const isPlaylistId = folder.folderNumber?.startsWith('PL');
-                    const href = isPlaylistId 
+                    // Verificar se a pasta corresponde a uma playlist (qualquer prefixo: PL, FL, UU, etc.)
+                    const matchesPlaylist = folder.folderNumber ? playlists.some(p => p.id === folder.folderNumber) : false;
+                    const href = matchesPlaylist 
                       ? `/playlist/${folder.folderNumber}?tab=audio`
                       : `/audios-youtube?folder=${folder.id}`;
                     

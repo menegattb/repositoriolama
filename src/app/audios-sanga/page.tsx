@@ -123,6 +123,11 @@ function AudiosSangaContent() {
     window.history.pushState({}, '', '/audios-sanga');
   };
 
+  // Limpar nome do áudio removendo extensão
+  const cleanAudioName = (name: string): string => {
+    return name.replace(/\.(mp3|m4a|wav|ogg|flac|aac)$/i, '');
+  };
+
   // Filtrar itens por termo de busca
   const filteredFolders = folders.filter(f =>
     f.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -277,7 +282,7 @@ function AudiosSangaContent() {
                       <div className="flex items-start gap-3">
                         <Music className="w-8 h-8 text-blue-500 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900">{audio.name}</h3>
+                          <h3 className="font-medium text-gray-900">{cleanAudioName(audio.name)}</h3>
                           <audio controls className="w-full mt-3" preload="none">
                             <source src={audio.streamUrl} type={audio.mimeType} />
                             Seu navegador não suporta reprodução de áudio.
@@ -347,7 +352,7 @@ function AudiosSangaContent() {
                       <div className="flex items-start gap-3">
                         <Music className="w-8 h-8 text-blue-500 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900">{audio.name}</h3>
+                          <h3 className="font-medium text-gray-900">{cleanAudioName(audio.name)}</h3>
                           <audio controls className="w-full mt-3" preload="none">
                             <source src={audio.streamUrl} type={audio.mimeType} />
                             Seu navegador não suporta reprodução de áudio.

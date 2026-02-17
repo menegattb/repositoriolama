@@ -128,25 +128,15 @@ export default function Sidebar({
         setDriveAudios(data.audios);
         console.log('[Sidebar Audio] ✅ Áudios encontrados:', data.audios.length);
         
-        // Extrair IDs de vídeo dos nomes dos arquivos
+        // Extrair IDs de vídeo dos nomes dos arquivos (aceitar 10-12 chars para cobrir edge cases)
         const videoIds = data.audios
           .map((a: DriveAudioFile) => extractVideoIdFromFilename(a.name))
-          .filter((id: string) => /^[a-zA-Z0-9_-]{11}$/.test(id));
+          .filter((id: string) => /^[a-zA-Z0-9_-]{10,12}$/.test(id));
         
-        // Verificar quais IDs não têm match na playlist
-        const unmatchedIds = videoIds.filter((videoId: string) => {
-          const hasMatch = playlist.items?.some(item => {
-            if (item.id === videoId) return true;
-            const urlVideoId = extractVideoIdFromUrl(item.media_url);
-            return urlVideoId === videoId;
-          });
-          return !hasMatch;
-        });
-        
-        // Se há IDs sem match, buscar títulos do YouTube
-        if (unmatchedIds.length > 0) {
-          console.log('[Sidebar Audio] 🔍 Buscando títulos de', unmatchedIds.length, 'vídeos no YouTube...');
-          fetchVideoTitlesFromYouTube(unmatchedIds);
+        // Buscar títulos de TODOS os vídeos do YouTube para garantir cobertura
+        if (videoIds.length > 0) {
+          console.log('[Sidebar Audio] 🔍 Buscando títulos de', videoIds.length, 'vídeos no YouTube...');
+          await fetchVideoTitlesFromYouTube(videoIds);
         }
       } else if (response.status === 404) {
         // Pasta não encontrada - esta playlist não tem áudios no Drive
@@ -201,7 +191,8 @@ export default function Sidebar({
 
   // Função para buscar títulos de vídeos do YouTube em lote
   const fetchVideoTitlesFromYouTube = async (videoIds: string[]): Promise<void> => {
-    const idsToFetch = videoIds.filter(id => !videoTitlesCache[id] && /^[a-zA-Z0-9_-]{11}$/.test(id));
+    // Aceitar IDs de 10-12 chars para cobrir possíveis edge cases na extração
+    const idsToFetch = videoIds.filter(id => !videoTitlesCache[id] && /^[a-zA-Z0-9_-]{10,12}$/.test(id));
     if (idsToFetch.length === 0) return;
 
     try {
@@ -226,9 +217,15 @@ export default function Sidebar({
   const getAudioDisplayName = (audioFilename: string): string => {
     const filenameVideoId = extractVideoIdFromFilename(audioFilename);
     
-    // 1. Primeiro, verificar no cache de títulos buscados do YouTube
+    // 1. Primeiro, verificar no cache de títulos buscados do YouTube (match exato)
     if (videoTitlesCache[filenameVideoId]) {
       return videoTitlesCache[filenameVideoId];
+    }
+    
+    // 1b. Verificar match parcial no cache (para IDs com 1 char a mais/menos)
+    for (const [cachedId, cachedTitle] of Object.entries(videoTitlesCache)) {
+      if (cachedId.includes(filenameVideoId) && filenameVideoId.length >= 8) return cachedTitle;
+      if (filenameVideoId.includes(cachedId) && cachedId.length >= 8) return cachedTitle;
     }
     
     // 2. Buscar o vídeo correspondente na playlist

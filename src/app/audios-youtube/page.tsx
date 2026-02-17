@@ -74,15 +74,15 @@ function AudiosYoutubeContent() {
 
   // Função para obter nome de exibição da pasta
   const getDisplayName = (folderName: string, playlistsList: Playlist[]): string => {
-    // Verificar se é um ID de playlist do YouTube (começa com PL)
-    if (folderName.startsWith('PL')) {
-      const matchedPlaylist = playlistsList.find(p => p.id === folderName);
-      return matchedPlaylist?.title || folderName;
+    // Tentar encontrar playlist correspondente pelo ID (cobre PL, FL, UU, etc.)
+    const matchedPlaylist = playlistsList.find(p => p.id === folderName);
+    if (matchedPlaylist) {
+      return matchedPlaylist.title;
     }
     // Verificar se é numérico
     if (/^\d+$/.test(folderName)) {
-      const matchedPlaylist = playlistsList[parseInt(folderName) - 1];
-      return matchedPlaylist?.title || `Playlist ${folderName}`;
+      const indexedPlaylist = playlistsList[parseInt(folderName) - 1];
+      return indexedPlaylist?.title || `Playlist ${folderName}`;
     }
     return folderName;
   };
@@ -181,13 +181,13 @@ function AudiosYoutubeContent() {
         const audios = data.audios || [];
         setFolderAudios(audios);
         
-        // Extrair IDs de vídeo dos nomes dos arquivos e buscar títulos
+        // Extrair IDs de vídeo dos nomes dos arquivos e buscar títulos (10-12 chars para cobrir edge cases)
         const videoIds = audios
           .map((a: AudioFile) => extractVideoIdFromFilename(a.name))
-          .filter((id: string) => /^[a-zA-Z0-9_-]{11}$/.test(id));
+          .filter((id: string) => /^[a-zA-Z0-9_-]{10,12}$/.test(id));
         
         if (videoIds.length > 0) {
-          fetchVideoTitles(videoIds);
+          await fetchVideoTitles(videoIds);
         }
       } else {
         setError(data.error || 'Erro ao carregar áudios');
@@ -244,7 +244,8 @@ function AudiosYoutubeContent() {
 
   // Função para buscar títulos de vídeos do YouTube
   const fetchVideoTitles = async (videoIds: string[]): Promise<void> => {
-    const idsToFetch = videoIds.filter(id => !videoTitlesCache[id] && /^[a-zA-Z0-9_-]{11}$/.test(id));
+    // Aceitar IDs de 10-12 chars para cobrir possíveis edge cases na extração
+    const idsToFetch = videoIds.filter(id => !videoTitlesCache[id] && /^[a-zA-Z0-9_-]{10,12}$/.test(id));
     if (idsToFetch.length === 0) return;
 
     try {
@@ -264,9 +265,15 @@ function AudiosYoutubeContent() {
   const formatAudioName = (name: string): string => {
     const filenameVideoId = extractVideoIdFromFilename(name);
     
-    // 1. Primeiro, verificar no cache de títulos buscados do YouTube
+    // 1. Primeiro, verificar no cache de títulos buscados do YouTube (match exato)
     if (videoTitlesCache[filenameVideoId]) {
       return videoTitlesCache[filenameVideoId];
+    }
+    
+    // 1b. Verificar match parcial no cache (para IDs com 1 char a mais/menos)
+    for (const [cachedId, cachedTitle] of Object.entries(videoTitlesCache)) {
+      if (cachedId.includes(filenameVideoId) && filenameVideoId.length >= 8) return cachedTitle;
+      if (filenameVideoId.includes(cachedId) && cachedId.length >= 8) return cachedTitle;
     }
     
     // 2. Buscar a playlist atual

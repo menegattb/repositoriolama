@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const videoIds = idsParam.split(',').filter(id => /^[a-zA-Z0-9_-]{11}$/.test(id));
+    const videoIds = idsParam.split(',').filter(id => /^[a-zA-Z0-9_-]{10,12}$/.test(id));
     
     if (videoIds.length === 0) {
       return NextResponse.json({ titles: {} });
