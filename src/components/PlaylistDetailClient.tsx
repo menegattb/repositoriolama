@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Playlist, MediaItem } from '@/types';
 import MediaPlayer from '@/components/MediaPlayer';
 import Sidebar from '@/components/Sidebar';
@@ -17,6 +18,10 @@ export default function PlaylistDetailClient({
   playlist, 
   initialMediaItem
 }: PlaylistDetailClientProps) {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const initialTab = (tabParam === 'audio' || tabParam === 'transcript') ? tabParam : 'playlist';
+  
   // Inicializar currentMediaItem com initialMediaItem ou o primeiro item da playlist
   const [currentMediaItem, setCurrentMediaItem] = useState<MediaItem | null>(
     initialMediaItem || playlist.items?.[0] || null
@@ -215,6 +220,7 @@ export default function PlaylistDetailClient({
               playlist={{...playlist, items: playlistVideos}} 
               currentMediaItem={currentMediaItem} 
               onMediaItemSelect={handleMediaItemSelect}
+              initialTab={initialTab}
             />
           </div>
         </div>

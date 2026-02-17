@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:00,007
+Hello everyone and welcome back to the channel. Today we're diving into a powerful learning method known as the Feynman Technique.
+
+2
+00:00:00,007 --> 00:00:00,013
+This approach, popularized by the Nobel Prize-winning physicist Richard Feynman, is all about understanding, not just memorizing.
+
+3
+00:00:00,013 --> 00:00:00,020
+It involves four simple steps: choose a concept, teach it to a toddler, identify gaps, and then simplify and organize.
+
+4
+00:00:00,020 --> 00:00:00,027
+By trying to explain a complex topic in simple terms, you quickly expose what you truly understand and what you don't.
+
+5
+00:00:00,027 --> 00:00:00,031
+It's an incredibly effective way to deepen your knowledge and master any subject.
