@@ -1,14 +1,19 @@
 import Link from 'next/link';
 import { Playlist } from '@/types';
-import { Star, MapPin, Headphones, ExternalLink, Calendar } from 'lucide-react';
+import { Star, MapPin, Headphones, ExternalLink, Calendar, Music } from 'lucide-react';
 import LazyYouTubeThumbnail from './LazyYouTubeThumbnail';
 
 interface PlaylistCardProps {
   playlist: Playlist;
-  index?: number; // Índice do item na lista
+  index?: number;
+  hasAudio?: boolean;
+  audioMode?: boolean;
 }
 
-export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps) {
+export default function PlaylistCard({ playlist, index = 0, hasAudio, audioMode }: PlaylistCardProps) {
+  const playlistHref = audioMode
+    ? `/playlist/${playlist.id}?tab=audio`
+    : `/playlist/${playlist.id}`;
 
   return (
     <div className="bg-primary-white rounded-lg shadow-base overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -24,21 +29,21 @@ export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps)
           />
         </div>
         
-              {playlist.featured && (
-                <div className="absolute top-3 left-3">
-                  <div className="flex items-center space-x-1 bg-accent-gold text-white px-2 py-1 rounded-full text-xs font-medium">
-                    <Star className="w-3 h-3" />
-                    <span>Destaque</span>
-                  </div>
-                </div>
-              )}
+        {playlist.featured && (
+          <div className="absolute top-3 left-3">
+            <div className="flex items-center space-x-1 bg-accent-gold text-white px-2 py-1 rounded-full text-xs font-medium">
+              <Star className="w-3 h-3" />
+              <span>Destaque</span>
+            </div>
+          </div>
+        )}
 
-              {/* YouTube Badge */}
-              <div className="absolute top-3 right-3">
-                <div className="bg-accent-red text-white px-2 py-1 rounded text-xs font-medium">
-                  YouTube
-                </div>
-              </div>
+        {/* YouTube Badge */}
+        <div className="absolute top-3 right-3">
+          <div className="bg-accent-red text-white px-2 py-1 rounded text-xs font-medium">
+            YouTube
+          </div>
+        </div>
       </div>
 
       {/* Content */}
@@ -48,7 +53,7 @@ export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps)
         </h3>
         
         {/* Metadata */}
-        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500 mb-3">
           <div className="flex items-center">
             <Calendar className="w-4 h-4 mr-1" />
             {playlist.metadata.year}
@@ -61,6 +66,12 @@ export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps)
             <Headphones className="w-4 h-4 mr-1" />
             {playlist.items?.length || playlist.metadata.total_talks} vídeos
           </div>
+          {hasAudio && (
+            <div className="flex items-center text-blue-500">
+              <Music className="w-3.5 h-3.5 mr-1" />
+              <span className="font-medium text-xs">Com Áudio</span>
+            </div>
+          )}
         </div>
 
         {/* Description */}
@@ -71,10 +82,10 @@ export default function PlaylistCard({ playlist, index = 0 }: PlaylistCardProps)
         {/* Actions */}
         <div className="flex gap-2">
           <Link 
-            href={`/playlist/${playlist.id}`}
+            href={playlistHref}
             className="flex-1 bg-white border border-gray-400 text-gray-800 px-4 py-2 rounded-lg text-center text-sm font-medium hover:bg-gray-100 transition-colors"
           >
-            Ver Playlist
+            {audioMode ? 'Ver Áudios' : 'Ver Playlist'}
           </Link>
           <a
             href={`https://www.youtube.com/playlist?list=${playlist.id}`}

@@ -1,23 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getYouTubePlaylists, getStandaloneVideos } from '@/data/youtubeData';
 import { transcripts } from '@/data/transcriptsData';
 import { Playlist, StandaloneVideo } from '@/types';
 import PlaylistCard from '@/components/PlaylistCard';
+import AudioFolderCard from '@/components/AudioFolderCard';
 import VideoCard from '@/components/VideoCard';
 import SkeletonCard from '@/components/SkeletonCard';
-import Link from 'next/link';
-import { Search, Calendar, ChevronDown, FileText, Music, FolderOpen, Loader2 } from 'lucide-react';
+import { Search, Calendar, ChevronDown, FileText, Music, Loader2 } from 'lucide-react';
 
 // Interface para pastas de áudio do Drive
 interface AudioFolder {
   id: string;
   name: string;
-  folderNumber?: string; // Número da pasta para YouTube (1, 2, 3...)
+  folderNumber?: string;
   audioCount?: number;
   source: 'youtube' | 'sanga';
-  playlistTitle?: string; // Título da playlist correspondente
+  playlistTitle?: string;
 }
 
 export default function PlaylistsPage() {
@@ -36,7 +36,6 @@ export default function PlaylistsPage() {
   const [loadingAudios, setLoadingAudios] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [audioConfigured, setAudioConfigured] = useState<boolean | null>(null);
-  const [audioSourceFilter, setAudioSourceFilter] = useState<'youtube' | 'sanga'>('youtube');
 
   // Buscar dados do YouTube da Hostinger
   useEffect(() => {
@@ -87,13 +86,13 @@ export default function PlaylistsPage() {
     loadStandaloneVideos();
   }, []);
 
-  // Buscar pastas de áudio do Drive quando filtro de áudio estiver ativo
+  // Buscar pastas de áudio do Drive assim que playlists carregarem
   useEffect(() => {
-    if (contentFilter === 'audio' && audioConfigured === null && !loading) {
+    if (audioConfigured === null && !loading && playlists.length > 0) {
       fetchAudioFolders();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contentFilter, audioConfigured, loading]);
+  }, [loading, playlists, audioConfigured]);
 
   const fetchAudioFolders = async () => {
     setLoadingAudios(true);
@@ -188,6 +187,15 @@ export default function PlaylistsPage() {
     }
   };
 
+  // Set de IDs de playlists que possuem áudio no Drive
+  const playlistIdsWithAudio = useMemo(() => {
+    const ids = new Set<string>();
+    audioFolders
+      .filter(f => f.source === 'youtube' && f.folderNumber)
+      .forEach(f => { if (f.folderNumber) ids.add(f.folderNumber); });
+    return ids;
+  }, [audioFolders]);
+
   // Extrair anos únicos para o filtro (de playlists e vídeos standalone)
   const playlistYears = playlists.map(p => p.metadata.year);
   const videoYears = standaloneVideos.map(v => new Date(v.publishedAt).getFullYear().toString());
@@ -204,9 +212,6 @@ export default function PlaylistsPage() {
                          playlist.metadata.location.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesYear = !filterYear || playlist.metadata.year === filterYear;
-    const hasAudioContent =
-      playlist.metadata.hasAudio === true ||
-      playlist.items?.some(item => item.format === 'audio');
     const hasTranscriptContent = playlist.metadata.hasTranscription === true;
     
     // Detectar se é em inglês baseado no título
@@ -217,11 +222,36 @@ export default function PlaylistsPage() {
     
     const matchesContent =
       contentFilter === '' ||
-      (contentFilter === 'audio' ? hasAudioContent : 
+      (contentFilter === 'audio' ? playlistIdsWithAudio.has(playlist.id) : 
        contentFilter === 'english' ? isEnglishContent : hasTranscriptContent);
 
     return matchesSearch && matchesYear && matchesContent;
   });
+
+  // Pastas Sanga filtradas (para modo áudio)
+  const filteredSangaFolders = useMemo(() => {
+    return audioFolders
+      .filter(f => f.source === 'sanga')
+      .filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [audioFolders, searchTerm]);
+
+  // Combinar itens para o modo áudio: playlists com áudio + pastas Sanga
+  const audioModeItems = useMemo(() => {
+    if (contentFilter !== 'audio') return [];
+    const items: Array<{ type: 'playlist'; playlist: Playlist } | { type: 'sanga'; folder: AudioFolder }> = [];
+    
+    // Playlists do YouTube com áudio
+    filteredPlaylists.forEach(p => {
+      items.push({ type: 'playlist', playlist: p });
+    });
+    
+    // Pastas da Sanga
+    filteredSangaFolders.forEach(f => {
+      items.push({ type: 'sanga', folder: f });
+    });
+    
+    return items;
+  }, [contentFilter, filteredPlaylists, filteredSangaFolders]);
 
   // Filtrar vídeos standalone
   const filteredStandaloneVideos = standaloneVideos.filter(video => {
@@ -240,15 +270,10 @@ export default function PlaylistsPage() {
     return matchesSearch && matchesCategory;
   });
 
-  // Filtro para pastas de áudio
-  const filteredAudioFolders = audioFolders.filter(folder => {
-    return folder.name.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(9);
-  }, [searchTerm, filterYear, contentFilter, categoryFilter, audioSourceFilter]);
+  }, [searchTerm, filterYear, contentFilter, categoryFilter]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -265,8 +290,7 @@ export default function PlaylistsPage() {
     } else if (contentFilter === 'transcript') {
       maxCount = filteredTranscripts.length;
     } else if (contentFilter === 'audio') {
-      // Usar a contagem filtrada por fonte
-      maxCount = filteredAudioFolders.filter(f => f.source === audioSourceFilter).length;
+      maxCount = audioModeItems.length;
     } else {
       maxCount = filteredPlaylists.length;
     }
@@ -275,10 +299,7 @@ export default function PlaylistsPage() {
 
   const visiblePlaylists = filteredPlaylists.slice(0, visibleCount);
   const visibleStandaloneVideos = filteredStandaloneVideos.slice(0, visibleCount);
-  
-  // Para áudios, filtrar por fonte ANTES de fazer o slice
-  const filteredAudioFoldersBySource = filteredAudioFolders.filter(f => f.source === audioSourceFilter);
-  const visibleAudioFolders = filteredAudioFoldersBySource.slice(0, visibleCount);
+  const visibleAudioModeItems = audioModeItems.slice(0, visibleCount);
   
   let hasMore = false;
   if (contentFilter === 'standalone') {
@@ -286,7 +307,7 @@ export default function PlaylistsPage() {
   } else if (contentFilter === 'transcript') {
     hasMore = visibleCount < filteredTranscripts.length;
   } else if (contentFilter === 'audio') {
-    hasMore = visibleCount < filteredAudioFoldersBySource.length;
+    hasMore = visibleCount < audioModeItems.length;
   } else {
     hasMore = visibleCount < filteredPlaylists.length;
   }
@@ -443,59 +464,28 @@ export default function PlaylistsPage() {
           </div>
         )}
 
-        {/* Botões de filtro de fonte de áudio */}
-        {contentFilter === 'audio' && (
-          <div className="flex gap-2 mb-6">
-            <button
-              onClick={() => setAudioSourceFilter('youtube')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                audioSourceFilter === 'youtube'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              <Music className="w-4 h-4" />
-              Áudios do YouTube
-            </button>
-            <button
-              onClick={() => setAudioSourceFilter('sanga')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                audioSourceFilter === 'sanga'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              <FolderOpen className="w-4 h-4" />
-              Áudios da Sanga
-            </button>
-          </div>
-        )}
-
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            {loading || loadingVideos || loadingAudios ? 'Carregando...' : 
+            {loading || loadingVideos || (loadingAudios && contentFilter === 'audio') ? 'Carregando...' : 
               contentFilter === 'standalone' 
                 ? `${filteredStandaloneVideos.length} vídeo${filteredStandaloneVideos.length !== 1 ? 's' : ''} sem playlist encontrado${filteredStandaloneVideos.length !== 1 ? 's' : ''}`
                 : contentFilter === 'audio'
-                ? (() => {
-                    const count = filteredAudioFoldersBySource.length;
-                    return `${count} item${count !== 1 ? 's' : ''} de áudio encontrado${count !== 1 ? 's' : ''}`;
-                  })()
+                ? `${audioModeItems.length} item${audioModeItems.length !== 1 ? 's' : ''} com áudio encontrado${audioModeItems.length !== 1 ? 's' : ''}`
                 : `${filteredPlaylists.length} playlist${filteredPlaylists.length !== 1 ? 's' : ''} encontrada${filteredPlaylists.length !== 1 ? 's' : ''}`
             }
           </p>
         </div>
 
         {/* Content Grid */}
-        {loading || loadingVideos || loadingAudios ? (
+        {loading || loadingVideos || (loadingAudios && contentFilter === 'audio') ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(9)].map((_, index) => (
               <SkeletonCard key={index} />
             ))}
           </div>
         ) : contentFilter === 'audio' ? (
-          // Pastas de áudio do Drive
+          // Grid de cards com áudio (YouTube playlists + Sanga folders)
           audioConfigured === false ? (
             <div className="text-center py-12">
               <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -524,72 +514,46 @@ export default function PlaylistsPage() {
                 Tentar novamente
               </button>
             </div>
-          ) : visibleAudioFolders.length > 0 ? (
+          ) : visibleAudioModeItems.length > 0 ? (
             <>
-              {/* Lista de Áudios - já filtrada por fonte */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y divide-gray-100">
-                {visibleAudioFolders.map((folder) => {
-                  if (audioSourceFilter === 'youtube') {
-                    // Áudios do YouTube - link direto para playlist com tab=audio
-                    // Verificar se a pasta corresponde a uma playlist (qualquer prefixo: PL, FL, UU, etc.)
-                    const matchesPlaylist = folder.folderNumber ? playlists.some(p => p.id === folder.folderNumber) : false;
-                    const href = matchesPlaylist 
-                      ? `/playlist/${folder.folderNumber}?tab=audio`
-                      : `/audios-youtube?folder=${folder.id}`;
-                    
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {visibleAudioModeItems.map((item, index) => {
+                  if (item.type === 'playlist') {
                     return (
-                      <Link
-                        key={folder.id}
-                        href={href}
-                        className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition-colors"
-                      >
-                        <Music className="w-5 h-5 text-red-500 flex-shrink-0" />
-                        <span className="text-gray-900 hover:text-red-600 flex-1">
-                          {folder.name}
-                        </span>
-                        {folder.audioCount !== undefined && (
-                          <span className="text-sm text-gray-500">
-                            {folder.audioCount} áudio{folder.audioCount !== 1 ? 's' : ''}
-                          </span>
-                        )}
-                        <ChevronDown className="w-4 h-4 text-gray-400 -rotate-90" />
-                      </Link>
+                      <PlaylistCard
+                        key={item.playlist.id}
+                        playlist={item.playlist}
+                        index={index}
+                        hasAudio={true}
+                        audioMode={true}
+                      />
                     );
                   } else {
-                    // Áudios da Sanga
                     return (
-                      <Link
-                        key={folder.id}
-                        href={`/audios-sanga?folder=${folder.id}`}
-                        className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition-colors"
-                      >
-                        <FolderOpen className="w-5 h-5 text-green-500 flex-shrink-0" />
-                        <span className="text-gray-900 hover:text-green-600 flex-1">
-                          {folder.name}
-                        </span>
-                        {folder.audioCount !== undefined && (
-                          <span className="text-sm text-gray-500">
-                            {folder.audioCount} áudio{folder.audioCount !== 1 ? 's' : ''}
-                          </span>
-                        )}
-                        <ChevronDown className="w-4 h-4 text-gray-400 -rotate-90" />
-                      </Link>
+                      <AudioFolderCard
+                        key={item.folder.id}
+                        id={item.folder.id}
+                        name={item.folder.name}
+                        audioCount={item.folder.audioCount}
+                        source="sanga"
+                        href={`/audios-sanga?folder=${item.folder.id}`}
+                        index={index}
+                      />
                     );
                   }
                 })}
               </div>
 
-              {/* Load More Button */}
               {hasMore && (
-                <div className="flex justify-center mt-8">
+                <div className="flex justify-center mt-12">
                   <button
                     onClick={loadMore}
-                    className="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+                    className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
                   >
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-5 h-5" />
                     Ver mais
-                    <span className="text-gray-500">
-                      ({filteredAudioFoldersBySource.length - visibleCount} restantes)
+                    <span className="text-blue-200">
+                      ({audioModeItems.length - visibleCount} restantes)
                     </span>
                   </button>
                 </div>
@@ -597,17 +561,8 @@ export default function PlaylistsPage() {
             </>
           ) : (
             <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-              {audioSourceFilter === 'youtube' ? (
-                <>
-                  <Music className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhum áudio do YouTube disponível</p>
-                </>
-              ) : (
-                <>
-                  <FolderOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhum áudio da Sanga disponível</p>
-                </>
-              )}
+              <Music className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Nenhum item com áudio disponível</p>
             </div>
           )
         ) : contentFilter === 'standalone' ? (
@@ -669,6 +624,7 @@ export default function PlaylistsPage() {
                     key={playlist.id} 
                     playlist={playlist} 
                     index={index}
+                    hasAudio={playlistIdsWithAudio.has(playlist.id)}
                   />
                 ))}
               </div>
