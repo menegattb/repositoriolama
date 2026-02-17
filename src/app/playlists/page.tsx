@@ -433,36 +433,7 @@ export default function PlaylistsPage() {
           </div>
         </div>
 
-        {/* Stats - oculto quando filtro de áudio está ativo */}
-        {contentFilter !== 'audio' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Calendar className="w-6 h-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Playlists</p>
-                  <p className="text-2xl font-bold text-gray-900">{playlists.length}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <FileText className="w-6 h-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total de Vídeos</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {playlists.reduce((acc, p) => acc + (p.items?.length || 0), 0) + standaloneVideos.length}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Stats removido */}
 
         {/* Results Count */}
         <div className="mb-6">

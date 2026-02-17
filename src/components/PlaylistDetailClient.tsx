@@ -52,13 +52,12 @@ export default function PlaylistDetailClient({
         } : 'nenhum');
         
         // Verificar se os vídeos retornados são reais (têm videoIds válidos do YouTube, não mock)
-        // Vídeos reais da API têm IDs que são videoIds do YouTube (11 caracteres, sem hífen/underscore)
+        // Vídeos reais da API têm IDs que são videoIds do YouTube (exatamente 11 caracteres base64url)
+        // IDs de YouTube PODEM conter - e _ (são caracteres válidos de base64url)
         const realVideos = videos.filter(v => 
           v.media_url && 
           v.media_url.includes('youtube.com/watch') && // URLs de vídeo individual
-          !v.id.includes('-') && // Não é formato playlistId-1
-          !v.id.includes('_') && // Não é formato playlistId_1
-          v.id.length >= 11 // VideoId do YouTube tem 11 caracteres
+          /^[a-zA-Z0-9_-]{11}$/.test(v.id) // Exatamente 11 chars base64url = YouTube video ID
         );
         
         console.log('[PlaylistDetailClient] ✅ Vídeos reais encontrados da API:', realVideos.length);

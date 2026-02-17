@@ -76,8 +76,6 @@ export default function Sidebar({
   useEffect(() => {
     const realVideos = playlist.items?.filter(v => 
       v.id && 
-      v.id.length === 11 && 
-      !v.id.includes('-') && 
       /^[a-zA-Z0-9_-]{11}$/.test(v.id)
     ) || [];
     
@@ -89,6 +87,26 @@ export default function Sidebar({
       });
     }
   }, [playlist.items, currentMediaItem?.id, isTranscribing]);
+
+  // Pre-popular o cache de títulos a partir dos itens da playlist (quando items são atualizados com dados reais)
+  useEffect(() => {
+    const itemTitlesMap: Record<string, string> = {};
+    for (const item of playlist.items || []) {
+      // Se o ID do item é um video ID válido do YouTube (11 chars base64url)
+      if (item.id && /^[a-zA-Z0-9_-]{11}$/.test(item.id)) {
+        itemTitlesMap[item.id] = item.title;
+      }
+      // Extrair video ID da URL e mapear ao título
+      const urlId = extractVideoIdFromUrl(item.media_url);
+      if (urlId) {
+        itemTitlesMap[urlId] = item.title;
+      }
+    }
+    if (Object.keys(itemTitlesMap).length > 0) {
+      setVideoTitlesCache(prev => ({ ...prev, ...itemTitlesMap }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playlist.items]);
 
   // Buscar áudios do Drive quando a aba de áudio for ativada
   useEffect(() => {
@@ -222,16 +240,27 @@ export default function Sidebar({
       return videoTitlesCache[filenameVideoId];
     }
     
-    // 1b. Verificar match parcial no cache (para IDs com 1 char a mais/menos)
+    // 1b. Verificar match parcial no cache (para IDs com 1 char a mais/menos ou truncados)
     for (const [cachedId, cachedTitle] of Object.entries(videoTitlesCache)) {
       if (cachedId.includes(filenameVideoId) && filenameVideoId.length >= 8) return cachedTitle;
       if (filenameVideoId.includes(cachedId) && cachedId.length >= 8) return cachedTitle;
+      // startsWith para IDs truncados (ex: filename tem 10 chars, video ID real tem 11)
+      if (cachedId.startsWith(filenameVideoId) && filenameVideoId.length >= 9) return cachedTitle;
+      if (filenameVideoId.startsWith(cachedId) && cachedId.length >= 9) return cachedTitle;
     }
     
     // 2. Buscar o vídeo correspondente na playlist
     const matchingVideo = playlist.items?.find(item => {
       // Comparar diretamente por ID do item
       if (item.id === filenameVideoId) return true;
+      
+      // Verificar se o ID do item começa com o filename ID (truncado)
+      if (item.id && item.id.startsWith(filenameVideoId) && filenameVideoId.length >= 9) return true;
+      if (item.id && filenameVideoId.startsWith(item.id) && item.id.length >= 9) return true;
+      
+      // Verificar se o ID do item contém o filename ou vice-versa
+      if (item.id && item.id.includes(filenameVideoId) && filenameVideoId.length >= 8) return true;
+      if (item.id && filenameVideoId.includes(item.id) && item.id.length >= 8) return true;
       
       // Extrair e comparar videoId da URL do YouTube
       const urlVideoId = extractVideoIdFromUrl(item.media_url);
@@ -240,8 +269,12 @@ export default function Sidebar({
       // Verificar se o filename contém o videoId da URL (caso tenha prefixo/sufixo)
       if (urlVideoId && filenameVideoId.includes(urlVideoId)) return true;
       
-      // Verificar se o videoId da URL contém o filename (parcial)
+      // Verificar se o videoId da URL contém o filename (parcial/truncado)
       if (urlVideoId && urlVideoId.includes(filenameVideoId) && filenameVideoId.length >= 8) return true;
+      
+      // startsWith para IDs truncados
+      if (urlVideoId && urlVideoId.startsWith(filenameVideoId) && filenameVideoId.length >= 9) return true;
+      if (urlVideoId && filenameVideoId.startsWith(urlVideoId) && urlVideoId.length >= 9) return true;
       
       return false;
     });

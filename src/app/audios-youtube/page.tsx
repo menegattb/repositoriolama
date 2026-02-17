@@ -231,7 +231,7 @@ function AudiosYoutubeContent() {
   const extractVideoIdFromUrl = (url: string): string | null => {
     if (!url) return null;
     const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
       /[?&]v=([a-zA-Z0-9_-]{11})/
     ];
     
@@ -270,10 +270,13 @@ function AudiosYoutubeContent() {
       return videoTitlesCache[filenameVideoId];
     }
     
-    // 1b. Verificar match parcial no cache (para IDs com 1 char a mais/menos)
+    // 1b. Verificar match parcial no cache (para IDs com 1 char a mais/menos ou truncados)
     for (const [cachedId, cachedTitle] of Object.entries(videoTitlesCache)) {
       if (cachedId.includes(filenameVideoId) && filenameVideoId.length >= 8) return cachedTitle;
       if (filenameVideoId.includes(cachedId) && cachedId.length >= 8) return cachedTitle;
+      // startsWith para IDs truncados (ex: filename tem 10 chars, video ID real tem 11)
+      if (cachedId.startsWith(filenameVideoId) && filenameVideoId.length >= 9) return cachedTitle;
+      if (filenameVideoId.startsWith(cachedId) && cachedId.length >= 9) return cachedTitle;
     }
     
     // 2. Buscar a playlist atual
@@ -285,6 +288,14 @@ function AudiosYoutubeContent() {
         // Comparar diretamente por ID do item
         if (item.id === filenameVideoId) return true;
         
+        // Verificar se o ID do item começa com o filename ID (truncado)
+        if (item.id && item.id.startsWith(filenameVideoId) && filenameVideoId.length >= 9) return true;
+        if (item.id && filenameVideoId.startsWith(item.id) && item.id.length >= 9) return true;
+        
+        // Verificar se o ID do item contém o filename ou vice-versa
+        if (item.id && item.id.includes(filenameVideoId) && filenameVideoId.length >= 8) return true;
+        if (item.id && filenameVideoId.includes(item.id) && item.id.length >= 8) return true;
+        
         // Extrair e comparar videoId da URL do YouTube
         const urlVideoId = extractVideoIdFromUrl(item.media_url);
         if (urlVideoId && urlVideoId === filenameVideoId) return true;
@@ -292,8 +303,12 @@ function AudiosYoutubeContent() {
         // Verificar se o filename contém o videoId da URL
         if (urlVideoId && filenameVideoId.includes(urlVideoId)) return true;
         
-        // Verificar se o videoId da URL contém o filename
+        // Verificar se o videoId da URL contém o filename (parcial/truncado)
         if (urlVideoId && urlVideoId.includes(filenameVideoId) && filenameVideoId.length >= 8) return true;
+        
+        // startsWith para IDs truncados
+        if (urlVideoId && urlVideoId.startsWith(filenameVideoId) && filenameVideoId.length >= 9) return true;
+        if (urlVideoId && filenameVideoId.startsWith(urlVideoId) && urlVideoId.length >= 9) return true;
         
         return false;
       });
