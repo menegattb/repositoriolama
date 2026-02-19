@@ -19,17 +19,6 @@ interface Folder {
   audioCount?: number;
 }
 
-interface TranscriptResponse {
-  success: boolean;
-  error?: string;
-  content?: string;
-  formattedContent?: string;
-  transcriptArray?: Array<{ text: string; offset: number; duration?: number }>;
-  transcriptUrl?: string;
-  lang?: string;
-  cached?: boolean;
-}
-
 const whatsappNumber = '5551999999999';
 
 export default function AudiosSangaPage() {
@@ -65,7 +54,6 @@ function AudiosSangaContent() {
   // Estados para transcrição
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isLoadingTranscript, setIsLoadingTranscript] = useState(false);
-  const [transcriptContent, setTranscriptContent] = useState<string | null>(null);
   const [formattedContent, setFormattedContent] = useState<string | null>(null);
   const [transcriptArray, setTranscriptArray] = useState<Array<{ text: string; offset: number; duration?: number }> | null>(null);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
@@ -237,43 +225,80 @@ function AudiosSangaContent() {
     addLog('info', `Iniciando transcrição para: "${cleanAudioName(selectedAudio.name)}"`);
 
     try {
-      addLog('info', 'Enviando áudio para transcrição...');
+      // 1. Submeter áudio para transcrição via AssemblyAI
+      addLog('info', 'Enviando áudio para AssemblyAI...');
       addLog('info', `Arquivo: ${selectedAudio.name}`);
 
-      const response = await fetch('/api/transcribe', {
+      const submitResponse = await fetch('/api/transcribe/audio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          audioUrl: selectedAudio.streamUrl,
+          audioStreamUrl: selectedAudio.streamUrl,
           audioTitle: cleanAudioName(selectedAudio.name),
-          source: 'sanga',
           folderName: currentFolderName,
         }),
       });
 
-      const data: TranscriptResponse = await response.json();
+      const submitData = await submitResponse.json();
 
-      if (!response.ok || !data.success) {
-        addLog('error', data.error || 'Erro ao gerar transcrição');
-        throw new Error(data.error || 'Erro ao gerar transcrição');
+      if (!submitResponse.ok || !submitData.success) {
+        addLog('error', submitData.error || 'Erro ao submeter transcrição');
+        throw new Error(submitData.error || 'Erro ao submeter transcrição');
       }
 
-      addLog('success', 'Transcrição gerada com sucesso!');
+      const jobId = submitData.jobId;
+      addLog('success', `Transcrição submetida (Job: ${jobId})`);
+      addLog('info', 'Aguardando processamento... Isso pode levar alguns minutos.');
 
-      if (data.transcriptArray && data.transcriptArray.length > 0) {
-        setTranscriptArray(data.transcriptArray);
-        setTranscriptLang(data.lang || null);
-        const formatted = data.transcriptArray.map(item => {
-          const text = item.text || '';
-          if (!text || text.trim().length === 0) return '';
-          const timeStr = formatTimeForDisplay(item.offset || 0);
-          return `[${timeStr}] ${text.trim()}`;
-        }).filter(Boolean).join('\n');
-        setFormattedContent(formatted);
-      } else if (data.content) {
-        setTranscriptContent(data.content);
-        setFormattedContent(data.formattedContent || data.content);
+      // 2. Polling: verificar status a cada 5 segundos
+      let attempts = 0;
+      const maxAttempts = 360; // 30 min max (360 * 5s)
+
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        attempts++;
+
+        const statusResponse = await fetch(`/api/transcribe/audio?jobId=${jobId}`);
+        const statusData = await statusResponse.json();
+
+        if (!statusResponse.ok || !statusData.success) {
+          if (statusData.status === 'error') {
+            addLog('error', statusData.error || 'Erro na transcrição');
+            throw new Error(statusData.error || 'Erro na transcrição do AssemblyAI');
+          }
+          // Erro de rede, tentar novamente
+          continue;
+        }
+
+        if (statusData.status === 'completed') {
+          addLog('success', 'Transcrição concluída!');
+
+          if (statusData.transcriptArray && statusData.transcriptArray.length > 0) {
+            setTranscriptArray(statusData.transcriptArray);
+            setTranscriptLang(statusData.lang || 'pt');
+            const formatted = statusData.transcriptArray.map((item: { text: string; offset: number }) => {
+              const text = item.text || '';
+              if (!text || text.trim().length === 0) return '';
+              const timeStr = formatTimeForDisplay(item.offset || 0);
+              return `[${timeStr}] ${text.trim()}`;
+            }).filter(Boolean).join('\n');
+            setFormattedContent(formatted);
+          }
+
+          setIsTranscribing(false);
+          return;
+        }
+
+        // Atualizar log de progresso
+        if (attempts % 6 === 0) {
+          const elapsed = Math.floor(attempts * 5 / 60);
+          addLog('info', `Processando... (${elapsed} min)`);
+        }
       }
+
+      // Timeout
+      addLog('error', 'Tempo limite atingido. A transcrição pode ter falhado.');
+      throw new Error('Tempo limite de transcrição atingido (30 min)');
     } catch (err) {
       setTranscriptError(err instanceof Error ? err.message : 'Erro desconhecido');
       addLog('error', err instanceof Error ? err.message : 'Erro desconhecido');
