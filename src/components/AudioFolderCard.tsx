@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Music, FolderOpen, Headphones } from 'lucide-react';
+import { Music, FolderOpen, Headphones, Calendar } from 'lucide-react';
 
 interface AudioFolderCardProps {
   id: string;
@@ -8,9 +8,10 @@ interface AudioFolderCardProps {
   source: 'youtube' | 'sanga';
   href: string;
   index?: number;
+  year?: string;
 }
 
-export default function AudioFolderCard({ name, audioCount, source, href }: AudioFolderCardProps) {
+export default function AudioFolderCard({ name, audioCount, source, href, year }: AudioFolderCardProps) {
   const isSanga = source === 'sanga';
 
   return (
@@ -41,10 +42,12 @@ export default function AudioFolderCard({ name, audioCount, source, href }: Audi
 
         {/* Metadata */}
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-3">
-          <div className="flex items-center">
-            <FolderOpen className="w-4 h-4 mr-1" />
-            Pasta de áudios
-          </div>
+          {year && (
+            <div className="flex items-center">
+              <Calendar className="w-4 h-4 mr-1" />
+              {year}
+            </div>
+          )}
           {audioCount !== undefined && (
             <div className="flex items-center">
               <Headphones className="w-4 h-4 mr-1" />

@@ -18,6 +18,7 @@ interface AudioFolder {
   audioCount?: number;
   source: 'youtube' | 'sanga';
   playlistTitle?: string;
+  year?: string;
 }
 
 export default function PlaylistsPage() {
@@ -167,11 +168,16 @@ export default function PlaylistsPage() {
 
       if (sangaData.success && sangaData.folders) {
         sangaData.folders.forEach((f: { id: string; name: string; audioCount?: number }) => {
+          // Extrair ano do nome da pasta (ex: "2004 12 - Dezembro" → "2004", "1999 02" → "1999")
+          const yearMatch = f.name.match(/^(\d{4})/);
+          const year = yearMatch ? yearMatch[1] : undefined;
+          
           folders.push({
             id: f.id,
             name: f.name,
             audioCount: f.audioCount,
             source: 'sanga',
+            year,
           });
         });
       }
@@ -196,10 +202,11 @@ export default function PlaylistsPage() {
     return ids;
   }, [audioFolders]);
 
-  // Extrair anos únicos para o filtro (de playlists e vídeos standalone)
+  // Extrair anos únicos para o filtro (de playlists, vídeos standalone e pastas Sanga)
   const playlistYears = playlists.map(p => p.metadata.year);
   const videoYears = standaloneVideos.map(v => new Date(v.publishedAt).getFullYear().toString());
-  const availableYears = [...new Set([...playlistYears, ...videoYears])].sort((a, b) => b.localeCompare(a));
+  const sangaYears = audioFolders.filter(f => f.source === 'sanga' && f.year).map(f => f.year!);
+  const availableYears = [...new Set([...playlistYears, ...videoYears, ...sangaYears])].sort((a, b) => b.localeCompare(a));
 
   const filteredPlaylists = playlists.filter(playlist => {
     // Não mostrar playlists quando filtro standalone está ativo
@@ -228,12 +235,14 @@ export default function PlaylistsPage() {
     return matchesSearch && matchesYear && matchesContent;
   });
 
-  // Pastas Sanga filtradas (para modo áudio)
+  // Pastas Sanga filtradas por busca e ano, ordenadas por nome (ano primeiro)
   const filteredSangaFolders = useMemo(() => {
     return audioFolders
       .filter(f => f.source === 'sanga')
-      .filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [audioFolders, searchTerm]);
+      .filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter(f => !filterYear || f.year === filterYear)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [audioFolders, searchTerm, filterYear]);
 
   // Combinar itens para o modo áudio: playlists com áudio + pastas Sanga
   const audioModeItems = useMemo(() => {
@@ -509,6 +518,7 @@ export default function PlaylistsPage() {
                         source="sanga"
                         href={`/audios-sanga?folder=${item.folder.id}`}
                         index={index}
+                        year={item.folder.year}
                       />
                     );
                   }
