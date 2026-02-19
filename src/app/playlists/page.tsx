@@ -29,6 +29,7 @@ export default function PlaylistsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterYear, setFilterYear] = useState('');
   const [contentFilter, setContentFilter] = useState<'audio' | 'transcript' | 'english' | 'standalone' | ''>('');
+  const [audioSourceFilter, setAudioSourceFilter] = useState<'all' | 'sanga' | 'youtube'>('all');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [visibleCount, setVisibleCount] = useState(9);
   
@@ -250,17 +251,21 @@ export default function PlaylistsPage() {
     const items: Array<{ type: 'playlist'; playlist: Playlist } | { type: 'sanga'; folder: AudioFolder }> = [];
     
     // Playlists do YouTube com áudio
-    filteredPlaylists.forEach(p => {
-      items.push({ type: 'playlist', playlist: p });
-    });
+    if (audioSourceFilter === 'all' || audioSourceFilter === 'youtube') {
+      filteredPlaylists.forEach(p => {
+        items.push({ type: 'playlist', playlist: p });
+      });
+    }
     
     // Pastas da Sanga
-    filteredSangaFolders.forEach(f => {
-      items.push({ type: 'sanga', folder: f });
-    });
+    if (audioSourceFilter === 'all' || audioSourceFilter === 'sanga') {
+      filteredSangaFolders.forEach(f => {
+        items.push({ type: 'sanga', folder: f });
+      });
+    }
     
     return items;
-  }, [contentFilter, filteredPlaylists, filteredSangaFolders]);
+  }, [contentFilter, filteredPlaylists, filteredSangaFolders, audioSourceFilter]);
 
   // Filtrar vídeos standalone
   const filteredStandaloneVideos = standaloneVideos.filter(video => {
@@ -289,6 +294,7 @@ export default function PlaylistsPage() {
     setFilterYear('');
     setContentFilter('');
     setCategoryFilter('');
+    setAudioSourceFilter('all');
     setVisibleCount(9);
   };
 
@@ -444,6 +450,42 @@ export default function PlaylistsPage() {
 
         {/* Stats removido */}
 
+        {/* Sub-filtro de fonte de áudio */}
+        {contentFilter === 'audio' && (
+          <div className="mb-4 flex items-center gap-3">
+            <button
+              onClick={() => setAudioSourceFilter('all')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                audioSourceFilter === 'all'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Todos
+            </button>
+            <button
+              onClick={() => setAudioSourceFilter('sanga')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                audioSourceFilter === 'sanga'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Áudios gravados pela Sanga
+            </button>
+            <button
+              onClick={() => setAudioSourceFilter('youtube')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                audioSourceFilter === 'youtube'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Áudios do YouTube
+            </button>
+          </div>
+        )}
+
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-sm text-gray-600">
@@ -451,7 +493,7 @@ export default function PlaylistsPage() {
               contentFilter === 'standalone' 
                 ? `${filteredStandaloneVideos.length} vídeo${filteredStandaloneVideos.length !== 1 ? 's' : ''} sem playlist encontrado${filteredStandaloneVideos.length !== 1 ? 's' : ''}`
                 : contentFilter === 'audio'
-                ? `${audioModeItems.length} item${audioModeItems.length !== 1 ? 's' : ''} com áudio encontrado${audioModeItems.length !== 1 ? 's' : ''}`
+                ? `${audioModeItems.length} playlist${audioModeItems.length !== 1 ? 's' : ''} com áudio${audioModeItems.length !== 1 ? 's' : ''} encontrada${audioModeItems.length !== 1 ? 's' : ''}`
                 : `${filteredPlaylists.length} playlist${filteredPlaylists.length !== 1 ? 's' : ''} encontrada${filteredPlaylists.length !== 1 ? 's' : ''}`
             }
           </p>
