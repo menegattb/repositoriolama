@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Music, FolderOpen, Search, Loader2, AlertCircle, ChevronRight, ArrowLeft, Home } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getYouTubePlaylists } from '@/data/youtubeData';
 import { Playlist } from '@/types';
 
@@ -32,6 +32,7 @@ export default function AudiosYoutubePage() {
 
 function AudiosYoutubeContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialFolder = searchParams.get('folder');
   
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -211,12 +212,7 @@ function AudiosYoutubeContent() {
   };
 
   const goBack = () => {
-    setCurrentFolder(null);
-    setCurrentFolderName('');
-    setCurrentPlaylistId('');
-    setFolderAudios([]);
-    // Atualizar URL sem o parâmetro folder
-    window.history.pushState({}, '', '/audios-youtube');
+    router.back();
   };
 
   // Extrair ID do vídeo do nome do arquivo de áudio

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { Music, FolderOpen, Search, Loader2, AlertCircle, ChevronRight, ArrowLeft, Home, FileText, MessageCircle, Download, RefreshCw, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 interface AudioFile {
   id: string;
@@ -42,6 +42,7 @@ export default function AudiosSangaPage() {
 
 function AudiosSangaContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialFolder = searchParams.get('folder');
   
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -165,13 +166,7 @@ function AudiosSangaContent() {
   };
 
   const goBack = () => {
-    setCurrentFolder(null);
-    setCurrentFolderName('');
-    setFolderAudios([]);
-    setSubfolders([]);
-    setSelectedAudio(null);
-    setActiveTab('audio');
-    window.history.pushState({}, '', '/audios-sanga');
+    router.back();
   };
 
   const cleanAudioName = (name: string): string => {

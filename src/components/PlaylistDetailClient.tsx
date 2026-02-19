@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Playlist, MediaItem } from '@/types';
 import MediaPlayer from '@/components/MediaPlayer';
 import Sidebar from '@/components/Sidebar';
@@ -19,6 +19,7 @@ export default function PlaylistDetailClient({
   initialMediaItem
 }: PlaylistDetailClientProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const tabParam = searchParams.get('tab');
   const initialTab = (tabParam === 'audio' || tabParam === 'transcript') ? tabParam : 'playlist';
   
@@ -146,10 +147,10 @@ export default function PlaylistDetailClient({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back to Playlists */}
         <div className="mb-6 flex justify-between items-center">
-          <Link href="/playlists" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors font-medium">
+          <button onClick={() => router.back()} className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors font-medium">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Voltar às Playlists
-          </Link>
+          </button>
           <div className="flex space-x-4">
             <button 
               onClick={handleShare}
