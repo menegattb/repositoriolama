@@ -28,9 +28,6 @@ export default function Header() {
             <Link href="/playlists" className="text-primary-charcoal hover:text-primary-blue transition-colors font-medium">
               Repositório
             </Link>
-            <Link href="/playlists" className="text-primary-charcoal hover:text-primary-blue transition-colors font-medium">
-              Ensinamentos
-            </Link>
           </nav>
 
           {/* Desktop Actions */}
@@ -63,13 +60,6 @@ export default function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Repositório
-              </Link>
-              <Link 
-                href="/playlists" 
-                className="text-primary-charcoal hover:text-primary-blue transition-colors font-medium py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Ensinamentos
               </Link>
               <div className="pt-4 border-t border-gray-200">
                 <button 
