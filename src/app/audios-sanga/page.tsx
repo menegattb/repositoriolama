@@ -82,7 +82,6 @@ function AudiosSangaContent() {
   // Resetar transcrição quando mudar de áudio
   useEffect(() => {
     if (selectedAudio) {
-      setTranscriptContent(null);
       setFormattedContent(null);
       setTranscriptArray(null);
       setTranscriptError(null);
