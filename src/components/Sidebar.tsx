@@ -1189,90 +1189,53 @@ export default function Sidebar({
             videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
           }
 
-          // Tentar buscar a transcrição existente (a API retorna do cache se existir)
-          const response = await fetch('/api/transcribe', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              videoId: videoId,
-              videoUrl: videoUrl,
-              playlistId: playlist.id,
-              videoTitle: currentMediaItem?.title,
-            }),
-          });
+          // Check rápido: buscar apenas no Drive (sem acionar pipeline pesado)
+          const response = await fetch(`/api/drive/auto-transcripts?videoId=${videoId}`);
+          const data = await response.json();
 
-          const data: TranscriptResponse = await response.json();
-
-          // Se a transcrição existe (cache hit), carregar automaticamente
-          if (response.ok && data.success && data.cached) {
-            // Verificar se vem do Drive
-            const dataWithDrive = data as TranscriptResponse & { 
-              fromDrive?: boolean; 
-              transcriptUrl?: string;
+          if (response.ok && data.success && data.found && data.transcript) {
+            const transcript = data.transcript as {
+              transcriptArray?: Array<{ text: string; offset: number; duration?: number }>;
+              webViewLink?: string;
               driveFileId?: string;
+              lang?: string;
             };
-            if (dataWithDrive.fromDrive && dataWithDrive.transcriptUrl) {
-              setTranscriptUrl(dataWithDrive.transcriptUrl);
-              const fileId = dataWithDrive.driveFileId || extractFileIdFromUrl(dataWithDrive.transcriptUrl);
-              if (fileId) {
-                setDriveFileId(fileId);
-              }
-              // SEMPRE usar transcriptArray do Drive se disponível (padronização)
-              if (data.transcriptArray && data.transcriptArray.length > 0) {
-                console.log('[Sidebar] ✅ transcriptArray encontrado do Drive, populando estado...');
-                setTranscriptArray(data.transcriptArray);
-                setTranscriptLang(data.lang || null);
-                // Gerar formattedContent a partir do transcriptArray
-                const formatted = data.transcriptArray.map(item => {
+
+            if (transcript.webViewLink) {
+              setTranscriptUrl(transcript.webViewLink);
+              const fileId = transcript.driveFileId || extractFileIdFromUrl(transcript.webViewLink);
+              if (fileId) setDriveFileId(fileId);
+            }
+
+            if (transcript.transcriptArray && transcript.transcriptArray.length > 0) {
+              setTranscriptArray(transcript.transcriptArray);
+              setTranscriptLang(transcript.lang || null);
+              const formatted = transcript.transcriptArray
+                .map(item => {
                   const text = item.text || '';
                   if (!text || text.trim().length === 0) return '';
                   const timeStr = formatTimeForDisplay(item.offset || 0);
                   return `[${timeStr}] ${text.trim()}`;
-                }).filter(Boolean).join('\n');
-                setFormattedContent(formatted);
-                setIsLoadingTranscript(false); // Parar carregamento
-              } else {
-                // Se não tiver transcriptArray no JSON, limpar estados e permitir gerar nova transcrição
-                console.log('[Sidebar] ⚠️ transcriptArray não encontrado no JSON do Drive. Será necessário gerar nova transcrição.');
-                setTranscriptArray(null);
-                setTranscriptContent(null);
-                setFormattedContent(null);
-                setTranscriptUrl(null);
-                setDriveFileId(null);
-                setIsLoadingTranscript(false); // Parar carregamento
-              }
+                })
+                .filter(Boolean)
+                .join('\n');
+              setFormattedContent(formatted);
             } else {
-              // Se vier do cache local ou outra fonte, só usar se tiver transcriptArray
-              if (data.transcriptArray && data.transcriptArray.length > 0) {
-                setTranscriptArray(data.transcriptArray);
-                setTranscriptLang(data.lang || null);
-                setTranscriptUrl(data.transcriptUrl || null);
-                // Gerar formattedContent a partir do transcriptArray
-                const formatted = data.transcriptArray.map(item => {
-                  const text = item.text || '';
-                  if (!text || text.trim().length === 0) return '';
-                  const timeStr = formatTimeForDisplay(item.offset || 0);
-                  return `[${timeStr}] ${text.trim()}`;
-                }).filter(Boolean).join('\n');
-                setFormattedContent(formatted);
-                setIsLoadingTranscript(false); // Parar carregamento
-              } else {
-                // Se não tiver transcriptArray, limpar estados
-                console.log('[Sidebar] ⚠️ transcriptArray não disponível. Será necessário gerar nova transcrição.');
-                setTranscriptArray(null);
-                setTranscriptContent(null);
-                setFormattedContent(null);
-                setTranscriptUrl(null);
-                setDriveFileId(null);
-                setIsLoadingTranscript(false); // Parar carregamento
-              }
+              // Encontrou arquivo, mas sem transcriptArray estruturado
+              setTranscriptArray(null);
+              setTranscriptContent(null);
+              setFormattedContent(null);
             }
           } else {
-            // Não encontrou transcrição
-            setIsLoadingTranscript(false); // Parar carregamento
+            // Não encontrou transcrição pré-existente no Drive
+            setTranscriptArray(null);
+            setTranscriptContent(null);
+            setFormattedContent(null);
+            setTranscriptUrl(null);
+            setDriveFileId(null);
           }
+
+          setIsLoadingTranscript(false); // sempre encerrar loading
         } catch {
           // Silenciosamente ignorar erros - a transcrição simplesmente não existe ainda
           console.log('[Sidebar] Transcrição não encontrada, será necessário gerar');

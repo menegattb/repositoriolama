@@ -31,10 +31,23 @@ interface TranscriptJsonData {
   version?: string;
 }
 
+// Caches em memória para reduzir latência de busca no Drive
+const FILES_CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
+const LOOKUP_CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
+
+let cachedDocxFiles: { files: DriveFile[]; timestamp: number } | null = null;
+let cachedJsonFiles: { files: DriveFile[]; timestamp: number } | null = null;
+const transcriptLookupCache = new Map<string, { timestamp: number; result: { docxFile: DriveFile | null; jsonData: TranscriptJsonData | null } }>();
+
 /**
  * Busca arquivos do Google Drive usando a API v3
  */
 async function fetchDriveFiles(folderId: string, apiKey?: string): Promise<DriveFile[]> {
+  const now = Date.now();
+  if (cachedDocxFiles && now - cachedDocxFiles.timestamp < FILES_CACHE_TTL_MS) {
+    return cachedDocxFiles.files;
+  }
+
   // Buscar arquivos DOCX (transcrições automáticas)
   const query = `'${folderId}' in parents and (mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document' or mimeType='application/msword') and trashed=false`;
   const fields = 'files(id,name,createdTime,modifiedTime,webViewLink,webContentLink)';
@@ -78,6 +91,7 @@ async function fetchDriveFiles(folderId: string, apiKey?: string): Promise<Drive
     nextPageToken = data.nextPageToken;
   } while (nextPageToken);
 
+  cachedDocxFiles = { files: allFiles, timestamp: now };
   return allFiles;
 }
 
@@ -85,6 +99,11 @@ async function fetchDriveFiles(folderId: string, apiKey?: string): Promise<Drive
  * Busca arquivos JSON no Google Drive
  */
 async function fetchJsonFiles(folderId: string, apiKey?: string): Promise<DriveFile[]> {
+  const now = Date.now();
+  if (cachedJsonFiles && now - cachedJsonFiles.timestamp < FILES_CACHE_TTL_MS) {
+    return cachedJsonFiles.files;
+  }
+
   const query = `'${folderId}' in parents and mimeType='application/json' and trashed=false`;
   const fields = 'files(id,name,createdTime,modifiedTime,webViewLink,webContentLink)';
   
@@ -122,6 +141,7 @@ async function fetchJsonFiles(folderId: string, apiKey?: string): Promise<DriveF
     nextPageToken = data.nextPageToken;
   } while (nextPageToken);
 
+  cachedJsonFiles = { files: allFiles, timestamp: now };
   return allFiles;
 }
 
@@ -162,6 +182,13 @@ async function fetchJsonContent(fileId: string, apiKey?: string): Promise<Transc
  * Tenta encontrar arquivo que contenha o videoId no nome
  */
 async function findTranscriptByVideoId(videoId: string, apiKey?: string): Promise<{ docxFile: DriveFile | null; jsonData: TranscriptJsonData | null }> {
+  const now = Date.now();
+  const cacheKey = videoId.toLowerCase().trim();
+  const cached = transcriptLookupCache.get(cacheKey);
+  if (cached && now - cached.timestamp < LOOKUP_CACHE_TTL_MS) {
+    return cached.result;
+  }
+
   console.log(`[Drive Auto-Transcripts API] 🔍 Buscando transcrição para videoId: ${videoId}`);
   
   const allFiles = await fetchDriveFiles(DRIVE_FOLDER_ID, apiKey);
@@ -192,7 +219,9 @@ async function findTranscriptByVideoId(videoId: string, apiKey?: string): Promis
   if (!matchingDocxFile) {
     console.log(`[Drive Auto-Transcripts API] ❌ Nenhum DOCX encontrado para videoId: ${videoId}`);
     console.log(`[Drive Auto-Transcripts API] 📋 Arquivos disponíveis:`, allFiles.map(f => f.name));
-    return { docxFile: null, jsonData: null };
+    const notFoundResult = { docxFile: null, jsonData: null };
+    transcriptLookupCache.set(cacheKey, { timestamp: now, result: notFoundResult });
+    return notFoundResult;
   }
 
   // Buscar JSON correspondente
@@ -227,7 +256,9 @@ async function findTranscriptByVideoId(videoId: string, apiKey?: string): Promis
     }
   }
 
-  return { docxFile: matchingDocxFile, jsonData };
+  const foundResult = { docxFile: matchingDocxFile, jsonData };
+  transcriptLookupCache.set(cacheKey, { timestamp: now, result: foundResult });
+  return foundResult;
 }
 
 /**

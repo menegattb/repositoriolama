@@ -6,6 +6,8 @@ import { Document, Packer, Paragraph, TextRun, ExternalHyperlink } from 'docx';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 
+const SUPADATA_TIMEOUT_MS = 180000; // 3 minutos para vídeos longos
+
 /**
  * Função para fazer upload do arquivo de transcrição para o Hostinger via API HTTP
  */
@@ -1047,9 +1049,9 @@ export async function POST(request: NextRequest) {
     const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 2): Promise<Response> => {
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-          // Criar AbortController para timeout de 60 segundos
+          // Criar AbortController para timeout de 3 minutos
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 60000);
+          const timeoutId = setTimeout(() => controller.abort(), SUPADATA_TIMEOUT_MS);
           
           const response = await fetch(url, {
             ...options,
@@ -1060,7 +1062,13 @@ export async function POST(request: NextRequest) {
           return response;
         } catch (error) {
           if (error instanceof Error && error.name === 'AbortError') {
-            throw new Error('Timeout: A requisição demorou mais de 60 segundos. O vídeo pode ser muito longo ou o serviço está lento.');
+            if (attempt < maxRetries) {
+              const retryDelay = (attempt + 1) * 2000;
+              console.warn(`[Supadata API] Timeout na tentativa ${attempt + 1}. Tentando novamente em ${retryDelay}ms...`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+              continue;
+            }
+            throw new Error('Timeout: A requisição demorou mais de 3 minutos. O vídeo pode ser muito longo ou o serviço está lento. Tente novamente em alguns instantes.');
           }
           
           if (attempt === maxRetries) {

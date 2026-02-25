@@ -25,8 +25,8 @@ export default function Header() {
 
           {/* Desktop Navigation - Centralizado */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-primary-charcoal hover:text-primary-blue transition-colors font-medium">
-              Repositório Ação Paramita
+            <Link href="/playlists" className="text-primary-charcoal hover:text-primary-blue transition-colors font-medium">
+              Repositório
             </Link>
             <Link href="/playlists" className="text-primary-charcoal hover:text-primary-blue transition-colors font-medium">
               Ensinamentos
@@ -58,11 +58,11 @@ export default function Header() {
           <div className="md:hidden border-t border-gray-200 py-4">
             <nav className="flex flex-col space-y-4">
               <Link 
-                href="/" 
+                href="/playlists" 
                 className="text-primary-charcoal hover:text-primary-blue transition-colors font-medium py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Repositório Ação Paramita
+                Repositório
               </Link>
               <Link 
                 href="/playlists" 
