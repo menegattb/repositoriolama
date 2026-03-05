@@ -321,15 +321,19 @@ export default function Sidebar({
       return false;
     }
 
-    // Verificar se o ID é um videoId válido do YouTube (11 caracteres, sem hífen/underscore)
+    // Verificar se o ID é um videoId válido do YouTube (11 caracteres base64url)
     const isValidYouTubeVideoId = currentMediaItem.id && 
       currentMediaItem.id.length === 11 && 
-      !currentMediaItem.id.includes('-') && 
-      !currentMediaItem.id.includes('_') &&
       /^[a-zA-Z0-9_-]{11}$/.test(currentMediaItem.id);
 
     // Se já tem ID válido, pode transcrever
     if (isValidYouTubeVideoId) {
+      return true;
+    }
+
+    // Tentar extrair da URL do item selecionado (watch, youtu.be, live, shorts)
+    const extractedVideoId = extractVideoIdFromUrl(currentMediaItem.media_url || '');
+    if (extractedVideoId && /^[a-zA-Z0-9_-]{11}$/.test(extractedVideoId)) {
       return true;
     }
 
@@ -341,16 +345,15 @@ export default function Sidebar({
       const hasRealVideos = playlist.items?.some(v => 
         v.id && 
         v.id.length === 11 && 
-        !v.id.includes('-') && 
-        !v.id.includes('_') &&
         /^[a-zA-Z0-9_-]{11}$/.test(v.id)
       ) || false;
 
       return hasRealVideos;
     }
 
-    // Se não é mock nem válido, não pode transcrever
-    return false;
+    // Permitir tentativa quando a mídia é do YouTube, mesmo sem resolução prévia do ID.
+    // O handleTranscribe ainda valida e tenta resolver automaticamente.
+    return /youtu\.be|youtube\.com/.test(currentMediaItem.media_url || '');
   };
 
   const getTranscribeButtonMessage = (): string => {
@@ -360,11 +363,14 @@ export default function Sidebar({
 
     const isValidYouTubeVideoId = currentMediaItem.id && 
       currentMediaItem.id.length === 11 && 
-      !currentMediaItem.id.includes('-') && 
-      !currentMediaItem.id.includes('_') &&
       /^[a-zA-Z0-9_-]{11}$/.test(currentMediaItem.id);
 
     if (isValidYouTubeVideoId) {
+      return `Gerar transcrição automática para: "${currentMediaItem.title}"`;
+    }
+
+    const extractedVideoId = extractVideoIdFromUrl(currentMediaItem.media_url || '');
+    if (extractedVideoId && /^[a-zA-Z0-9_-]{11}$/.test(extractedVideoId)) {
       return `Gerar transcrição automática para: "${currentMediaItem.title}"`;
     }
 
@@ -374,13 +380,11 @@ export default function Sidebar({
       const hasRealVideos = playlist.items?.some(v => 
         v.id && 
         v.id.length === 11 && 
-        !v.id.includes('-') && 
-        !v.id.includes('_') &&
         /^[a-zA-Z0-9_-]{11}$/.test(v.id)
       ) || false;
 
       if (!hasRealVideos) {
-        return 'Aguardando vídeos serem carregados da API do YouTube...';
+        return 'Identificando vídeo automaticamente para transcrever...';
       }
     }
 
@@ -401,8 +405,6 @@ export default function Sidebar({
       const realVideos = playlist.items?.filter(v => 
         v.id && 
         v.id.length === 11 && 
-        !v.id.includes('-') && 
-        !v.id.includes('_') &&
         /^[a-zA-Z0-9_-]{11}$/.test(v.id)
       ) || [];
       
@@ -502,7 +504,6 @@ export default function Sidebar({
           const realVideos = playlist.items?.filter(v => 
             v.id && 
             v.id.length === 11 && 
-            !v.id.includes('-') && 
             /^[a-zA-Z0-9_-]{11}$/.test(v.id)
           ) || [];
           
@@ -575,11 +576,9 @@ export default function Sidebar({
         }
       }
 
-      // Verificar se o ID já é um videoId válido do YouTube (11 caracteres, sem hífen/underscore)
+      // Verificar se o ID já é um videoId válido do YouTube (11 caracteres base64url)
       const isValidYouTubeVideoId = videoId && 
         videoId.length === 11 && 
-        !videoId.includes('-') && 
-        !videoId.includes('_') &&
         /^[a-zA-Z0-9_-]{11}$/.test(videoId);
 
       if (isValidYouTubeVideoId) {
@@ -621,14 +620,12 @@ export default function Sidebar({
                 title: candidateVideo.title,
                 isValid: candidateVideo.id && 
                   candidateVideo.id.length === 11 && 
-                  !candidateVideo.id.includes('-') && 
                   /^[a-zA-Z0-9_-]{11}$/.test(candidateVideo.id)
               });
               
               // Verificar se é um videoId válido
               if (candidateVideo.id && 
                   candidateVideo.id.length === 11 && 
-                  !candidateVideo.id.includes('-') && 
                   /^[a-zA-Z0-9_-]{11}$/.test(candidateVideo.id)) {
                 realVideo = candidateVideo;
               }
@@ -639,7 +636,6 @@ export default function Sidebar({
               const realVideosInPlaylist = playlist.items.filter(v => 
                 v.id && 
                 v.id.length === 11 && 
-                !v.id.includes('-') && 
                 /^[a-zA-Z0-9_-]{11}$/.test(v.id)
               );
               
@@ -660,7 +656,6 @@ export default function Sidebar({
                 v.title === currentMediaItem.title &&
                 v.id && 
                 v.id.length === 11 && 
-                !v.id.includes('-') && 
                 /^[a-zA-Z0-9_-]{11}$/.test(v.id)
               );
               
@@ -707,7 +702,6 @@ export default function Sidebar({
                   const realVideosAfterWait = playlist.items?.filter(v => 
                     v.id && 
                     v.id.length === 11 && 
-                    !v.id.includes('-') && 
                     /^[a-zA-Z0-9_-]{11}$/.test(v.id)
                   ) || [];
                   
@@ -1142,7 +1136,6 @@ export default function Sidebar({
           // Verificar se o ID já é um videoId válido do YouTube (11 caracteres)
           const isValidYouTubeVideoId = videoId && 
             videoId.length === 11 && 
-            !videoId.includes('-') && 
             /^[a-zA-Z0-9_-]{11}$/.test(videoId);
 
           if (isValidYouTubeVideoId) {
@@ -1729,7 +1722,7 @@ export default function Sidebar({
                   onClick={handleTranscribe}
                   disabled={isTranscribing || !canTranscribe()}
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={!canTranscribe() ? 'Aguarde os vídeos serem carregados' : undefined}
+                  title={!canTranscribe() ? 'Selecione um vídeo válido para transcrever' : undefined}
                 >
                   {isTranscribing ? (
                     <>
@@ -1749,7 +1742,7 @@ export default function Sidebar({
                     onClick={handleTranscribe}
                     disabled={isTranscribing || !canTranscribe()}
                     className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    title={!canTranscribe() ? 'Aguarde os vídeos serem carregados' : undefined}
+                    title={!canTranscribe() ? 'Selecione um vídeo válido para transcrever' : undefined}
                   >
                     Tentar novamente
                   </button>
