@@ -703,10 +703,16 @@ export async function POST(request: NextRequest) {
     let finalVideoId = videoId;
     let finalVideoUrl = videoUrl;
 
-    // Se o videoId contém hífen (formato playlist-id), extrair o videoId real
-    if (finalVideoId && finalVideoId.includes('-')) {
-      const parts = finalVideoId.split('-');
-      finalVideoId = parts[parts.length - 1]; // Pegar a última parte que é o videoId
+    // Se for ID mock no formato "playlistId-numero" (ex.: PL...-7), extrair somente a parte final
+    // IMPORTANTE: videoIds reais do YouTube podem conter '-' e '_' e NÃO devem ser quebrados.
+    if (finalVideoId) {
+      const isValidYouTubeVideoId = /^[a-zA-Z0-9_-]{11}$/.test(finalVideoId);
+      const isMockPlaylistItemId = /-\d+$/.test(finalVideoId);
+
+      if (!isValidYouTubeVideoId && isMockPlaylistItemId) {
+        const parts = finalVideoId.split('-');
+        finalVideoId = parts[parts.length - 1];
+      }
     }
 
     // Se não tiver videoId mas tiver URL, tentar extrair da URL
