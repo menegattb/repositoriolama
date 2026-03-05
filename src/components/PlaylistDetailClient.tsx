@@ -147,7 +147,7 @@ export default function PlaylistDetailClient({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back to Playlists */}
         <div className="mb-6 flex justify-between items-center">
-          <button onClick={() => router.back()} className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors font-medium">
+          <button onClick={() => router.push('/playlists')} className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors font-medium">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Voltar às Playlists
           </button>

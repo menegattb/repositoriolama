@@ -1409,8 +1409,7 @@ export async function POST(request: NextRequest) {
     };
 
     const parseTimedArray = (items: unknown[]): TranscriptItem[] => {
-      return items
-        .map((item, index) => {
+      const parsed = items.map<TranscriptItem | null>((item, index) => {
           if (!item || typeof item !== 'object') return null;
           const typed = item as Record<string, unknown>;
           const textValue = (typed.text || typed.content || typed.caption || typed.value || '').toString().trim();
@@ -1436,9 +1435,10 @@ export async function POST(request: NextRequest) {
             text: textValue,
             offset: offset || index * 1000,
             duration,
-          } satisfies TranscriptItem;
-        })
-        .filter((item): item is TranscriptItem => Boolean(item));
+          };
+        });
+
+      return parsed.filter((item): item is TranscriptItem => item !== null);
     };
 
     const parseTextToArray = (text: string): TranscriptItem[] => {

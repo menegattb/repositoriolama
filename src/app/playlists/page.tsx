@@ -209,32 +209,52 @@ export default function PlaylistsPage() {
   const sangaYears = audioFolders.filter(f => f.source === 'sanga' && f.year).map(f => f.year!);
   const availableYears = [...new Set([...playlistYears, ...videoYears, ...sangaYears])].sort((a, b) => b.localeCompare(a));
 
-  const filteredPlaylists = playlists.filter(playlist => {
-    // Não mostrar playlists quando filtro standalone está ativo
-    if (contentFilter === 'standalone') {
-      return false;
-    }
-    
-    const matchesSearch = playlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         playlist.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         playlist.metadata.location.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesYear = !filterYear || playlist.metadata.year === filterYear;
-    const hasTranscriptContent = playlist.metadata.hasTranscription === true;
-    
-    // Detectar se é em inglês baseado no título
-    const isEnglishContent = playlist.title.toLowerCase().includes('english') ||
-                            playlist.title.toLowerCase().includes('inglês') ||
-                            playlist.title.toLowerCase().includes('english teachings') ||
-                            playlist.title.toLowerCase().includes('teachings in english');
-    
-    const matchesContent =
-      contentFilter === '' ||
-      (contentFilter === 'audio' ? playlistIdsWithAudio.has(playlist.id) : 
-       contentFilter === 'english' ? isEnglishContent : hasTranscriptContent);
+  const filteredPlaylists = useMemo(() => {
+    const filtered = playlists.filter(playlist => {
+      // Não mostrar playlists quando filtro standalone está ativo
+      if (contentFilter === 'standalone') {
+        return false;
+      }
+      
+      const matchesSearch = playlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           playlist.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           playlist.metadata.location.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesYear = !filterYear || playlist.metadata.year === filterYear;
+      const hasTranscriptContent = playlist.metadata.hasTranscription === true;
+      
+      // Detectar se é em inglês baseado no título
+      const isEnglishContent = playlist.title.toLowerCase().includes('english') ||
+                              playlist.title.toLowerCase().includes('inglês') ||
+                              playlist.title.toLowerCase().includes('english teachings') ||
+                              playlist.title.toLowerCase().includes('teachings in english');
+      
+      const matchesContent =
+        contentFilter === '' ||
+        (contentFilter === 'audio' ? playlistIdsWithAudio.has(playlist.id) : 
+         contentFilter === 'english' ? isEnglishContent : hasTranscriptContent);
 
-    return matchesSearch && matchesYear && matchesContent;
-  });
+      return matchesSearch && matchesYear && matchesContent;
+    });
+
+    // Mostrar primeiro os conteúdos mais recentes na vitrine.
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.items?.[0]?.date || `${a.metadata.year}-01-01`).getTime();
+      const dateB = new Date(b.items?.[0]?.date || `${b.metadata.year}-01-01`).getTime();
+
+      if (dateA !== dateB) {
+        return dateB - dateA;
+      }
+
+      if (a.metadata.total_talks !== b.metadata.total_talks) {
+        return b.metadata.total_talks - a.metadata.total_talks;
+      }
+
+      return a.title.localeCompare(b.title);
+    });
+
+    return filtered;
+  }, [playlists, contentFilter, searchTerm, filterYear, playlistIdsWithAudio]);
 
   // Pastas Sanga filtradas por busca e ano, ordenadas por nome (ano primeiro)
   const filteredSangaFolders = useMemo(() => {
