@@ -1397,96 +1397,156 @@ export async function POST(request: NextRequest) {
       }).filter(Boolean).join('\n');
     };
     
-    // Verificar se a resposta contém conteúdo
-    // A API Supadata retorna 'content' como array de objetos com {text, duration, offset, lang}
+    // Verificar se a resposta contém conteúdo (aceitando múltiplos formatos da Supadata)
     let transcriptContent: string = '';
     let transcriptArray: TranscriptItem[] = [];
-    
-    // Processar diferentes formatos de resposta
-    if (Array.isArray(result.content) && result.content.length > 0) {
-      // Formato: content é um array de objetos (formato padrão da Supadata)
-      transcriptArray = result.content;
-      // Converter para formato SRT usando os offsets e durations
-      transcriptContent = convertToSRT(transcriptArray);
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Convertido ${transcriptArray.length} itens para SRT, tamanho: ${transcriptContent.length} caracteres`);
-      }
-    } else if (result.content && typeof result.content === 'string') {
-      const contentStr = result.content;
-      if (contentStr.trim().length > 0) {
-        // Formato: content é uma string
-        transcriptContent = contentStr;
-        // Converter string para array básico para permitir upload do Drive
-        // Dividir por linhas e criar objetos com offset aproximado
-        const lines = contentStr.split('\n').filter(line => line.trim().length > 0);
-        transcriptArray = lines.map((line, index) => {
-          // Tentar extrair timestamp se existir (formato [HH:MM:SS] ou similar)
-          const timestampMatch = line.match(/\[(\d{2}):(\d{2}):(\d{2})\]/);
-          let offset = index * 1000; // Aproximação: 1 segundo por linha
-          
-          if (timestampMatch) {
-            const hours = parseInt(timestampMatch[1], 10);
-            const minutes = parseInt(timestampMatch[2], 10);
-            const seconds = parseInt(timestampMatch[3], 10);
-            offset = (hours * 3600 + minutes * 60 + seconds) * 1000;
-            // Remover timestamp do texto
-            line = line.replace(/\[\d{2}:\d{2}:\d{2}\]\s*/, '').trim();
+
+    const asMilliseconds = (value: unknown): number => {
+      if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+      if (value <= 0) return 0;
+      // Alguns provedores retornam segundos (float/int baixo), outros já retornam ms.
+      return value < 1000 ? Math.round(value * 1000) : Math.round(value);
+    };
+
+    const parseTimedArray = (items: unknown[]): TranscriptItem[] => {
+      return items
+        .map((item, index) => {
+          if (!item || typeof item !== 'object') return null;
+          const typed = item as Record<string, unknown>;
+          const textValue = (typed.text || typed.content || typed.caption || typed.value || '').toString().trim();
+          if (!textValue) return null;
+
+          const rawOffset = typed.offset ?? typed.start ?? typed.startMs ?? typed.start_time ?? typed.startTime;
+          const rawDuration = typed.duration;
+          const rawEnd = typed.end ?? typed.endMs ?? typed.end_time ?? typed.endTime;
+
+          const offset = asMilliseconds(rawOffset);
+          let duration = asMilliseconds(rawDuration);
+
+          if ((!duration || duration <= 0) && typeof rawEnd === 'number') {
+            const end = asMilliseconds(rawEnd);
+            duration = Math.max(0, end - offset);
           }
-          
+
+          if (!duration || duration <= 0) {
+            duration = 1000;
+          }
+
           return {
-            text: line,
-            offset: offset,
-            duration: 1000 // Aproximação: 1 segundo por linha
-          };
-        });
+            text: textValue,
+            offset: offset || index * 1000,
+            duration,
+          } satisfies TranscriptItem;
+        })
+        .filter((item): item is TranscriptItem => Boolean(item));
+    };
+
+    const parseTextToArray = (text: string): TranscriptItem[] => {
+      const lines = text.split('\n').filter(line => line.trim().length > 0);
+      return lines.map((line, index) => {
+        const timestampMatch = line.match(/\[(\d{2}):(\d{2}):(\d{2})\]/);
+        let offset = index * 1000;
+        let cleanLine = line.trim();
+
+        if (timestampMatch) {
+          const hours = parseInt(timestampMatch[1], 10);
+          const minutes = parseInt(timestampMatch[2], 10);
+          const seconds = parseInt(timestampMatch[3], 10);
+          offset = (hours * 3600 + minutes * 60 + seconds) * 1000;
+          cleanLine = cleanLine.replace(/\[\d{2}:\d{2}:\d{2}\]\s*/, '').trim();
+        }
+
+        return {
+          text: cleanLine,
+          offset,
+          duration: 1000,
+        };
+      });
+    };
+
+    const extractTranscript = (payload: unknown): { content: string; array: TranscriptItem[] } => {
+      const data = payload as Record<string, unknown>;
+
+      const candidateArrays: unknown[] = [
+        data?.content,
+        data?.segments,
+        data?.items,
+        data?.captions,
+        data?.subtitles,
+        data?.results,
+        (data?.data as Record<string, unknown> | undefined)?.content,
+        (data?.data as Record<string, unknown> | undefined)?.segments,
+        (data?.data as Record<string, unknown> | undefined)?.items,
+      ];
+
+      for (const candidate of candidateArrays) {
+        if (Array.isArray(candidate) && candidate.length > 0) {
+          const parsedArray = parseTimedArray(candidate);
+          if (parsedArray.length > 0) {
+            return { content: convertToSRT(parsedArray), array: parsedArray };
+          }
+
+          // fallback para arrays de string
+          if (candidate.every(item => typeof item === 'string')) {
+            const asText = candidate.join('\n');
+            return { content: asText, array: parseTextToArray(asText) };
+          }
+        }
       }
-    } else if (typeof result.transcript === 'string' && result.transcript.trim().length > 0) {
-      transcriptContent = result.transcript;
-      // Converter string para array básico
-      const lines = result.transcript.split('\n').filter(line => line.trim().length > 0);
-      transcriptArray = lines.map((line, index) => ({
-        text: line,
-        offset: index * 1000,
-        duration: 1000
-      }));
-    } else if (typeof result.text === 'string' && result.text.trim().length > 0) {
-      transcriptContent = result.text;
-      // Converter string para array básico
-      const lines = result.text.split('\n').filter(line => line.trim().length > 0);
-      transcriptArray = lines.map((line, index) => ({
-        text: line,
-        offset: index * 1000,
-        duration: 1000
-      }));
-    } else if (typeof result.srt === 'string' && result.srt.trim().length > 0) {
-      transcriptContent = result.srt;
-      // Converter SRT para array básico (parsing simples)
-      const srtLines = result.srt.split('\n');
-      let currentOffset = 0;
-      transcriptArray = srtLines
-        .filter(line => line.trim().length > 0 && !line.match(/^\d+$/) && !line.includes('-->'))
-        .map((line, index) => {
-          currentOffset = index * 1000;
-          return {
-            text: line.trim(),
-            offset: currentOffset,
-            duration: 1000
-          };
+
+      const candidateStrings: unknown[] = [
+        data?.content,
+        data?.transcript,
+        data?.text,
+        data?.srt,
+        data?.data,
+        (data?.data as Record<string, unknown> | undefined)?.content,
+        (data?.data as Record<string, unknown> | undefined)?.transcript,
+        (data?.data as Record<string, unknown> | undefined)?.text,
+      ];
+
+      for (const candidate of candidateStrings) {
+        if (typeof candidate === 'string' && candidate.trim().length > 0) {
+          return { content: candidate, array: parseTextToArray(candidate) };
+        }
+      }
+
+      if (Array.isArray(payload) && payload.length > 0) {
+        const parsedArray = parseTimedArray(payload);
+        if (parsedArray.length > 0) {
+          return { content: convertToSRT(parsedArray), array: parsedArray };
+        }
+      }
+
+      return { content: '', array: [] };
+    };
+
+    ({ content: transcriptContent, array: transcriptArray } = extractTranscript(result));
+
+    // Fallback: segunda tentativa sem mode=auto para contornar respostas vazias ocasionais
+    if ((!transcriptContent || transcriptContent.trim().length === 0) && !forceRegenerate) {
+      try {
+        const fallbackUrl = `https://api.supadata.ai/v1/transcript?url=${encodeURIComponent(finalVideoUrl)}`;
+        console.warn('[Supadata API] Resposta vazia com mode=auto; tentando fallback sem mode...', {
+          videoId: finalVideoId,
+          fallbackUrl,
         });
-    } else if (result.data && typeof result.data === 'string' && result.data.trim().length > 0) {
-      transcriptContent = result.data;
-      // Converter string para array básico
-      const lines = result.data.split('\n').filter(line => line.trim().length > 0);
-      transcriptArray = lines.map((line, index) => ({
-        text: line,
-        offset: index * 1000,
-        duration: 1000
-      }));
-    } else if (Array.isArray(result) && result.length > 0) {
-      // Se result é um array diretamente
-      transcriptArray = result;
-      transcriptContent = convertToSRT(transcriptArray);
+
+        const fallbackResponse = await fetchWithRetry(fallbackUrl, {
+          method: 'GET',
+          headers: requestHeaders,
+        }, 1);
+
+        if (fallbackResponse.ok) {
+          const fallbackResult = await fallbackResponse.json();
+          const extracted = extractTranscript(fallbackResult);
+          transcriptContent = extracted.content;
+          transcriptArray = extracted.array;
+          result = fallbackResult;
+        }
+      } catch (fallbackError) {
+        console.warn('[Supadata API] Fallback sem mode falhou:', fallbackError);
+      }
     }
     
     // Garantir que transcriptArray tenha conteúdo se transcriptContent existir mas array estiver vazio
