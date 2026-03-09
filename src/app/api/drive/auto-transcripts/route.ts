@@ -1,265 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  fetchDriveDocxFiles,
+  findTranscriptByVideoId,
+} from '@/lib/driveAutoTranscripts';
 
 // Forçar modo dinâmico para sempre buscar dados atualizados do Google Drive
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-const DRIVE_FOLDER_ID = '1SKEAfJ8oC0dOq0LGxUt6UtxQXjuvykwg'; // Pasta de transcrições automáticas
-const GOOGLE_DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
-
-interface DriveFile {
-  id: string;
-  name: string;
-  createdTime?: string;
-  modifiedTime?: string;
-  webViewLink?: string;
-  webContentLink?: string;
-}
-
-interface DriveApiResponse {
-  files?: DriveFile[];
-  nextPageToken?: string;
-}
-
-interface TranscriptJsonData {
-  videoId?: string;
-  videoTitle?: string;
-  videoUrl?: string;
-  lang?: string;
-  transcriptArray?: Array<{ text?: string; content?: string; offset: number; duration?: number }>;
-  createdAt?: string;
-  version?: string;
-}
-
-// Caches em memória para reduzir latência de busca no Drive
-const FILES_CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
-const LOOKUP_CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
-
-let cachedDocxFiles: { files: DriveFile[]; timestamp: number } | null = null;
-let cachedJsonFiles: { files: DriveFile[]; timestamp: number } | null = null;
-const transcriptLookupCache = new Map<string, { timestamp: number; result: { docxFile: DriveFile | null; jsonData: TranscriptJsonData | null } }>();
-
-/**
- * Busca arquivos do Google Drive usando a API v3
- */
-async function fetchDriveFiles(folderId: string, apiKey?: string): Promise<DriveFile[]> {
-  const now = Date.now();
-  if (cachedDocxFiles && now - cachedDocxFiles.timestamp < FILES_CACHE_TTL_MS) {
-    return cachedDocxFiles.files;
-  }
-
-  // Buscar arquivos DOCX (transcrições automáticas)
-  const query = `'${folderId}' in parents and (mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document' or mimeType='application/msword') and trashed=false`;
-  const fields = 'files(id,name,createdTime,modifiedTime,webViewLink,webContentLink)';
-  
-  let url = `${GOOGLE_DRIVE_API_BASE}/files?q=${encodeURIComponent(query)}&fields=${fields}&orderBy=name&pageSize=1000`;
-  
-  if (apiKey) {
-    url += `&key=${apiKey}`;
-  }
-
-  const allFiles: DriveFile[] = [];
-  let nextPageToken: string | undefined;
-
-  do {
-    const currentUrl = nextPageToken ? `${url}&pageToken=${nextPageToken}` : url;
-    
-    const response = await fetch(currentUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Drive Auto-Transcripts API] Erro na resposta:', response.status, errorText);
-      
-      if (response.status === 403) {
-        throw new Error('Acesso negado à API do Google Drive. Verifique se a pasta é pública ou configure GOOGLE_DRIVE_API_KEY.');
-      }
-      
-      throw new Error(`Erro ao buscar arquivos do Drive: ${response.status} - ${errorText}`);
-    }
-
-    const data: DriveApiResponse = await response.json();
-    
-    if (data.files && Array.isArray(data.files)) {
-      allFiles.push(...data.files);
-    }
-
-    nextPageToken = data.nextPageToken;
-  } while (nextPageToken);
-
-  cachedDocxFiles = { files: allFiles, timestamp: now };
-  return allFiles;
-}
-
-/**
- * Busca arquivos JSON no Google Drive
- */
-async function fetchJsonFiles(folderId: string, apiKey?: string): Promise<DriveFile[]> {
-  const now = Date.now();
-  if (cachedJsonFiles && now - cachedJsonFiles.timestamp < FILES_CACHE_TTL_MS) {
-    return cachedJsonFiles.files;
-  }
-
-  const query = `'${folderId}' in parents and mimeType='application/json' and trashed=false`;
-  const fields = 'files(id,name,createdTime,modifiedTime,webViewLink,webContentLink)';
-  
-  let url = `${GOOGLE_DRIVE_API_BASE}/files?q=${encodeURIComponent(query)}&fields=${fields}&orderBy=name&pageSize=1000`;
-  
-  if (apiKey) {
-    url += `&key=${apiKey}`;
-  }
-
-  const allFiles: DriveFile[] = [];
-  let nextPageToken: string | undefined;
-
-  do {
-    const currentUrl = nextPageToken ? `${url}&pageToken=${nextPageToken}` : url;
-    
-    const response = await fetch(currentUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Drive Auto-Transcripts API] Erro ao buscar JSONs:', response.status, errorText);
-      break; // Não crítico, continuar sem JSONs
-    }
-
-    const data: DriveApiResponse = await response.json();
-    
-    if (data.files && Array.isArray(data.files)) {
-      allFiles.push(...data.files);
-    }
-
-    nextPageToken = data.nextPageToken;
-  } while (nextPageToken);
-
-  cachedJsonFiles = { files: allFiles, timestamp: now };
-  return allFiles;
-}
-
-/**
- * Busca e baixa conteúdo de um arquivo JSON do Drive
- */
-async function fetchJsonContent(fileId: string, apiKey?: string): Promise<TranscriptJsonData | null> {
-  try {
-    let url = `${GOOGLE_DRIVE_API_BASE}/files/${fileId}?alt=media`;
-    
-    if (apiKey) {
-      url += `&key=${apiKey}`;
-    }
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      console.warn(`[Drive Auto-Transcripts API] Erro ao baixar JSON ${fileId}:`, response.status);
-      return null;
-    }
-
-    const jsonData = await response.json();
-    return jsonData;
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.warn(`[Drive Auto-Transcripts API] Erro ao buscar conteúdo do JSON ${fileId}:`, errorMsg);
-    return null;
-  }
-}
-
-/**
- * Busca uma transcrição específica por videoId
- * Tenta encontrar arquivo que contenha o videoId no nome
- */
-async function findTranscriptByVideoId(videoId: string, apiKey?: string): Promise<{ docxFile: DriveFile | null; jsonData: TranscriptJsonData | null }> {
-  const now = Date.now();
-  const cacheKey = videoId.toLowerCase().trim();
-  const cached = transcriptLookupCache.get(cacheKey);
-  if (cached && now - cached.timestamp < LOOKUP_CACHE_TTL_MS) {
-    return cached.result;
-  }
-
-  console.log(`[Drive Auto-Transcripts API] 🔍 Buscando transcrição para videoId: ${videoId}`);
-  
-  const allFiles = await fetchDriveFiles(DRIVE_FOLDER_ID, apiKey);
-  console.log(`[Drive Auto-Transcripts API] 📁 Total de arquivos DOCX encontrados: ${allFiles.length}`);
-  
-  if (allFiles.length > 0) {
-    console.log(`[Drive Auto-Transcripts API] 📋 Primeiros arquivos encontrados:`, allFiles.slice(0, 3).map(f => f.name));
-  }
-  
-  // Normalizar videoId para busca (remover caracteres especiais)
-  const normalizedVideoId = videoId.toLowerCase().replace(/[^a-z0-9]/g, '');
-  console.log(`[Drive Auto-Transcripts API] 🔑 VideoId normalizado: "${normalizedVideoId}"`);
-  
-  // Buscar arquivo DOCX que contenha o videoId no nome
-  const matchingDocxFile = allFiles.find(file => {
-    const fileName = file.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const matches = fileName.includes(normalizedVideoId) || normalizedVideoId.includes(fileName.substring(0, 11));
-    
-    if (matches) {
-      console.log(`[Drive Auto-Transcripts API] ✅ DOCX encontrado: "${file.name}"`);
-      console.log(`[Drive Auto-Transcripts API]    Nome normalizado: "${fileName}"`);
-      console.log(`[Drive Auto-Transcripts API]    VideoId normalizado: "${normalizedVideoId}"`);
-    }
-    
-    return matches;
-  });
-  
-  if (!matchingDocxFile) {
-    console.log(`[Drive Auto-Transcripts API] ❌ Nenhum DOCX encontrado para videoId: ${videoId}`);
-    console.log(`[Drive Auto-Transcripts API] 📋 Arquivos disponíveis:`, allFiles.map(f => f.name));
-    const notFoundResult = { docxFile: null, jsonData: null };
-    transcriptLookupCache.set(cacheKey, { timestamp: now, result: notFoundResult });
-    return notFoundResult;
-  }
-
-  // Buscar JSON correspondente
-  console.log(`[Drive Auto-Transcripts API] 🔍 Buscando JSON correspondente...`);
-  const jsonFiles = await fetchJsonFiles(DRIVE_FOLDER_ID, apiKey);
-  console.log(`[Drive Auto-Transcripts API] 📁 Total de arquivos JSON encontrados: ${jsonFiles.length}`);
-  
-  const matchingJsonFile = jsonFiles.find(file => {
-    const fileName = file.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const matches = fileName.includes(normalizedVideoId) || normalizedVideoId.includes(fileName.substring(0, 11));
-    
-    if (matches) {
-      console.log(`[Drive Auto-Transcripts API] ✅ JSON encontrado: "${file.name}"`);
-    }
-    
-    return matches;
-  });
-
-  let jsonData = null;
-  if (matchingJsonFile) {
-    console.log(`[Drive Auto-Transcripts API] 📥 Baixando conteúdo do JSON: ${matchingJsonFile.id}`);
-    jsonData = await fetchJsonContent(matchingJsonFile.id, apiKey);
-    if (jsonData && jsonData.transcriptArray) {
-      console.log(`[Drive Auto-Transcripts API] ✅ JSON carregado com sucesso! ${jsonData.transcriptArray.length} itens no transcriptArray`);
-    } else {
-      console.warn(`[Drive Auto-Transcripts API] ⚠️ JSON carregado mas sem transcriptArray`);
-    }
-  } else {
-    console.log(`[Drive Auto-Transcripts API] ⚠️ JSON não encontrado para videoId: ${videoId}`);
-    if (jsonFiles.length > 0) {
-      console.log(`[Drive Auto-Transcripts API] 📋 JSONs disponíveis:`, jsonFiles.map(f => f.name));
-    }
-  }
-
-  const foundResult = { docxFile: matchingDocxFile, jsonData };
-  transcriptLookupCache.set(cacheKey, { timestamp: now, result: foundResult });
-  return foundResult;
-}
 
 /**
  * GET /api/drive/auto-transcripts
@@ -274,7 +21,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const videoId = searchParams.get('videoId');
     
-    console.log('[Drive Auto-Transcripts API] Buscando arquivos da pasta:', DRIVE_FOLDER_ID);
+    console.log('[Drive Auto-Transcripts API] Buscando arquivos da pasta de transcrições automáticas');
     console.log('[Drive Auto-Transcripts API] VideoId:', videoId || 'Nenhum (buscando todos)');
     
     // Se videoId fornecido, buscar transcrição específica
@@ -341,7 +88,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Buscar todos os arquivos
-    const driveFiles = await fetchDriveFiles(DRIVE_FOLDER_ID, apiKey);
+    const driveFiles = await fetchDriveDocxFiles(apiKey);
     
     console.log(`[Drive Auto-Transcripts API] ✅ ${driveFiles.length} arquivos encontrados`);
     

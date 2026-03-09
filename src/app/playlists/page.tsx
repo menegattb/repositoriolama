@@ -8,6 +8,7 @@ import PlaylistCard from '@/components/PlaylistCard';
 import AudioFolderCard from '@/components/AudioFolderCard';
 import VideoCard from '@/components/VideoCard';
 import SkeletonCard from '@/components/SkeletonCard';
+import AdvancedTranscriptSearchModal from '@/components/AdvancedTranscriptSearchModal';
 import { Search, Calendar, ChevronDown, FileText, Music, Loader2 } from 'lucide-react';
 
 // Interface para pastas de áudio do Drive
@@ -32,6 +33,7 @@ export default function PlaylistsPage() {
   const [audioSourceFilter, setAudioSourceFilter] = useState<'all' | 'sanga' | 'youtube'>('all');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [visibleCount, setVisibleCount] = useState(9);
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
   
   // Estados para áudios do Drive
   const [audioFolders, setAudioFolders] = useState<AudioFolder[]>([]);
@@ -350,6 +352,7 @@ export default function PlaylistsPage() {
   console.log('Renderizando - loading:', loading, 'playlists:', playlists.length, 'filtered:', filteredPlaylists.length);
 
   return (
+    <>
     <div className="min-h-screen bg-primary-lightGray py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -364,15 +367,24 @@ export default function PlaylistsPage() {
           {/* Search and Filters */}
           <div className="space-y-4">
             {/* Search */}
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Pesquisar ensinamentos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+            <div className="flex max-w-3xl gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Pesquisar ensinamentos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAdvancedSearchOpen(true)}
+                className="px-4 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors whitespace-nowrap"
+              >
+                Busca avançada
+              </button>
             </div>
 
             {/* Filters */}
@@ -710,5 +722,10 @@ export default function PlaylistsPage() {
         )}
       </div>
     </div>
+      <AdvancedTranscriptSearchModal
+        isOpen={isAdvancedSearchOpen}
+        onClose={() => setIsAdvancedSearchOpen(false)}
+      />
+    </>
   );
 }

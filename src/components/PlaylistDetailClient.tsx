@@ -21,6 +21,7 @@ export default function PlaylistDetailClient({
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabParam = searchParams.get('tab');
+  const targetVideoId = searchParams.get('videoId');
   const initialTab = (tabParam === 'audio' || tabParam === 'transcript') ? tabParam : 'playlist';
   
   // Inicializar currentMediaItem com initialMediaItem ou o primeiro item da playlist
@@ -69,6 +70,15 @@ export default function PlaylistDetailClient({
           console.log('[PlaylistDetailClient] ✅ Usando vídeos reais da API do YouTube');
           setPlaylistVideos(realVideos);
           
+          if (targetVideoId) {
+            const targetVideo = realVideos.find(v => v.id === targetVideoId);
+            if (targetVideo) {
+              setCurrentMediaItem(targetVideo);
+              setLoading(false);
+              return;
+            }
+          }
+
           // Sempre atualizar o currentMediaItem se ele tem ID mock ou não existe nos novos dados
           const currentItemHasMockId = currentMediaItem?.id.includes('-') && /^\d+$/.test(currentMediaItem.id.split('-').pop() || '');
           const currentItemExistsInRealVideos = currentMediaItem && realVideos.find(v => v.id === currentMediaItem.id);
@@ -98,6 +108,15 @@ export default function PlaylistDetailClient({
           console.log('[PlaylistDetailClient] ⚠️ Usando itens da playlist original');
           console.log('[PlaylistDetailClient] 📦 Itens da playlist:', playlist.items?.length || 0);
           setPlaylistVideos(playlist.items || []);
+
+          if (targetVideoId && playlist.items) {
+            const targetVideo = playlist.items.find(item => item.id === targetVideoId);
+            if (targetVideo) {
+              setCurrentMediaItem(targetVideo);
+              setLoading(false);
+              return;
+            }
+          }
           
           // Garantir que o primeiro item está selecionado (se ainda não tiver um)
           if (playlist.items && playlist.items.length > 0) {
@@ -123,7 +142,7 @@ export default function PlaylistDetailClient({
 
     fetchPlaylistVideos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playlist.id]);
+  }, [playlist.id, targetVideoId]);
 
   const handleMediaItemSelect = (item: MediaItem) => {
     console.log('Selected item:', item.title);

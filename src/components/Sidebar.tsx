@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Playlist, MediaItem, Transcript, TranscriptResponse } from '@/types';
 import { Search, Clock, Download, CheckCircle2, MessageCircle, Loader2, FileText, AlertCircle, RefreshCw, Music, FolderOpen } from 'lucide-react';
 import { extractFileIdFromUrl } from '@/lib/driveUtils';
@@ -27,6 +28,7 @@ export default function Sidebar({
   onMediaItemSelect,
   initialTab = 'playlist'
 }: SidebarProps) {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'playlist' | 'transcript' | 'audio'>(initialTab);
   const [searchTerm, setSearchTerm] = useState('');
   const [transcriptSearchTerm, setTranscriptSearchTerm] = useState('');
@@ -55,10 +57,26 @@ export default function Sidebar({
   const [driveAudioConfigured, setDriveAudioConfigured] = useState<boolean | null>(null);
   const [audioSearchTerm, setAudioSearchTerm] = useState('');
   const [videoTitlesCache, setVideoTitlesCache] = useState<Record<string, string>>({});
+  const [highlightedTranscriptOffset, setHighlightedTranscriptOffset] = useState<number | null>(null);
+  const transcriptGroupRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  const deepLinkSearchTerm = searchParams.get('q') || '';
+  const deepLinkOffset = (() => {
+    const value = searchParams.get('t');
+    if (!value) return null;
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  })();
 
   useEffect(() => {
     setPlaylistUrl(window.location.href);
   }, []);
+
+  useEffect(() => {
+    if (!deepLinkSearchTerm) return;
+    setActiveTab('transcript');
+    setTranscriptSearchTerm(deepLinkSearchTerm);
+  }, [deepLinkSearchTerm]);
 
   // Limpar requisições em andamento quando o vídeo mudar ou componente desmontar
   useEffect(() => {
@@ -1250,10 +1268,10 @@ export default function Sidebar({
   };
 
   // Função para agrupar segmentos de transcrição em intervalos maiores (a cada ~1 minuto)
-  const groupTranscriptSegments = (segments: Array<{ text: string; offset: number; duration?: number }>): Array<{ time: string; text: string }> => {
+  const groupTranscriptSegments = (segments: Array<{ text: string; offset: number; duration?: number }>): Array<{ time: string; text: string; offset: number }> => {
     if (!segments || segments.length === 0) return [];
     
-    const grouped: Array<{ time: string; text: string }> = [];
+    const grouped: Array<{ time: string; text: string; offset: number }> = [];
     const INTERVAL_MS = 60000; // 60 segundos (1 minuto) - intervalo para agrupar
     
     let currentGroup: { startTime: number; texts: string[] } | null = null;
@@ -1266,7 +1284,8 @@ export default function Sidebar({
         if (currentGroup && currentGroup.texts.length > 0) {
           grouped.push({
             time: formatTimeForDisplay(currentGroup.startTime),
-            text: currentGroup.texts.join(' ')
+            text: currentGroup.texts.join(' '),
+            offset: currentGroup.startTime,
           });
         }
         currentGroup = {
@@ -1285,7 +1304,8 @@ export default function Sidebar({
     if (currentGroup && currentGroup.texts.length > 0) {
       grouped.push({
         time: formatTimeForDisplay(currentGroup.startTime),
-        text: currentGroup.texts.join(' ')
+        text: currentGroup.texts.join(' '),
+        offset: currentGroup.startTime,
       });
     }
     
@@ -1322,6 +1342,33 @@ export default function Sidebar({
       group.text.toLowerCase().includes(searchLower)
     );
   };
+
+  const groupedTranscript = useMemo(() => getGroupedTranscript(), [transcriptArray, transcriptSearchTerm]);
+
+  useEffect(() => {
+    if (activeTab !== 'transcript') return;
+    if (deepLinkOffset === null) return;
+    if (!groupedTranscript.length) return;
+
+    let closestIndex = 0;
+    let smallestDistance = Number.MAX_SAFE_INTEGER;
+    groupedTranscript.forEach((group, index) => {
+      const distance = Math.abs(group.offset - deepLinkOffset);
+      if (distance < smallestDistance) {
+        smallestDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    setHighlightedTranscriptOffset(groupedTranscript[closestIndex].offset);
+
+    requestAnimationFrame(() => {
+      transcriptGroupRefs.current[closestIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+  }, [activeTab, deepLinkOffset, groupedTranscript]);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -1644,8 +1691,16 @@ export default function Sidebar({
                 {/* Transcrição formatada com timestamps agrupados */}
                 <div className="text-sm text-gray-900 max-h-[800px] overflow-y-auto bg-white p-4 rounded border leading-relaxed">
                   <div className="space-y-4">
-                    {getGroupedTranscript().map((group, index) => (
-                      <div key={index} className="flex gap-4">
+                    {groupedTranscript.map((group, index) => (
+                      <div
+                        key={index}
+                        ref={(el) => {
+                          transcriptGroupRefs.current[index] = el;
+                        }}
+                        className={`flex gap-4 rounded-md p-2 transition-colors ${
+                          highlightedTranscriptOffset === group.offset ? 'bg-yellow-50 border border-yellow-200' : ''
+                        }`}
+                      >
                         <div className="flex-shrink-0">
                           <span className="font-bold text-gray-700">{group.time}</span>
                         </div>
@@ -1656,7 +1711,7 @@ export default function Sidebar({
                         </div>
                       </div>
                     ))}
-                    {transcriptSearchTerm.trim() && getGroupedTranscript().length === 0 && (
+                    {transcriptSearchTerm.trim() && groupedTranscript.length === 0 && (
                       <p className="text-gray-500 text-center py-4">
                         Nenhum resultado encontrado para &quot;{transcriptSearchTerm}&quot;
                       </p>
